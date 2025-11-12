@@ -1,0 +1,104 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam classFontStyle Bold
+hide enum methods
+
+package model {
+    class Player {
+        - username : String
+        - isRobot : Boolean
+
+        + <<create>> Player(name : String)
+        + play(weapon : Weapon, x : Integer, y : Integer)
+        + receiveAttack(s : Square, weapon : Weapon)
+        + allBoatSinked() : Boolean
+        + reset()
+    }
+
+    enum Orientation <<enumeration>> {
+        VERTICAL
+        HORIZONTAL
+    }
+
+    class Boat implements Contents{
+        - name : String
+        - numberSquares : Integer
+        - position : Integer[*]
+
+        + <<create>> Boat(name : String, numberSquares : Integer)
+        + isSinked() : Boolean
+        + attacked(s : Square)
+        + setPosition(x : Integer, y : Integer)
+        + setOrientation(orientation : Orientation)
+        + getPosition() : Integer[*]
+    }
+
+    class Square {
+        - position : Integer[*]
+        - attacked : Boolean
+        - inIsland : Boolean
+
+        + <<create>> Square(x : Integer, y : Integer, island : Boolean)
+        + isEmpty() : Boolean
+        + attack(weapon : Weapon) : ResultAttack
+    }
+
+    class Grid {
+        - size : Integer
+
+        + <<create>> Grid(size : Integer, mode : ModeGame)
+        + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
+        + placeTrap(t : Trap, x : Integer, y : Integer)
+        + attack(x : Integer, y : Integer, weapon : Weapon) : ResultAttack
+        + reset()
+    }
+
+    class Island {
+        - position : Integer[*]
+        - size : Integer
+
+        + <<create>> Island(x : Integer, y : Integer, size : Integer, squares : Squares[*])
+        + contains(s : Square) : Boolean
+    }
+
+    enum ModeGame <<enumeration>>{
+        STANDARD
+        ISLAND
+    }
+
+    abstract class Weapon implements Contents {
+        - name : String
+        - numberUse : Integer
+
+        + getPosition() : Integer[*]
+    }
+
+    abstract class Trap implements Contents {
+        + getPosition() : Integer[*]
+    }
+
+    interface Contents <<interface>> {
+        + getPosition() : Integer[*]
+    }
+}
+
+package controller {
+
+}
+
+package views {
+
+}
+Player o-> "1\n- grid" Grid : > owns
+Player o-> "1..*\n- weapons" Weapon : > owns
+Player o-> "1..*\n- traps" Trap : > owns
+Player o-> "1..*\n- boats" Boat : > owns
+Boat o-> "1\n- orientation" Orientation : > is oriented
+Boat *-> "1..*\n- squaresTaken" Square : > takes
+Grid o-> "1..*\n- squares" Square : > contains
+Grid o-> "1\n- ile" Island : > contains
+Island *-> "1..*\n- squares" Square : > contains
+Square *-> "1\n- contents" Contents : > contains
+
+@enduml
