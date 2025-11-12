@@ -2,10 +2,8 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-public class VueJeu extends JFrame {
+public class GameView extends JFrame {
 
     private final int rows = 10;
     private final int cols = 10;
@@ -13,7 +11,7 @@ public class VueJeu extends JFrame {
     private JPanel[][] enemyGrid;
     private JTextArea logArea;
 
-    public VueJeu() {
+    public GameView() {
         setTitle("Bataille Navale - Partie");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(1100, 700);
@@ -25,16 +23,16 @@ public class VueJeu extends JFrame {
     private void initComponents() {
         setLayout(new BorderLayout());
 
-        // titre et btn en  haut
+        // title and buttons on the top
         JPanel top = new JPanel(new BorderLayout());
-        JLabel titre = new JLabel("PARTIE EN COURS", SwingConstants.CENTER);
-        titre.setFont(new Font("Arial", Font.BOLD, 22));
-        top.add(titre, BorderLayout.CENTER);
+        JLabel title = new JLabel("PARTIE EN COURS", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 22));
+        top.add(title, BorderLayout.CENTER);
 
         JPanel topRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnRetour = new JButton("Abandonner");
-        btnRetour.addActionListener(e -> retourMenu());
-        topRight.add(btnRetour);
+        JButton btnReturn = new JButton("Abandonner");
+        btnReturn.addActionListener(e -> retourMenu());
+        topRight.add(btnReturn);
         top.add(topRight, BorderLayout.EAST);
 
         add(top, BorderLayout.NORTH);
@@ -62,7 +60,7 @@ public class VueJeu extends JFrame {
         pnlPlayer.add(containerPlayerGrid, BorderLayout.CENTER);
         center.add(pnlPlayer);
 
-        // Grille adversaire (on doit pouvoir cliquer pour attaquer)
+        // adverse's grid
         JPanel pnlEnemy = new JPanel(new BorderLayout());
         pnlEnemy.setBorder(BorderFactory.createTitledBorder("Grille adversaire (cliquer pour attaquer)"));
         JPanel containerEnemyGrid = new JPanel(new GridLayout(rows, cols));
@@ -84,11 +82,11 @@ public class VueJeu extends JFrame {
 
         add(center, BorderLayout.CENTER);
 
-        // Bas
+        // bottom
         JPanel bottom = new JPanel(new BorderLayout());
         bottom.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // historique
+        // logs
         logArea = new JTextArea(6, 20);
         logArea.setEditable(false);
         JScrollPane scroll = new JScrollPane(logArea);
@@ -96,22 +94,22 @@ public class VueJeu extends JFrame {
         scroll.setPreferredSize(new Dimension(400, 150));
         bottom.add(scroll, BorderLayout.CENTER);
 
-        // Commandes
+        // commands
         JPanel commands = new JPanel();
         commands.setLayout(new BoxLayout(commands, BoxLayout.Y_AXIS));
         commands.setPreferredSize(new Dimension(300, 150));
 
-        JLabel lblArme = new JLabel("Arme :");
-        commands.add(lblArme);
+        JLabel lblWeapon = new JLabel("Arme :");
+        commands.add(lblWeapon);
 
-        JComboBox<String> cbArmes = new JComboBox(); // TO DO : remplir avec les armes dispos PAR RAPPORT AUX TRUCS
-        cbArmes.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        commands.add(cbArmes);
+        JComboBox<String> cbWeapon = new JComboBox(); // TO DO : remplir avec les armes dispos PAR RAPPORT AUX TRUCS
+        cbWeapon.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        commands.add(cbWeapon);
 
-        JButton btnTerminerTour = new JButton("Terminer le tour");
-        btnTerminerTour.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnTerminerTour.addActionListener(e -> log("Tour terminé."));
-        commands.add(btnTerminerTour);
+        JButton btnEndTour = new JButton("Terminer le tour");
+        btnEndTour.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnEndTour.addActionListener(e -> log("Tour terminé."));
+        commands.add(btnEndTour);
 
         commands.add(Box.createVerticalGlue());
 
@@ -129,7 +127,7 @@ public class VueJeu extends JFrame {
     private void retourMenu() {
         int res = JOptionPane.showConfirmDialog(this, "Abandonner la partie et retourner au menu ?", "Confirmer", JOptionPane.YES_NO_OPTION);
         if (res == JOptionPane.YES_OPTION) {
-            VueMenu menu = new VueMenu();
+            MenuView menu = new MenuView();
             menu.setVisible(true);
             this.dispose();
         }
@@ -137,8 +135,8 @@ public class VueJeu extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            VueJeu jeu = new VueJeu();
-            jeu.setVisible(true);
+            GameView game = new GameView();
+            game.setVisible(true);
         });
     }
 }
