@@ -21,7 +21,13 @@ package model {
         HORIZONTAL
     }
 
-    class Boat implements Contents{
+    enum State <<enumeration>> {
+        INTACT
+        EMPTY
+        SEARCHED
+    }
+
+    class Boat implements Content{
         - name : String
         - numberSquares : Integer
         - position : Integer[*]
@@ -42,6 +48,7 @@ package model {
         + <<create>> Square(x : Integer, y : Integer, island : Boolean)
         + isEmpty() : Boolean
         + attack(weapon : Weapon) : ResultAttack
+        + getContent() : Content
     }
 
     class Grid {
@@ -67,19 +74,79 @@ package model {
         ISLAND
     }
 
-    abstract class Weapon implements Contents {
+    abstract class Weapon <<abstract>> implements Content {
         - name : String
+        - position : Integer[*]
+
+        + <<create>> Weapon(name : String)
+        + {abstract} use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+        + getPosition() : Integer[*]
+    }
+
+    class Missile extends Weapon {
+        + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+    }
+
+    class Bomb extends Weapon {
+        + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+    }
+
+    class Sonar extends Weapon {
+        + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+    }
+
+    abstract class Trap <<abstract>> implements Content {
+        - name : String
+        - isActive : Boolean
+
+        + <<create>> Trap(name : String)
+        + getPosition() : Integer[*]
+        + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
+    }
+
+    class BlackHole extends Trap {
+        + <<create>> BlackHole(name : String)
+        + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
+    }
+
+    class Tornado extends Trap {
         - numberUse : Integer
 
+        + <<create>> Tornado(name : String, numberUse : Integer)
+        + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
+    }
+
+    interface Content <<interface>> {
         + getPosition() : Integer[*]
     }
 
-    abstract class Trap implements Contents {
-        + getPosition() : Integer[*]
+    class History {
+        + <<create>> History()
+        + addAction(action : Action)
+        + getLast() : Action
+        + reset()
     }
 
-    interface Contents <<interface>> {
-        + getPosition() : Integer[*]
+    class Action {
+        - round : Integer
+        - position : Integer[*]
+
+        + <<create>> Action(round : Integer, x : Integer, y : Integer, player : Player, weapon : Weapon, result : ResultAttack)
+    }
+
+    class ResultAttack {
+        - message : String
+
+        + <<create>> ResultAttack(type : TypeResult, message : String)
+    }
+
+    enum TypeResult <<enumeration>> {
+        FAILURE
+        ATTACKED
+        SINKED
+        ISLAND
+        TRAP
+        SONAR_INFO
     }
 }
 
@@ -90,6 +157,7 @@ package controller {
 package views {
 
 }
+
 Player o-> "1\n- grid" Grid : > owns
 Player o-> "1..*\n- weapons" Weapon : > owns
 Player o-> "1..*\n- traps" Trap : > owns
@@ -99,6 +167,12 @@ Boat *-> "1..*\n- squaresTaken" Square : > takes
 Grid o-> "1..*\n- squares" Square : > contains
 Grid o-> "1\n- ile" Island : > contains
 Island *-> "1..*\n- squares" Square : > contains
-Square *-> "1\n- contents" Contents : > contains
+Square *-> "1\n- content" Content : > contains
+Square o-> "1\n- islandState" State : > is
+History o-> "1\n- actions" Action : > has
+Action *-> "1\n- player" Player
+Action *-> "1\n- weapon" Weapon : > done with
+Action o-> "1\n- result" ResultAttack : > results
+ResultAttack o-> "1\n- type" TypeResult : > is
 
 @enduml
