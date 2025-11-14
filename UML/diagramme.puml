@@ -155,7 +155,52 @@ package controller {
 }
 
 package views {
+    class MenuView {
+        + <<create>> MenuView()
+        - initComponents()
+        - ouvrirConfiguration()
+    }
 
+    class ConfigurationView {
+        - cboGameMod : JComboBox<String>
+        - cboGridSize : JComboBox<String>
+
+        + <<create>> ConfigurationView()
+        - initComponents()
+        - ouvrirVuePlacement()
+    }
+
+    class PlacementView {
+        - gridPnl : JPanel
+        - rows : Integer = 10
+        - cols : Integer = 10
+        - square : JPanel[*]
+
+        + <<create>> PlacementView()
+        - initComponents()
+        - openGameView()
+        - revenirMenu()
+    }
+
+    class GameView {
+        - rows : Integer = 10
+        - cols : Integer = 10
+        - playerGrid : JPanel[*]
+        - enemyGrid : JPanel[*]
+        - logArea : JTextArea
+
+        + <<create>> GameView()
+        - initComponents()
+        - log(texte : String)
+        - retourMenu()
+    }
+
+    class EndView {
+        - messageLabel : JLabel
+
+        + <<create>> EndView(message : String)
+        - initComponents(message : String)
+    }
 }
 
 Player o-> "1\n- grid" Grid : > owns
@@ -174,5 +219,15 @@ Action *-> "1\n- player" Player
 Action *-> "1\n- weapon" Weapon : > done with
 Action o-> "1\n- result" ResultAttack : > results
 ResultAttack o-> "1\n- type" TypeResult : > is
+
+
+MenuView ..> ConfigurationView : creates >
+ConfigurationView ..> PlacementView : creates >
+ConfigurationView ..> MenuView : creates >
+PlacementView ..> GameView : creates >
+PlacementView ..> MenuView : creates >
+GameView ..> MenuView : creates >
+EndView ..> MenuView : creates >
+
 
 @enduml
