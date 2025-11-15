@@ -12,7 +12,7 @@ package model {
         + <<create>> Player(name : String)
         + play(weapon : Weapon, x : Integer, y : Integer)
         + receiveAttack(s : Square, weapon : Weapon)
-        + allBoatSinked() : Boolean
+        + allBoatSunk() : Boolean
         + reset()
     }
 
@@ -111,8 +111,12 @@ package model {
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
+    enum TrapType <<enumeration>> {
+        BLACKHOLE
+        TORNADO
+    }
+
     abstract class Trap <<abstract>> implements Content {
-        - name : String
         - isActive : Boolean
 
         + <<create>> Trap(name : String)
@@ -120,15 +124,21 @@ package model {
         + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
+    class TrapFactory {
+        + <<create>> TrapFactory()
+        + createBlackHole() : BlackHole
+        + createTornado() : Tornado
+    }
+
     class BlackHole extends Trap {
-        + <<create>> BlackHole(name : String)
+        + <<create>> BlackHole()
         + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
     class Tornado extends Trap {
         - numberUse : Integer
 
-        + <<create>> Tornado(name : String, numberUse : Integer)
+        + <<create>> Tornado()
         + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
@@ -191,5 +201,6 @@ Action *-> "1\n- player" Player
 Action *-> "1\n- weapon" Weapon : > done with
 Action o-> "1\n- result" ResultAttack : > results
 ResultAttack o-> "1\n- type" TypeResult : > is
+Trap o-> "1\n- name" TrapType : > is call
 
 @enduml
