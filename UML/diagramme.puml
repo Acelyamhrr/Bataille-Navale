@@ -90,24 +90,39 @@ package model {
         ISLAND
     }
 
+    enum WeaponType <<enumeration>> {
+        MISSILE
+        BOMB
+        SONAR
+    }
+
     abstract class Weapon <<abstract>> implements Content {
-        - name : String
         - position : Integer[*]
 
-        + <<create>> Weapon(name : String)
+        + <<create>> Weapon(name : WeaponType)
         + {abstract} use(grid : Grid, x : Integer, y : Integer) : ResultAttack
         + getPosition() : Integer[*]
     }
 
+    class WeaponFactory() {
+        + <<create>> WeaponFactory()
+        + createMissile() : Misile
+        + createBomb() : Bomb
+        + createSonar() : Sonar
+    }
+
     class Missile extends Weapon {
+        + <<create>> Misile()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
     class Bomb extends Weapon {
+        + <<create>> Bomb()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
     class Sonar extends Weapon {
+        + <<create>> Sonar()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
@@ -119,7 +134,7 @@ package model {
     abstract class Trap <<abstract>> implements Content {
         - isActive : Boolean
 
-        + <<create>> Trap(name : String)
+        + <<create>> Trap(name : TrapType)
         + getPosition() : Integer[*]
         + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
@@ -201,6 +216,7 @@ Action *-> "1\n- player" Player
 Action *-> "1\n- weapon" Weapon : > done with
 Action o-> "1\n- result" ResultAttack : > results
 ResultAttack o-> "1\n- type" TypeResult : > is
-Trap o-> "1\n- name" TrapType : > is call
+Trap o-> "1\n- name" TrapType : > is
+Weapon o-> "1\n- name" WeaponType : > is
 
 @enduml
