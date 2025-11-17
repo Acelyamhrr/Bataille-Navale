@@ -12,7 +12,7 @@ package model {
         + <<create>> Player(name : String)
         + play(weapon : Weapon, x : Integer, y : Integer)
         + receiveAttack(s : Square, weapon : Weapon)
-        + allBoatSinked() : Boolean
+        + allBoatSunk() : Boolean
         + reset()
     }
 
@@ -27,17 +27,33 @@ package model {
         SEARCHED
     }
 
-    class Boat implements Content{
-        - name : String
+    enum BoatName <<enumeration>> {
+        AIRCRAFT_CARRIER
+        CRUISER
+        DESTROYER
+        SUBMARINE
+        TORPEDO_BOAT
+    }
+
+    class Boat implements Content {
         - numberSquares : Integer
         - position : Integer[*]
 
-        + <<create>> Boat(name : String, numberSquares : Integer)
-        + isSinked() : Boolean
+        + <<create>> Boat(name : BoatName, numberSquares : Integer)
+        + hasSunk() : Boolean
         + attacked(s : Square)
         + setPosition(x : Integer, y : Integer)
         + setOrientation(orientation : Orientation)
         + getPosition() : Integer[*]
+    }
+
+    class BoatFactory {
+        + <<create>> BoatFactory()
+        + createAircraftCarrier() : Boat
+        + createCruiser() : Boat
+        + createDestroyer() : Boat
+        + createSubmarine() : Boat
+        + createTorpedoBoat() : Boat
     }
 
     class Square {
@@ -74,45 +90,70 @@ package model {
         ISLAND
     }
 
+    enum WeaponType <<enumeration>> {
+        MISSILE
+        BOMB
+        SONAR
+    }
+
     abstract class Weapon <<abstract>> implements Content {
-        - name : String
         - position : Integer[*]
 
-        + <<create>> Weapon(name : String)
+        + <<create>> Weapon(name : WeaponType)
         + {abstract} use(grid : Grid, x : Integer, y : Integer) : ResultAttack
         + getPosition() : Integer[*]
     }
 
+    class WeaponFactory() {
+        + <<create>> WeaponFactory()
+        + createMissile() : Misile
+        + createBomb() : Bomb
+        + createSonar() : Sonar
+    }
+
     class Missile extends Weapon {
+        + <<create>> Misile()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
     class Bomb extends Weapon {
+        + <<create>> Bomb()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
     class Sonar extends Weapon {
+        + <<create>> Sonar()
         + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
     }
 
+    enum TrapType <<enumeration>> {
+        BLACKHOLE
+        TORNADO
+    }
+
     abstract class Trap <<abstract>> implements Content {
-        - name : String
         - isActive : Boolean
 
-        + <<create>> Trap(name : String)
+        + <<create>> Trap(name : TrapType)
         + getPosition() : Integer[*]
         + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
+    class TrapFactory {
+        + <<create>> TrapFactory()
+        + createBlackHole() : BlackHole
+        + createTornado() : Tornado
+    }
+
     class BlackHole extends Trap {
-        + <<create>> BlackHole(name : String)
+        + <<create>> BlackHole()
         + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
     class Tornado extends Trap {
         - numberUse : Integer
 
-        + <<create>> Tornado(name : String, numberUse : Integer)
+        + <<create>> Tornado()
         + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
     }
 
@@ -162,6 +203,7 @@ Player o-> "1\n- grid" Grid : > owns
 Player o-> "1..*\n- weapons" Weapon : > owns
 Player o-> "1..*\n- traps" Trap : > owns
 Player o-> "1..*\n- boats" Boat : > owns
+Boat o-> "1\n- name" BoatName : > is call
 Boat o-> "1\n- orientation" Orientation : > is oriented
 Boat *-> "1..*\n- squaresTaken" Square : > takes
 Grid o-> "1..*\n- squares" Square : > contains
@@ -174,5 +216,7 @@ Action *-> "1\n- player" Player
 Action *-> "1\n- weapon" Weapon : > done with
 Action o-> "1\n- result" ResultAttack : > results
 ResultAttack o-> "1\n- type" TypeResult : > is
+Trap o-> "1\n- name" TrapType : > is
+Weapon o-> "1\n- name" WeaponType : > is
 
 @enduml
