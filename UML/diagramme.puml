@@ -129,6 +129,7 @@ package model {
                 + <<create>> Weapon(name : WeaponType)
                 + {abstract} use(grid : Grid, x : Integer, y : Integer) : ResultAttack
                 + getPosition() : Integer[*]
+                + setPosition(x : Integer, y : Integer)
             }
 
             class WeaponFactory() {
@@ -158,6 +159,7 @@ package model {
 
             abstract class Trap <<abstract>> implements Content {
                 - isActive : Boolean
+                - position : Integer[*]
 
                 + <<create>> Trap(name : TrapType)
                 + getPosition() : Integer[*]
