@@ -26,8 +26,8 @@ package model {
             - username : String
             - isRobot : Boolean
 
-            + <<create>> Player(name : String)
-            + play(weapon : Weapon, x : Integer, y : Integer)
+            + <<create>> Player(name : String, robot : Boolean)
+            + {abstract} play(weapon : Weapon, x : Integer, y : Integer)
             + receiveAttack(s : Square, weapon : Weapon)
             + allBoatSunk() : Boolean
             + reset()
@@ -36,17 +36,11 @@ package model {
         class HumanPlayer extends Player {
             + <<create>> HumanPlayer(name : String)
             + play(weapon : Weapon, x : Integer, y : Integer)
-            + receiveAttack(s : Square, weapon : Weapon)
-            + allBoatSunk() : Boolean
-            + reset()
         }
 
         class RobotPlayer extends Player {
             + <<create>> RobotPlayer(name : String)
             + play(weapon : Weapon, x : Integer, y : Integer)
-            + receiveAttack(s : Square, weapon : Weapon)
-            + allBoatSunk() : Boolean
-            + reset()
         }
     }
 
