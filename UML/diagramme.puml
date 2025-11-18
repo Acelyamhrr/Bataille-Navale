@@ -236,6 +236,8 @@ package model {
             - message : String
 
             + <<create>> ResultAttack(type : TypeResult, message : String)
+            + getMessage() : String
+            + getType() : TypeResult
         }
     }
 
@@ -307,7 +309,7 @@ model.grid.Grid o-> "1\n- mode" ModeGame : > plays
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
 'model.grid.Square o-> "1\n- islandState" model.enums.State : > is
-model.game.History o-> "1\n- actions" model.game.Action : > has
+model.game.History o-> "1..*\n- actions" model.game.Action : > has
 model.game.Action *-> "1\n- player" model.players.Player
 model.game.Action *-> "1\n- weapon" model.contents.weapons.Weapon : > done with
 model.game.Action o-> "1\n- result" model.game.ResultAttack : > results
