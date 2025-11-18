@@ -90,7 +90,7 @@ package model {
         enum TypeResult <<enumeration>> {
             FAILURE
             ATTACKED
-            SINKED
+            SUNK
             ISLAND
             TRAP
             SONAR_INFO
