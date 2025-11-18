@@ -41,8 +41,8 @@ package model {
             + reset()
         }
 
-        class RoboyPlayer extends Player {
-            + <<create>> HumanPlayer(name : String)
+        class RobotPlayer extends Player {
+            + <<create>> RobotPlayer(name : String)
             + play(weapon : Weapon, x : Integer, y : Integer)
             + receiveAttack(s : Square, weapon : Weapon)
             + allBoatSunk() : Boolean
@@ -309,6 +309,7 @@ model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
 model.contents.fleet.Boat *-> "1..*\n- squaresTaken" model.grid.Square : > takes
 model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Grid o-> "1\n- ile" model.grid.Island : > contains
+model.grid.Grid o-> "1\n- mode" ModeGame : > plays
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
 'model.grid.Square o-> "1\n- islandState" model.enums.State : > is
@@ -321,6 +322,14 @@ model.game.Action o-> "1\n- result" model.game.ResultAttack : > results
 'model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType : > is
 model o-> "1\n- name" model.enums : > is
 
+model.players.Player ..> model.grid.Square : > uses
+model.contents.weapons.Weapon ..> model.grid.Grid : > uses
+model.contents.traps.Trap ..> model.players.Player : > uses
+model.contents.traps.Trap ..> model.grid.Square : > uses
+model.grid.Square ..> model.contents.weapons.Weapon : > uses
+model.grid.Grid ..> model.contents.fleet.Boat : > uses
+model.grid.Grid .. model.enums.Orientation : > uses
+model.grid.Grid ..> model.contents.weapons.Weapon : > uses
 
 MenuView ..> ConfigurationView : creates >
 ConfigurationView ..> PlacementView : creates >
