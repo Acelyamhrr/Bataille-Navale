@@ -27,6 +27,7 @@ public class Boat implements Content {
         return false;
     }
 
+    @Override
     public void setPosition(int x, int y){
         this.position = new int[]{x,y};
     }

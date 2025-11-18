@@ -95,6 +95,7 @@ package model {
 
         interface Content <<interface>> {
             + getPosition() : Integer[*]
+            + setPosition(x : Integer, y : Integer)
         }
 
         package fleet {
@@ -163,6 +164,7 @@ package model {
 
                 + <<create>> Trap(name : TrapType)
                 + getPosition() : Integer[*]
+                + setPosition(x : Integer, y : Integer)
                 + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
             }
 

@@ -15,6 +15,7 @@ public abstract class Weapon implements Content {
 
     public abstract ResultAttack use(Grid grid, int x, int y);
 
+    @Override
     public void setPosition(int x, int y){
         position = new int[]{x,y};
     }

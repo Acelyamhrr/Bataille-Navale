@@ -1,4 +1,19 @@
 package model.contents.traps;
 
-public class Tornado {
+import model.enums.TrapType;
+import model.grid.Square;
+import model.players.Player;
+
+public class Tornado extends Trap {
+    private int numberUse;
+
+    public Tornado() {
+        super(TrapType.TORNADO);
+        this.numberUse = 3;
+    }
+
+    @Override
+    public int[] trigger(Player assaillant, Player defender, Square c) {
+        return null;
+    }
 }
