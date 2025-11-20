@@ -264,13 +264,13 @@ package views {
     class MenuView {
         + <<create>> MenuView()
         - initComponents()
-        - ouvrirConfiguration()
+        - openConfiguration()
     }
 
     class ConfigurationView {
         + <<create>> ConfigurationView()
         - initComponents()
-        - ouvrirVuePlacement()
+        - openViewPlacement()
     }
 
     class PlacementView {
@@ -280,7 +280,7 @@ package views {
         + <<create>> PlacementView()
         - initComponents()
         - openGameView()
-        - revenirMenu()
+        - returnMenu()
     }
 
     class GameView {
@@ -290,7 +290,7 @@ package views {
         + <<create>> GameView()
         - initComponents()
         - log(texte : String)
-        - retourMenu()
+        - returnMenu()
     }
 
     class EndView {
