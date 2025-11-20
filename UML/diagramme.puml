@@ -199,6 +199,7 @@ package model {
             + isEmpty() : Boolean
             + attack(weapon : Weapon) : ResultAttack
             + getContent() : Content
+            + setContent(content : Content)
         }
 
         class Grid {

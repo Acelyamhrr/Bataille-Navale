@@ -29,4 +29,8 @@ public class Square {
     public Content getContent(){
         return this.content;
     }
+
+    public void setContent(Content content){
+        this.content = content;
+    }
 }
