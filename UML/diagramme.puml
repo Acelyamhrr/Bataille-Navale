@@ -100,7 +100,7 @@ package model {
 
         package fleet {
 
-            class Boat implements Content {
+            class Boat implements model.contents.Content {
                 - numberSquares : Integer
                 - position : Integer[*]
 
@@ -124,7 +124,7 @@ package model {
 
         package weapons {
 
-            abstract class Weapon <<abstract>> implements Content {
+            abstract class Weapon <<abstract>> implements model.contents.Content {
                 - position : Integer[*]
 
                 + <<create>> Weapon(name : WeaponType)
@@ -158,7 +158,7 @@ package model {
 
         package traps {
 
-            abstract class Trap <<abstract>> implements Content {
+            abstract class Trap <<abstract>> implements model.contents.Content {
                 - isActive : Boolean
                 - position : Integer[*]
 
@@ -248,7 +248,16 @@ package model {
 }
 
 package controller {
+    class GameController {
+        - actualRound : Integer
+        - end : Boolean
 
+        + <<create>> GameController()
+        + begin(gameMode : ModeGame)
+        + playRound(player : Player, weapon : Weapon, x : Integer, y : Integer)
+        + verifyEnd() : Boolean
+        + reboot()
+    }
 }
 
 package views {
@@ -328,6 +337,11 @@ PlacementView ..> GameView : creates >
 PlacementView ..> MenuView : creates >
 GameView ..> MenuView : creates >
 EndView ..> MenuView : creates >
+
+controller.GameController o-> "1\n- player" model.players.Player : > has
+controller.GameController o-> "1\n- robot" model.players.Player : > has
+controller.GameController o-> "1\n- history" model.game.History : > has
+controller.GameController o-> "1\n- mode" model.enums.ModeGame : > plays
 
 
 @enduml
