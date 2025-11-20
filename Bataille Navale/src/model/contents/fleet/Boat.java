@@ -12,7 +12,7 @@ public class Boat implements Content {
     private int[] position;
     private BoatName name;
     private Orientation orientation;
-    private ArrayList<Square> squaresTaken;
+    private ArrayList<Square> squaresTaken;             //TODO (dans méthodes)
 
     public Boat(BoatName name, int numberSquares) {
         this.name = name;
@@ -20,10 +20,12 @@ public class Boat implements Content {
     }
 
     public boolean hasSunk(){
+        //TODO
         return false;
     }
 
     public boolean attacked(Square s){
+        //TODO
         return false;
     }
 

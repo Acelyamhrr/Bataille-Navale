@@ -250,7 +250,7 @@ package model {
 package controller {
     class GameController {
         - actualRound : Integer
-        - end : Boolean
+        - endGame : Boolean
 
         + <<create>> GameController()
         + begin(gameMode : ModeGame)
@@ -307,7 +307,7 @@ model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
 'model.contents.fleet.Boat o-> "1\n- orientation" model.enums.Orientation : > is oriented
 model.contents.fleet.Boat *-> "1..*\n- squaresTaken" model.grid.Square : > takes
 model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
-model.grid.Grid o-> "1\n- ile" model.grid.Island : > contains
+model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
 model.grid.Grid o-> "1\n- mode" ModeGame : > plays
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains

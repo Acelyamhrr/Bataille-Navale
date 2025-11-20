@@ -14,6 +14,7 @@ public class Tornado extends Trap {
 
     @Override
     public int[] trigger(Player assaillant, Player defender, Square c) {
+        //TODO
         return null;
     }
 }

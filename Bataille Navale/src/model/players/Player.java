@@ -19,15 +19,22 @@ public abstract class Player {
     public Player(String name, boolean robot) {
         this.username = name;
         this.isRobot = robot;
+
+        //TODO
     }
 
     public abstract void play(Weapon weapon, int x, int y);
 
-    public void receiveAttack(Square s, Weapon weapon){}
+    public void receiveAttack(Square s, Weapon weapon){
+        //TODO
+    }
 
     public boolean allBoatSunk(){
+        //TODO
         return false;
     }
 
-    public void reset(){}
+    public void reset(){
+        //TODO
+    }
 }

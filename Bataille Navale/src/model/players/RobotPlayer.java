@@ -8,5 +8,7 @@ public class RobotPlayer extends Player{
     }
 
     @Override
-    public void play(Weapon weapon, int x, int y) {}
+    public void play(Weapon weapon, int x, int y) {
+        //TODO
+    }
 }
