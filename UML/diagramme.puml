@@ -259,19 +259,14 @@ package views {
     }
 
     class ConfigurationView {
-        - cboGameMod : JComboBox<String>
-        - cboGridSize : JComboBox<String>
-
         + <<create>> ConfigurationView()
         - initComponents()
         - ouvrirVuePlacement()
     }
 
     class PlacementView {
-        - gridPnl : JPanel
         - rows : Integer = 10
         - cols : Integer = 10
-        - square : JPanel[*]
 
         + <<create>> PlacementView()
         - initComponents()
@@ -282,9 +277,6 @@ package views {
     class GameView {
         - rows : Integer = 10
         - cols : Integer = 10
-        - playerGrid : JPanel[*]
-        - enemyGrid : JPanel[*]
-        - logArea : JTextArea
 
         + <<create>> GameView()
         - initComponents()
@@ -293,8 +285,6 @@ package views {
     }
 
     class EndView {
-        - messageLabel : JLabel
-
         + <<create>> EndView(message : String)
         - initComponents(message : String)
     }
