@@ -15,6 +15,12 @@ public class Square {
     public Square(int x, int y, boolean island){
         this.position = new int[] {x,y};
         this.inIsland = island;
+        this.attacked = false;
+        this.islandState = null;
+
+        if(island){
+            this.islandState = State.INTACT;
+        }
     }
 
     public boolean isEmpty(){
@@ -32,5 +38,13 @@ public class Square {
 
     public void setContent(Content content){
         this.content = content;
+    }
+
+    public boolean wasAttacked(){
+        return this.attacked;
+    }
+
+    public int[] getPosition(){
+        return this.position;
     }
 }

@@ -106,10 +106,11 @@ package model {
 
                 + <<create>> Boat(name : BoatName, numberSquares : Integer)
                 + hasSunk() : Boolean
-                + attacked(s : Square)
+                + attacked(x : Integer, y : Integer) : Boolean
                 + setPosition(x : Integer, y : Integer)
                 + setOrientation(orientation : Orientation)
                 + getPosition() : Integer[*]
+                - getSquare(x : Integer, y : Integer) : Square
             }
 
             class BoatFactory {
@@ -200,6 +201,8 @@ package model {
             + attack(weapon : Weapon) : ResultAttack
             + getContent() : Content
             + setContent(content : Content)
+            + wasAttacked() : Boolean
+            + getPosition() : Integer[*]
         }
 
         class Grid {

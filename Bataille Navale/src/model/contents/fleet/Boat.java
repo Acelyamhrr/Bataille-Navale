@@ -20,13 +20,32 @@ public class Boat implements Content {
     }
 
     public boolean hasSunk(){
-        //TODO
+        for(Square s: squaresTaken){
+            if(!s.wasAttacked()){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean attacked(int x, int y){
+        Square square = getSquare(x,y);
+        if(square != null){
+            square.wasAttacked();
+        }
+
         return false;
     }
 
-    public boolean attacked(Square s){
-        //TODO
-        return false;
+    private Square getSquare(int x, int y){
+        for(Square square : squaresTaken){
+            int[] position = square.getPosition();
+            if(position[0] == x && position[1] == y ){
+                return square;
+            }
+        }
+        return null;
     }
 
     @Override
