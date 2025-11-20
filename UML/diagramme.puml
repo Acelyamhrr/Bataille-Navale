@@ -321,27 +321,28 @@ model.game.Action o-> "1\n- result" model.game.ResultAttack : > results
 'model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType : > is
 model o-> "1\n- name" model.enums : > is
 
-model.players.Player ..> model.grid.Square : > uses
-model.contents.weapons.Weapon ..> model.grid.Grid : > uses
-model.contents.traps.Trap ..> model.players.Player : > uses
-model.contents.traps.Trap ..> model.grid.Square : > uses
-model.grid.Square ..> model.contents.weapons.Weapon : > uses
-model.grid.Grid ..> model.contents.fleet.Boat : > uses
-model.grid.Grid .. model.enums.Orientation : > uses
-model.grid.Grid ..> model.contents.weapons.Weapon : > uses
+model.players.Player ..> model.grid.Square : > <<uses>>
+model.contents.weapons.Weapon ..> model.grid.Grid : > <<uses>>
+model.contents.traps.Trap ..> model.players.Player : > <<uses>>
+model.contents.traps.Trap ..> model.grid.Square : > <<uses>>
+model.grid.Square ..> model.contents.weapons.Weapon : > <<uses>>
+model.grid.Grid ..> model.contents.fleet.Boat : > <<uses>>
+model.grid.Grid .. model.enums.Orientation : > <<uses>>
+model.grid.Grid ..> model.contents.weapons.Weapon : > <<uses>>
 
-MenuView ..> ConfigurationView : creates >
-ConfigurationView ..> PlacementView : creates >
-ConfigurationView ..> MenuView : creates >
-PlacementView ..> GameView : creates >
-PlacementView ..> MenuView : creates >
-GameView ..> MenuView : creates >
-EndView ..> MenuView : creates >
+MenuView ..> ConfigurationView : <<instanciate>> >
+ConfigurationView ..> PlacementView : <<instanciate>> >
+ConfigurationView ..> MenuView : <<instanciate>> >
+PlacementView ..> GameView : <<instanciate>> >
+PlacementView ..> MenuView : <<instanciate>> >
+GameView ..> MenuView : <<instanciate>> >
+EndView ..> MenuView : <<instanciate>> >
 
 controller.GameController o-> "1\n- player" model.players.Player : > has
 controller.GameController o-> "1\n- robot" model.players.Player : > has
 controller.GameController o-> "1\n- history" model.game.History : > has
 controller.GameController o-> "1\n- mode" model.enums.ModeGame : > plays
+controller.GameController ..> Weapon : > <<uses>>
 
 
 @enduml
