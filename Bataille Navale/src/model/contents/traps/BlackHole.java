@@ -11,6 +11,7 @@ public class BlackHole extends Trap {
 
     @Override
     public int[] trigger(Player assaillant, Player defender, Square c) {
+        //TODO
         return null;
     }
 }

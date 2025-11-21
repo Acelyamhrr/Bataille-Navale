@@ -100,16 +100,17 @@ package model {
 
         package fleet {
 
-            class Boat implements Content {
+            class Boat implements model.contents.Content {
                 - numberSquares : Integer
                 - position : Integer[*]
 
                 + <<create>> Boat(name : BoatName, numberSquares : Integer)
                 + hasSunk() : Boolean
-                + attacked(s : Square)
+                + attacked(x : Integer, y : Integer) : Boolean
                 + setPosition(x : Integer, y : Integer)
                 + setOrientation(orientation : Orientation)
                 + getPosition() : Integer[*]
+                - getSquare(x : Integer, y : Integer) : Square
             }
 
             class BoatFactory {
@@ -124,7 +125,7 @@ package model {
 
         package weapons {
 
-            abstract class Weapon <<abstract>> implements Content {
+            abstract class Weapon <<abstract>> implements model.contents.Content {
                 - position : Integer[*]
 
                 + <<create>> Weapon(name : WeaponType)
@@ -158,7 +159,7 @@ package model {
 
         package traps {
 
-            abstract class Trap <<abstract>> implements Content {
+            abstract class Trap <<abstract>> implements model.contents.Content {
                 - isActive : Boolean
                 - position : Integer[*]
 
@@ -199,6 +200,9 @@ package model {
             + isEmpty() : Boolean
             + attack(weapon : Weapon) : ResultAttack
             + getContent() : Content
+            + setContent(content : Content)
+            + wasAttacked() : Boolean
+            + getPosition() : Integer[*]
         }
 
         class Grid {
@@ -248,53 +252,52 @@ package model {
 }
 
 package controller {
+    class GameController {
+        - actualRound : Integer
+        - endGame : Boolean
 
+        + <<create>> GameController()
+        + begin(gameMode : ModeGame)
+        + playRound(player : Player, weapon : Weapon, x : Integer, y : Integer)
+        + verifyEnd() : Boolean
+        + reboot()
+    }
 }
 
 package views {
     class MenuView {
         + <<create>> MenuView()
         - initComponents()
-        - ouvrirConfiguration()
+        - openConfiguration()
     }
 
     class ConfigurationView {
-        - cboGameMod : JComboBox<String>
-        - cboGridSize : JComboBox<String>
-
         + <<create>> ConfigurationView()
         - initComponents()
-        - ouvrirVuePlacement()
+        - openViewPlacement()
     }
 
     class PlacementView {
-        - gridPnl : JPanel
         - rows : Integer = 10
         - cols : Integer = 10
-        - square : JPanel[*]
 
         + <<create>> PlacementView()
         - initComponents()
         - openGameView()
-        - revenirMenu()
+        - returnMenu()
     }
 
     class GameView {
         - rows : Integer = 10
         - cols : Integer = 10
-        - playerGrid : JPanel[*]
-        - enemyGrid : JPanel[*]
-        - logArea : JTextArea
 
         + <<create>> GameView()
         - initComponents()
         - log(texte : String)
-        - retourMenu()
+        - returnMenu()
     }
 
     class EndView {
-        - messageLabel : JLabel
-
         + <<create>> EndView(message : String)
         - initComponents(message : String)
     }
@@ -308,7 +311,7 @@ model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
 'model.contents.fleet.Boat o-> "1\n- orientation" model.enums.Orientation : > is oriented
 model.contents.fleet.Boat *-> "1..*\n- squaresTaken" model.grid.Square : > takes
 model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
-model.grid.Grid o-> "1\n- ile" model.grid.Island : > contains
+model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
 model.grid.Grid o-> "1\n- mode" ModeGame : > plays
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
@@ -322,22 +325,28 @@ model.game.Action o-> "1\n- result" model.game.ResultAttack : > results
 'model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType : > is
 model o-> "1\n- name" model.enums : > is
 
-model.players.Player ..> model.grid.Square : > uses
-model.contents.weapons.Weapon ..> model.grid.Grid : > uses
-model.contents.traps.Trap ..> model.players.Player : > uses
-model.contents.traps.Trap ..> model.grid.Square : > uses
-model.grid.Square ..> model.contents.weapons.Weapon : > uses
-model.grid.Grid ..> model.contents.fleet.Boat : > uses
-model.grid.Grid .. model.enums.Orientation : > uses
-model.grid.Grid ..> model.contents.weapons.Weapon : > uses
+model.players.Player ..> model.grid.Square : > <<uses>>
+model.contents.weapons.Weapon ..> model.grid.Grid : > <<uses>>
+model.contents.traps.Trap ..> model.players.Player : > <<uses>>
+model.contents.traps.Trap ..> model.grid.Square : > <<uses>>
+model.grid.Square ..> model.contents.weapons.Weapon : > <<uses>>
+model.grid.Grid ..> model.contents.fleet.Boat : > <<uses>>
+model.grid.Grid .. model.enums.Orientation : > <<uses>>
+model.grid.Grid ..> model.contents.weapons.Weapon : > <<uses>>
 
-MenuView ..> ConfigurationView : creates >
-ConfigurationView ..> PlacementView : creates >
-ConfigurationView ..> MenuView : creates >
-PlacementView ..> GameView : creates >
-PlacementView ..> MenuView : creates >
-GameView ..> MenuView : creates >
-EndView ..> MenuView : creates >
+MenuView ..> ConfigurationView : <<instanciate>> >
+ConfigurationView ..> PlacementView : <<instanciate>> >
+ConfigurationView ..> MenuView : <<instanciate>> >
+PlacementView ..> GameView : <<instanciate>> >
+PlacementView ..> MenuView : <<instanciate>> >
+GameView ..> MenuView : <<instanciate>> >
+EndView ..> MenuView : <<instanciate>> >
+
+controller.GameController o-> "1\n- player" model.players.Player : > has
+controller.GameController o-> "1\n- robot" model.players.Player : > has
+controller.GameController o-> "1\n- history" model.game.History : > has
+controller.GameController o-> "1\n- mode" model.enums.ModeGame : > plays
+controller.GameController ..> Weapon : > <<uses>>
 
 
 @enduml
