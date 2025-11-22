@@ -67,6 +67,13 @@ package model {
             RANDOM
             MANUAL
         }
+
+        enum ResultRound <<enumeration>> {
+            FAILURE
+            SINK
+            ATTACK
+            SEARCH
+        }
     }
 
     package contents {
@@ -134,11 +141,9 @@ package model {
         package traps {
 
             abstract class Trap <<abstract>> implements model.contents.Content {
-
                 + <<create>> Trap(name : TrapType)
                 + getPosition() : Position
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
-
             }
 
             class TrapFactory {
@@ -157,6 +162,7 @@ package model {
                 + <<create>> Tornado()
                 + isActive() : Boolean
                 + getNewPosition(position : Position) : Position
+                + activate()
             }
         }
     }
@@ -178,10 +184,6 @@ package model {
 
     package grid {
 
-        class Grid {
-
-        }
-
         class Position {
             - x : Integer
             - y : Integer
@@ -191,24 +193,92 @@ package model {
             + getY() : Integer
             + getOrientation : Orientation
         }
+
+        class Grid {
+        - size : Integer
+
+        + <<create>> Grid(size : Integer, mode : ModeGame)
+        + placeBoat(b : Boat, position : Position)
+        + placeTrap(t : Trap, position : Position)
+        + attack(position : Position)
+        + reset()
+        }
+
+        class Square {
+            - attacked : Boolean
+            - inIsland : Boolean
+
+            + <<create>> Square(position : Position, island : Boolean)
+            + isEmpty() : Boolean
+            + getContent() : Content
+            + setContent(content : Content)
+            + attack()
+            + wasAttacked() : Boolean
+            + getPosition() : Position
+        }
+
+        class Island {
+            - size : Integer
+
+            + <<create>> Island(position : Position, size : Integer, squares : Squares[*])
+            + contains(position : Position) : Boolean
+        }
+
+    }
+
+    package history {
+
+        class History {
+            + <<create>> History()
+            + addAction(action : Action)
+            + getLast() : Action
+            + reset()
+        }
+
+        class Action {
+            - round : Integer
+            - robot : Boolean
+
+            + <<create>> Action(round : Integer, position : Position, robot : Boolean, weapon : WeaponType, result : ResultRound)
+        }
     }
 
     package game {
+        class GameConfig {
+            - gridSize : Integer
+            - username : String
+            - numberBoat : Integer[*]
 
+            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapPlacement : TrapPlacement)
+        }
     }
 
 }
 
 model.contents.fleet.Boat o-> "1\n- name" model.enums.BoatName : > is call
 model.contents.fleet.Boat o-> "1\n- position" model.grid.Position : > is located
+
 model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType: > is call
 model.contents.weapons.Weapon o-> "1\n- position" model.grid.Position : > is located
+
 model.contents.traps.Trap o-> "1\n- name" model.enums.TrapType: > is call
 model.contents.traps.Trap o-> "1\n- position" model.grid.Position : > is located
-
 model.contents.traps.Tornado *-> "1..*\n- newPositions" model.grid.Position : > move
 
+
 model.grid.Position o-> "1\n- orientation" model.enums.Orientation : > is oriented
+
+model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
+model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
+model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
+
+model.grid.Square *-> "1\n- content" model.contents.Content : > contains
+model.grid.Square o-> "1\n- position" model.grid.Position : > is located
+model.grid.Square o-> "1\n- islandState" model.enums.State : > is
+
+model.grid.Island o-> "1\n- position" model.grid.Position : > is located
+model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
+
 
 model.players.Player o-> "1\n- grid" model.grid.Grid : > owns
 model.players.Player o-> "1..*\n- weapons" model.contents.weapons.Weapon : > owns
@@ -216,6 +286,17 @@ model.players.Player o-> "1\n- blackHole" model.contents.traps.BlackHole : > own
 model.players.Player o-> "1\n- tornado" model.contents.traps.Tornado : > owns
 model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
 
+
+model.history.History o-> "1..*\n- actions" model.history.Action : > has
+
+model.history.Action o-> "1\n- position" model.grid.Position : > localisation
+model.history.Action o-> "1\n- weapon" model.enums.WeaponType : > done with
+model.history.Action o-> "1\n- result" model.enums.ResultRound : > result
+
+
+model.game.GameConfig o-> "1\n- modeGame" model.enums.ModeGame : > has
+model.game.GameConfig o-> "1\n- robotMode" model.enums.RobotMode : > has
+model.game.GameConfig o-> "1\n- trapPlacement" model.enums.TrapPlacement : > has
 
 
 package controller {
