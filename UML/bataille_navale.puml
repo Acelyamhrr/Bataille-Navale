@@ -172,12 +172,14 @@ package model {
         class Player {
             - username : String
             - isRobot : Boolean
+            - weapons : Integer[*]
 
             + <<create>> Player(name : String, robot : Boolean)
             + hasTornadoActive() : Boolean
             + tornadoTrigger(position : Position) : Position
             + receiveAttack(position : Position)
             + allBoatSunk() : Boolean
+            + useWeapon(weapon : WeaponType)
             + reset()
         }
     }
@@ -195,13 +197,13 @@ package model {
         }
 
         class Grid {
-        - size : Integer
+            - size : Integer
 
-        + <<create>> Grid(size : Integer, mode : ModeGame)
-        + placeBoat(b : Boat, position : Position)
-        + placeTrap(t : Trap, position : Position)
-        + attack(position : Position)
-        + reset()
+            + <<create>> Grid(size : Integer, mode : ModeGame)
+            + placeBoat(b : Boat, position : Position)
+            + placeTrap(t : Trap, position : Position)
+            + attack(position : Position)
+            + reset()
         }
 
         class Square {
@@ -267,7 +269,14 @@ package model {
         }
 
         class Game {
-
+            + <<create>> Game(config : GameConfig, placement, GamePlacement)
+            + initialize()
+            + playTurn()
+            - playPlayerTurn(assaillant : Player, defender : Player)
+            - executeAttack(assaillant : Player, defender : Player, weapon : WeaponType, position : Position)
+            - executeMissile(assaillant : Player, defender : Player, position : Position)
+            - executeBomb(assaillant : Player, defender : Player, position : Position)
+            - executeSonar(assaillant : Player, defender : Player, position : Position)
         }
     }
 
@@ -289,6 +298,8 @@ model.grid.Position o-> "1\n- orientation" model.enums.Orientation : > is orient
 model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
 model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
+model.grid.Grid ..> model.contents.fleet.Boat : > <<uses>>
+model.grid.Grid ..> model.contents.traps.Trap : > <<uses>>
 
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
 model.grid.Square o-> "1\n- position" model.grid.Position : > is located
@@ -299,8 +310,6 @@ model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 
 
 model.players.Player o-> "1\n- grid" model.grid.Grid : > owns
-model.players.Player o-> "1..*\n- weapons" model.contents.weapons.Weapon : > owns
-model.players.Player o-> "1\n- blackHole" model.contents.traps.BlackHole : > owns
 model.players.Player o-> "1\n- tornado" model.contents.traps.Tornado : > owns
 model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
 
@@ -320,6 +329,16 @@ model.game.GamePlacement o-> "1..*\n boatPlacementPlayer" model.grid.Position : 
 model.game.GamePlacement o-> "1..*\n trapPlacementPlayer" model.grid.Position : > are located
 model.game.GamePlacement o-> "1..*\n boatPlacementRobot" model.grid.Position : > are located
 model.game.GamePlacement o-> "1..*\n trapPlacementRobot" model.grid.Position : > are located
+model.game.GamePlacement ..> model.enums.BoatName : > <<uses>
+model.game.GamePlacement ..> model.enums.TrapType : > <<uses>
+
+
+model.game.Game o-> "1\n- gameConfig" model.game.GameConfig : > is configured
+model.game.Game o-> "1\n- gamePlacement" model.game.GamePlacement : > has placement
+model.game.Game o-> "1\n- player" model.players.Player : > played by
+model.game.Game o-> "1\n- robot" model.players.Player : > played against
+model.game.Game ..> model.grid.Position : > <<uses>>
+model.game.Game ..> model.enums.WeaponType : > <<uses>>
 
 
 package controller {
@@ -331,8 +350,8 @@ package controller {
 }
 
 controller.GameController o-> "1\n- currentGame" model.game.Game : > has
-controller.GameController ..> model.game.GameConfig : <<instanciate>>
-controller.GameController ..> model.game.GamePlacement: <<instanciate>>
+controller.GameController ..> model.game.GameConfig : > <<instanciate>>
+controller.GameController ..> model.game.GamePlacement: > <<instanciate>>
 
 
 package views {
