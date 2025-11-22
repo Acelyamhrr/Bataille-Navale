@@ -249,7 +249,25 @@ package model {
             - username : String
             - numberBoat : Integer[*]
 
-            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapPlacement : TrapPlacement)
+            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapMode : TrapPlacement)
+            + getGridSize() : Integer
+            + getUsername() : Integer
+            + getNumberBoat() : Integer[*]
+            + getModeGame() : ModeGame
+            + getRobotMode() : RobotMode
+            + getTrapMode() : TrapPlacement
+        }
+
+        class GamePlacement {
+            + <<create>> GamePlacement(boatPlacementPlayer : Position[*], trapPlacementPlayer :  Position[*], boatPlacementRobot: Position[*], trapPlacementRobot :  Position[*])
+            + getBoatPlacementPlayer(type : BoatName) : Position
+            + getBoatPlacementRobot(type : BoatName) : Position
+            + getTrapPlacementPlayer(type : TrapType) : Position
+            + getTrapPlacementRobot(type : TrapType) : Position
+        }
+
+        class Game {
+
         }
     }
 
@@ -298,10 +316,24 @@ model.game.GameConfig o-> "1\n- modeGame" model.enums.ModeGame : > has
 model.game.GameConfig o-> "1\n- robotMode" model.enums.RobotMode : > has
 model.game.GameConfig o-> "1\n- trapPlacement" model.enums.TrapPlacement : > has
 
+model.game.GamePlacement o-> "1..*\n boatPlacementPlayer" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n trapPlacementPlayer" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n boatPlacementRobot" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n trapPlacementRobot" model.grid.Position : > are located
+
 
 package controller {
-
+    class GameController {
+        + <<create>> GameController()
+        - configureGame() : GameConfig
+        - placementGame() : GamePlacement
+    }
 }
+
+controller.GameController o-> "1\n- currentGame" model.game.Game : > has
+controller.GameController ..> model.game.GameConfig : <<instanciate>>
+controller.GameController ..> model.game.GamePlacement: <<instanciate>>
+
 
 package views {
     class MenuView {
@@ -342,12 +374,12 @@ package views {
     }
 }
 
-MenuView ..> ConfigurationView : <<instanciate>> >
-ConfigurationView ..> PlacementView : <<instanciate>> >
-ConfigurationView ..> MenuView : <<instanciate>> >
-PlacementView ..> GameView : <<instanciate>> >
-PlacementView ..> MenuView : <<instanciate>> >
-GameView ..> MenuView : <<instanciate>> >
-EndView ..> MenuView : <<instanciate>> >
+MenuView ..> ConfigurationView : > <<instanciate>>
+ConfigurationView ..> PlacementView : > <<instanciate>>
+ConfigurationView ..> MenuView : > <<instanciate>>
+PlacementView ..> GameView : > <<instanciate>>
+PlacementView ..> MenuView : > <<instanciate>>
+GameView ..> MenuView : > <<instanciate>>
+EndView ..> MenuView : > <<instanciate>>
 
 @enduml

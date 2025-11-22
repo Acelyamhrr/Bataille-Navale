@@ -18,16 +18,6 @@ skinparam packageFontStyle bold
 'top to bottom direction
 left to right direction
 
-package controller {
-    class GameController {
-        + <<create>> GameController()
-        - configureGame() : GameConfig
-        - placementGame() : GamePlacement
-    }
-}
 
-
-
-controller.GameController o-> "1\n- currentGame" model.game.Game : > has
 
 @enduml
