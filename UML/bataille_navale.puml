@@ -178,6 +178,7 @@ package model {
             + <<create>> Player(name : String, robot : Boolean)
             + hasTornadoActive() : Boolean
             + tornadoTrigger(position : Position) : Position
+            + setTornado(tornado : Tornado)
             + receiveAttack(position : Position)
             + allBoatSunk() : Boolean
             + useWeapon(weapon : WeaponType)
