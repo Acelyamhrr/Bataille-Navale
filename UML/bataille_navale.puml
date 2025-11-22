@@ -94,6 +94,7 @@ package model {
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
                 + hasSunk() : Boolean
                 + attack(position : Position)
+                - notifyObservers()
             }
 
             class BoatFactory {
@@ -217,6 +218,7 @@ package model {
             + attack()
             + wasAttacked() : Boolean
             + getPosition() : Position
+            - notifyObservers()
         }
 
         class Island {
@@ -230,18 +232,15 @@ package model {
 
     package history {
 
-        class History {
+        class History implements model.Observer {
+            - actions : String[*]
+
             + <<create>> History()
-            + addAction(action : Action)
-            + getLast() : Action
             + reset()
-        }
-
-        class Action {
-            - round : Integer
-            - robot : Boolean
-
-            + <<create>> Action(round : Integer, position : Position, robot : Boolean, weapon : WeaponType, result : ResultRound)
+            + boatAttacked(position : Position)
+            + boatSunk(position : Position, size : Integer)
+            + squareAttacked(position : Position)
+            + squareIsland(position : Position, state : State)
         }
     }
 
@@ -280,10 +279,18 @@ package model {
         }
     }
 
+    interface Observer <<interface>> {
+        + boatAttacked(position : Position)
+        + boatSunk(position : Position, size : Integer)
+        + squareAttacked(position : Position)
+        + squareIsland(position : Position, state : State)
+    }
+
 }
 
 model.contents.fleet.Boat o-> "1\n- name" model.enums.BoatName : > is call
 model.contents.fleet.Boat o-> "1\n- position" model.grid.Position : > is located
+model.contents.fleet.Boat *-> "1..*\n observers" model.Observer : > is observed by
 
 model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType: > is call
 model.contents.weapons.Weapon o-> "1\n- position" model.grid.Position : > is located
@@ -304,6 +311,7 @@ model.grid.Grid ..> model.contents.traps.Trap : > <<uses>>
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
 model.grid.Square o-> "1\n- position" model.grid.Position : > is located
 model.grid.Square o-> "1\n- islandState" model.enums.State : > is
+model.grid.Square *-> "1..*\n observers" model.Observer : > is observed by
 
 model.grid.Island o-> "1\n- position" model.grid.Position : > is located
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
@@ -377,7 +385,7 @@ package views {
         - returnMenu()
     }
 
-    class GameView {
+    class GameView implements model.Observer{
         - rows : Integer = 10
         - cols : Integer = 10
 
@@ -385,6 +393,10 @@ package views {
         - initComponents()
         - log(texte : String)
         - returnMenu()
+        + boatAttacked(position : Position)
+        + boatSunk(position : Position, size : Integer)
+        + squareAttacked(position : Position)
+        + squareIsland(position : Position, state : State)
     }
 
     class EndView {
