@@ -22,64 +22,13 @@ package model {
 
     package players {
 
-        abstract class Player {
-            - username : String
-            - isRobot : Boolean
+        class Player {
 
-            + <<create>> Player(name : String, robot : Boolean)
-            + {abstract} play(weapon : Weapon, x : Integer, y : Integer)
-            + receiveAttack(s : Square, weapon : Weapon)
-            + allBoatSunk() : Boolean
-            + reset()
-        }
-
-        class HumanPlayer extends Player {
-            + <<create>> HumanPlayer(name : String)
-            + play(weapon : Weapon, x : Integer, y : Integer)
-        }
-
-        class RobotPlayer extends Player {
-            + <<create>> RobotPlayer(name : String)
-            + play(weapon : Weapon, x : Integer, y : Integer)
+            + play(weapon : Weapon, position : Position)
         }
     }
 
     package enums {
-
-        enum Orientation <<enumeration>> {
-            VERTICAL
-            HORIZONTAL
-        }
-
-        enum State <<enumeration>> {
-            INTACT
-            EMPTY
-            SEARCHED
-        }
-
-        enum BoatName <<enumeration>> {
-            AIRCRAFT_CARRIER
-            CRUISER
-            DESTROYER
-            SUBMARINE
-            TORPEDO_BOAT
-        }
-
-        enum ModeGame <<enumeration>>{
-            STANDARD
-            ISLAND
-        }
-
-        enum WeaponType <<enumeration>> {
-            MISSILE
-            BOMB
-            SONAR
-        }
-
-        enum TrapType <<enumeration>> {
-            BLACKHOLE
-            TORNADO
-        }
 
         enum TypeResult <<enumeration>> {
             FAILURE
@@ -89,102 +38,39 @@ package model {
             TRAP
             SONAR_INFO
         }
+
     }
 
     package contents {
 
-        interface Content <<interface>> {
-            + getPosition() : Integer[*]
-            + setPosition(x : Integer, y : Integer)
-        }
-
-        package fleet {
-
-            class Boat implements model.contents.Content {
-                - numberSquares : Integer
-                - position : Integer[*]
-
-                + <<create>> Boat(name : BoatName, numberSquares : Integer)
-                + hasSunk() : Boolean
-                + attacked(x : Integer, y : Integer) : Boolean
-                + setPosition(x : Integer, y : Integer)
-                + setOrientation(orientation : Orientation)
-                + getPosition() : Integer[*]
-                - getSquare(x : Integer, y : Integer) : Square
-            }
-
-            class BoatFactory {
-                + <<create>> BoatFactory()
-                + createAircraftCarrier() : Boat
-                + createCruiser() : Boat
-                + createDestroyer() : Boat
-                + createSubmarine() : Boat
-                + createTorpedoBoat() : Boat
-            }
-        }
-
         package weapons {
 
             abstract class Weapon <<abstract>> implements model.contents.Content {
-                - position : Integer[*]
+                + {abstract} use(grid : Grid, position : Position) : ResultAttack
 
-                + <<create>> Weapon(name : WeaponType)
-                + {abstract} use(grid : Grid, x : Integer, y : Integer) : ResultAttack
-                + getPosition() : Integer[*]
-                + setPosition(x : Integer, y : Integer)
-            }
-
-            class WeaponFactory() {
-                + <<create>> WeaponFactory()
-                + createMissile() : Misile
-                + createBomb() : Bomb
-                + createSonar() : Sonar
             }
 
             class Missile extends Weapon {
-                + <<create>> Misile()
-                + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+                + use(grid : Grid, position : Position) : ResultAttack
             }
 
             class Bomb extends Weapon {
-                + <<create>> Bomb()
-                + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+                + use(grid : Grid, position : Position) : ResultAttack
             }
 
             class Sonar extends Weapon {
-                + <<create>> Sonar()
-                + use(grid : Grid, x : Integer, y : Integer) : ResultAttack
+                + use(grid : Grid, position : Position) : ResultAttack
             }
         }
 
         package traps {
 
             abstract class Trap <<abstract>> implements model.contents.Content {
-                - isActive : Boolean
-                - position : Integer[*]
-
-                + <<create>> Trap(name : TrapType)
-                + getPosition() : Integer[*]
-                + setPosition(x : Integer, y : Integer)
-                + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
-            }
-
-            class TrapFactory {
-                + <<create>> TrapFactory()
-                + createBlackHole() : BlackHole
-                + createTornado() : Tornado
+                + {abstract} trigger(assaillant : Player, defender : Player, c : Square) : Position
             }
 
             class BlackHole extends Trap {
-                + <<create>> BlackHole()
-                + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
-            }
-
-            class Tornado extends Trap {
-                - numberUse : Integer
-
-                + <<create>> Tornado()
-                + trigger(assaillant : Player, defender : Player, c : Square) : Integer[*]
+                + trigger(assaillant : Player, defender : Player, c : Square) : Position
             }
         }
     }
@@ -192,26 +78,25 @@ package model {
 
     package grid {
         class Square {
-            - position : Integer[*]
             - attacked : Boolean
             - inIsland : Boolean
 
-            + <<create>> Square(x : Integer, y : Integer, island : Boolean)
+            + <<create>> Square(position : Position, island : Boolean)
             + isEmpty() : Boolean
             + attack(weapon : Weapon) : ResultAttack
             + getContent() : Content
             + setContent(content : Content)
             + wasAttacked() : Boolean
-            + getPosition() : Integer[*]
+            + getPosition() : Position
         }
 
         class Grid {
             - size : Integer
 
             + <<create>> Grid(size : Integer, mode : ModeGame)
-            + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
-            + placeTrap(t : Trap, x : Integer, y : Integer)
-            + attack(x : Integer, y : Integer, weapon : Weapon) : ResultAttack
+            + placeBoat(b : Boat, position : Position)
+            + placeTrap(t : Trap, position : Position)
+            + attack(position : Position, weapon : Weapon) : ResultAttack
             + reset()
         }
 
@@ -235,9 +120,8 @@ package model {
 
         class Action {
             - round : Integer
-            - position : Integer[*]
 
-            + <<create>> Action(round : Integer, x : Integer, y : Integer, player : Player, weapon : Weapon, result : ResultAttack)
+            + <<create>> Action(round : Integer, position : Position, player : Player, weapon : Weapon, result : ResultAttack)
         }
 
         class ResultAttack {
@@ -247,82 +131,40 @@ package model {
             + getMessage() : String
             + getType() : TypeResult
         }
+
+        class GameConfig {
+            - gridSize : Integer
+            - username : String
+            - numberBoat : Integer[*]
+
+            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapPlacement : TrapPlacement)
+        }
     }
 
 }
 
 package controller {
     class GameController {
-        - actualRound : Integer
-        - endGame : Boolean
-
         + <<create>> GameController()
-        + begin(gameMode : ModeGame)
-        + playRound(player : Player, weapon : Weapon, x : Integer, y : Integer)
-        + verifyEnd() : Boolean
-        + reboot()
+        - configureGame() : GameConfig
+        - placementGame() : GamePlacement
     }
 }
 
-package views {
-    class MenuView {
-        + <<create>> MenuView()
-        - initComponents()
-        - openConfiguration()
-    }
 
-    class ConfigurationView {
-        + <<create>> ConfigurationView()
-        - initComponents()
-        - openViewPlacement()
-    }
-
-    class PlacementView {
-        - rows : Integer = 10
-        - cols : Integer = 10
-
-        + <<create>> PlacementView()
-        - initComponents()
-        - openGameView()
-        - returnMenu()
-    }
-
-    class GameView {
-        - rows : Integer = 10
-        - cols : Integer = 10
-
-        + <<create>> GameView()
-        - initComponents()
-        - log(texte : String)
-        - returnMenu()
-    }
-
-    class EndView {
-        + <<create>> EndView(message : String)
-        - initComponents(message : String)
-    }
-}
-
-model.players.Player o-> "1\n- grid" model.grid.Grid : > owns
-model.players.Player o-> "1..*\n- weapons" model.contents.weapons.Weapon : > owns
-model.players.Player o-> "1..*\n- traps" model.contents.traps.Trap : > owns
-model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
-'model.contents.fleet.Boat o-> "1\n- name" model.enums.BoatName : > is call
-'model.contents.fleet.Boat o-> "1\n- orientation" model.enums.Orientation : > is oriented
-model.contents.fleet.Boat *-> "1..*\n- squaresTaken" model.grid.Square : > takes
 model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
-model.grid.Grid o-> "1\n- mode" ModeGame : > plays
+model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
 model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Square *-> "1\n- content" model.contents.Content : > contains
+model.grid.Square o-> "1\n- position" model.grid.Position : > is located
 'model.grid.Square o-> "1\n- islandState" model.enums.State : > is
 model.game.History o-> "1..*\n- actions" model.game.Action : > has
+model.game.Action o-> "1\n- position" model.grid.Position : > localisation
 model.game.Action *-> "1\n- player" model.players.Player
 model.game.Action *-> "1\n- weapon" model.contents.weapons.Weapon : > done with
 model.game.Action o-> "1\n- result" model.game.ResultAttack : > results
 'model.game.ResultAttack o-> "1\n- type" model.enums.TypeResult : > is
-'model.contents.traps.Trap o-> "1\n- name" model.enums.TrapType : > is
-'model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType : > is
 model o-> "1\n- name" model.enums : > is
 
 model.players.Player ..> model.grid.Square : > <<uses>>
@@ -334,19 +176,10 @@ model.grid.Grid ..> model.contents.fleet.Boat : > <<uses>>
 model.grid.Grid .. model.enums.Orientation : > <<uses>>
 model.grid.Grid ..> model.contents.weapons.Weapon : > <<uses>>
 
-MenuView ..> ConfigurationView : <<instanciate>> >
-ConfigurationView ..> PlacementView : <<instanciate>> >
-ConfigurationView ..> MenuView : <<instanciate>> >
-PlacementView ..> GameView : <<instanciate>> >
-PlacementView ..> MenuView : <<instanciate>> >
-GameView ..> MenuView : <<instanciate>> >
-EndView ..> MenuView : <<instanciate>> >
+controller.GameController o-> "1\n- currentGame" model.game.Game : > has
 
-controller.GameController o-> "1\n- player" model.players.Player : > has
-controller.GameController o-> "1\n- robot" model.players.Player : > has
-controller.GameController o-> "1\n- history" model.game.History : > has
-controller.GameController o-> "1\n- mode" model.enums.ModeGame : > plays
-controller.GameController ..> Weapon : > <<uses>>
-
+model.game.GameConfig o-> "1\n- modeGame" model.enums.ModeGame : > has
+model.game.GameConfig o-> "1\n- robotMode" model.enums.RobotMode : > has
+model.game.GameConfig o-> "1\n- trapPlacement" model.enums.TrapPlacement : > has
 
 @enduml
