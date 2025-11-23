@@ -235,6 +235,17 @@ public class PlacementView extends JFrame {
     public int getHoverX() { return hoverX; }
     public int getHoverY() { return hoverY; }
 
+    public String getModeBoat() {
+        if(fixedRadio.isSelected()){
+            return "Fixed";
+        }
+        else if(randomRadio.isSelected()){
+            return "Random";
+        }
+        else {
+            return "Manual";
+        }
+    }
 
     public void setBoatOptions(String[] options) {
         boatSelector.removeAllItems();

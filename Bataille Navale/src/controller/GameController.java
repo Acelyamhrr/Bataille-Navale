@@ -27,6 +27,8 @@ public class GameController {
     private GamePlacement currentPlacement;
     private Map<BoatName, List<Position>> playerBoats = new HashMap<>();
     private Map<TrapType, Position> playerTraps = new HashMap<>();
+    private Map<BoatName, List<Position>> robotBoats = new HashMap<>();
+    private Map<TrapType, Position> robotTraps = new HashMap<>();
     private List<BoatName> boatsToPlace = new ArrayList<>();
     private List<TrapType> trapsToPlace = new ArrayList<>();
     private int currentBoatIndex = 0;
@@ -291,6 +293,34 @@ public class GameController {
         return !isCellOccupied(x, y);
     }
 
+    private boolean canPlaceTrapRobot(TrapType type, int x, int y) {
+        int gridSize = currentConfig.getGridSize();
+
+        // Vérifier limites
+        if (x > gridSize) return false;
+        if (y > gridSize) return false;
+
+        // Vérifier chevauchement
+        return !isCellOccupiedRobot(x, y);
+    }
+
+    private boolean canPlaceBoatRobot(BoatName boat, int x, int y, Orientation orient) {
+        int size = getBoatSize(boat);
+        int gridSize = currentConfig.getGridSize();
+
+        // Vérifier limites
+        if (orient == Orientation.HORIZONTAL && x + size > gridSize) return false;
+        if (orient == Orientation.VERTICAL && y + size > gridSize) return false;
+
+        // Vérifier chevauchement
+        for (int i = 0; i < size; i++) {
+            int cx = orient == Orientation.HORIZONTAL ? x + i : x;
+            int cy = orient == Orientation.VERTICAL ? y + i : y;
+            if (isCellOccupiedRobot(cx, cy)) return false;
+        }
+        return true;
+    }
+
     private boolean isCellOccupied(int x, int y) {
         // Check if cell is occupied by a boat
         for (Map.Entry<BoatName, List<Position>> entry : playerBoats.entrySet()) {
@@ -306,6 +336,28 @@ public class GameController {
 
         //Check if cell is occupied by a trap
         for(Map.Entry<TrapType, Position> entry : playerTraps.entrySet()) {
+            Position pos = entry.getValue();
+            if(pos.getX() == x && pos.getY() == y) return true;
+        }
+
+        return false;
+    }
+
+    private boolean isCellOccupiedRobot(int x, int y) {
+        // Check if cell is occupied by a boat
+        for (Map.Entry<BoatName, List<Position>> entry : robotBoats.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                int size = getBoatSize(entry.getKey());
+                for (int i = 0; i < size; i++) {
+                    int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
+                    int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
+                    if (bx == x && by == y) return true;
+                }
+            }
+        }
+
+        //Check if cell is occupied by a trap
+        for(Map.Entry<TrapType, Position> entry : robotTraps.entrySet()) {
             Position pos = entry.getValue();
             if(pos.getX() == x && pos.getY() == y) return true;
         }
@@ -497,6 +549,81 @@ public class GameController {
         updateGrid();
     }
 
+    private void applyRandomTrapsRobot(){
+        robotTraps.clear();
+
+        Random rand = new Random();
+        int gridSize = currentConfig.getGridSize();
+
+        for(TrapType trap : trapsToPlace){
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(gridSize);
+                int y = rand.nextInt(gridSize);
+                if (canPlaceTrapRobot(trap, x, y)) {
+                    robotTraps.put(trap, new Position(x, y));
+                    placed = true;
+                }
+                attempts++;
+            }
+        }
+    }
+
+    private void applyFixedTrapsRobot(){
+        robotTraps.clear();
+        int x = 3;
+        int y = 3;
+
+        for(TrapType trap : trapsToPlace){
+            if(canPlaceTrapRobot(trap, x+1, y+1)) {
+                robotTraps.put(trap, new Position(x++, y++));
+            }
+            else{
+                if(canPlaceTrapRobot(trap, x+2, y+2)) {
+                    robotTraps.put(trap, new Position(x += 2, y += 2));
+                }
+            }
+        }
+
+    }
+
+    private void applyFixedBoatsRobot(){
+        robotBoats.clear();
+        int y = 0;
+        for (BoatName boat : boatsToPlace) {
+            if(canPlaceBoatRobot(boat, 0, y+1, Orientation.HORIZONTAL)) {
+                if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                robotBoats.get(boat).add(new Position(0, y++, Orientation.HORIZONTAL));
+            }
+            else{
+                placementView.showError("Le bateau ne peut pas être placé là.");
+            }
+        }
+    }
+
+    private void applyRandomBoatsRobot(){
+        robotBoats.clear();
+        Random rand = new Random();
+        int gridSize = currentConfig.getGridSize();
+
+        for (BoatName boat : boatsToPlace) {
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(gridSize);
+                int y = rand.nextInt(gridSize);
+                Orientation o = rand.nextBoolean() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+                if (canPlaceBoatRobot(boat, x, y, o)) {
+                    if(!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                    robotBoats.get(boat).add(new Position(x, y, o));
+                    placed = true;
+                }
+                attempts++;
+            }
+        }
+    }
+
     private void backToConfig() {
         placementView.dispose();
         configView.setVisible(true);
@@ -512,7 +639,31 @@ public class GameController {
             return;
         }
         placementView.showSuccess("Placement validé ! Prêt à jouer.");
-        // TODO: Créer GamePlacement (setteurs pour le bot) et passer à GameView
+
+        //Appel pour créer la grille du robot
+        String modeBoat = placementView.getModeBoat();
+        if(currentConfig.getTrapMode() == TrapPlacement.FIXED){
+            applyFixedTrapsRobot();
+            if(modeBoat.equals("Random")){
+                applyRandomBoatsRobot();
+            }
+            else{
+                applyFixedBoatsRobot();
+            }
+        }
+        else{
+            if(modeBoat.equals("Random")){
+                applyRandomBoatsRobot();
+            }
+            else{
+                applyFixedBoatsRobot();
+            }
+            applyRandomTrapsRobot();
+        }
+
+        placementView.showSuccess("Grille robot créée !");
+
+        // TODO: Passer à GameView
 
         currentPlacement = new GamePlacement();
 
@@ -524,6 +675,16 @@ public class GameController {
 
         for(Map.Entry<TrapType, Position> entry : playerTraps.entrySet()){
             currentPlacement.setTrapPlacementPlayer(entry.getKey(), entry.getValue());
+        }
+
+        for(Map.Entry<BoatName, List<Position>> entry : robotBoats.entrySet()){
+            for(Position pos : entry.getValue()){
+                currentPlacement.setBoatPlacementRobot(entry.getKey(), pos);
+            }
+        }
+
+        for(Map.Entry<TrapType, Position> entry : robotTraps.entrySet()){
+            currentPlacement.setTrapPlacementRobot(entry.getKey(), entry.getValue());
         }
     }
 
