@@ -394,6 +394,12 @@ public class GameController {
             playerBoats.get(boat).add(new Position(0, y++, Orientation.HORIZONTAL));
         }
         currentBoatIndex = boatsToPlace.size();
+
+        if(currentConfig.getTrapMode() == TrapPlacement.MANUAL){
+            currentPlacementBoat = false;
+            placementView.showSuccess("Placez les pièges.");
+        }
+
         updateBoatSelector();
         updateGrid();
     }
@@ -425,6 +431,12 @@ public class GameController {
             }
         }
         currentBoatIndex = boatsToPlace.size();
+
+        if(currentConfig.getTrapMode() == TrapPlacement.MANUAL){
+            placementView.showSuccess("Placez les pièges.");
+            currentPlacementBoat = false;
+        }
+
         updateBoatSelector();
         updateGrid();
     }
