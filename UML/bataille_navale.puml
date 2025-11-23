@@ -409,6 +409,8 @@ controller.GameController o-> "1..*\n- playerBoats" model.grid.Position : > has
 controller.GameController o-> "1..*\n- playerTraps" model.grid.Position : > has
 controller.GameController o-> "1..*\n- boatsToPlace" model.enums.BoatName : > has
 controller.GameController o-> "1..*\n- trapsToPlace" model.enums.TrapType : > has
+controller.GameController o-> "1..*\n- robotBoats" model.grid.Position : > has
+controller.GameController o-> "1..*\n- robotTraps" model.grid.Position : > has
 
 
 package views {
