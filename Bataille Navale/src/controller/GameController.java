@@ -26,10 +26,11 @@ public class GameController {
     private PlacementView placementView;
     private GamePlacement currentPlacement;
     private Map<BoatName, List<Position>> playerBoats = new HashMap<>();
-    private Map<TrapType, List<Position>> playerTraps = new HashMap<>();
+    private Map<TrapType, Position> playerTraps = new HashMap<>();
     private List<BoatName> boatsToPlace = new ArrayList<>();
+    private List<TrapType> trapsToPlace = new ArrayList<>();
     private int currentBoatIndex = 0;
-
+    private int currentTrapIndex = 0;
 
     public GameController() {}
 
@@ -126,6 +127,21 @@ public class GameController {
         configView.setVisible(false);
     }
 
+    private void initTrapsPlacement(){
+        initTrapsToPlace();
+        switch(currentConfig.getTrapMode()){
+            case RANDOM:
+                applyRandomPlacementTraps();
+                break;
+            case FIXED:
+                applyFixedPlacementTraps();
+                break;
+            case MANUAL:
+                applyManualPlacementTraps();
+                break;
+        }
+    }
+
     private void connectPlacementView() {
         placementView.addBackListener(e -> backToConfig());
         placementView.addValidateListener(e -> validatePlacement());
@@ -148,6 +164,16 @@ public class GameController {
             }
         }
         currentBoatIndex = 0;
+    }
+
+    private void initTrapsToPlace() {
+        trapsToPlace.clear();
+        playerTraps.clear();
+        TrapType[] types = {TrapType.BLACKHOLE, TrapType.TORNADO};
+        for (int i = 0; i < types.length; i++) {
+            trapsToPlace.add(types[i]);
+        }
+        currentTrapIndex = 0;
     }
 
     private void updateBoatSelector() {
@@ -217,7 +243,19 @@ public class GameController {
         return true;
     }
 
+    private boolean canPlaceTrap(TrapType type, int x, int y) {
+        int gridSize = currentConfig.getGridSize();
+
+        // Vérifier limites
+        if (x > gridSize) return false;
+        if (y > gridSize) return false;
+
+        // Vérifier chevauchement
+        return !isCellOccupied(x, y);
+    }
+
     private boolean isCellOccupied(int x, int y) {
+        // Check if cell is occupied by a boat
         for (Map.Entry<BoatName, List<Position>> entry : playerBoats.entrySet()) {
             for(Position pos : entry.getValue()) {
                 int size = getBoatSize(entry.getKey());
@@ -228,6 +266,13 @@ public class GameController {
                 }
             }
         }
+
+        //Check if cell is occupied by a trap
+        for(Map.Entry<TrapType, Position> entry : playerTraps.entrySet()) {
+            Position pos = entry.getValue();
+            if(pos.getX() == x && pos.getY() == y) return true;
+        }
+
         return false;
     }
 
@@ -320,9 +365,50 @@ public class GameController {
         updateGrid();
     }
 
+    private void applyFixedPlacementTraps(){
+        playerTraps.clear();
+        int x = 3;
+        int y = 4;
+
+        for(TrapType trap : trapsToPlace){
+            if(canPlaceTrap(trap, x+1, y+1)) {
+                playerTraps.put(trap, new Position(x++, y++));
+            }
+            else{
+                if(canPlaceTrap(trap, x+2, y+2)) {
+                    playerTraps.put(trap, new Position(x += 2, y += 2));
+                }
+            }
+        }
+    }
+
+    private void applyRandomPlacementTraps(){
+        playerBoats.clear();
+        Random rand = new Random();
+        int gridSize = currentConfig.getGridSize();
+
+        for(TrapType trap : trapsToPlace){
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(gridSize);
+                int y = rand.nextInt(gridSize);
+                if (canPlaceTrap(trap, x, y)) {
+                    playerTraps.put(trap, new Position(x, y));
+                    placed = true;
+                }
+                attempts++;
+            }
+        }
+    }
+
+    private void applyManualPlacementTraps(){
+
+    }
+
     private void backToConfig() {
         placementView.dispose();
-        configView.setVisible(true);;
+        configView.setVisible(true);
     }
 
     private void validatePlacement() {

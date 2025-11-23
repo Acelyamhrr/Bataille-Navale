@@ -10,9 +10,9 @@ import java.util.Map;
 
 public class GamePlacement {
     private Map<BoatName, List<Position>> boatPlacementPlayer;
-    private Map<TrapType, List<Position>> trapPlacementPlayer;
+    private Map<TrapType, Position> trapPlacementPlayer;
     private Map<BoatName, List<Position>> boatPlacementRobot;
-    private Map<TrapType, List<Position>> trapPlacementRobot;
+    private Map<TrapType, Position> trapPlacementRobot;
 
     public GamePlacement() {
         this.boatPlacementPlayer = new HashMap<>();
@@ -30,11 +30,11 @@ public class GamePlacement {
         return new HashMap<>(boatPlacementRobot);
     }
 
-    public Map<TrapType, List<Position>> getTrapPlacementsPlayer() {
+    public Map<TrapType, Position> getTrapPlacementsPlayer() {
         return new HashMap<>(trapPlacementPlayer);
     }
 
-    public Map<TrapType, List<Position>> getTrapPlacementsRobot() {
+    public Map<TrapType, Position> getTrapPlacementsRobot() {
         return new HashMap<>(trapPlacementRobot);
     }
 
@@ -54,17 +54,11 @@ public class GamePlacement {
     }
 
     public void setTrapPlacementPlayer(TrapType type, Position pos) {
-        if (!trapPlacementPlayer.containsKey(type)) {
-            trapPlacementPlayer.put(type, new ArrayList<>());
-        }
-        trapPlacementPlayer.get(type).add(pos);
+        trapPlacementPlayer.put(type, pos);
     }
 
     public void setTrapPlacementRobot(TrapType type, Position pos) {
-        if(!trapPlacementRobot.containsKey(type)){
-            trapPlacementRobot.put(type, new ArrayList<>());
-        }
-        trapPlacementRobot.get(type).add(pos);
+        trapPlacementRobot.put(type, pos);
     }
 
 }

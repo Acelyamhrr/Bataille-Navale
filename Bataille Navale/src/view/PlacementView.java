@@ -14,6 +14,7 @@ public class PlacementView extends JFrame {
     private JLabel phaseLabel;
     private JLabel infoLabel;
     private JComboBox<String> boatSelector;
+    private JComboBox<String> trapSelector;
     private JButton orientationButton;
     private JRadioButton fixedRadio, randomRadio, manualRadio;
     private JButton backButton, validateButton;
@@ -192,6 +193,34 @@ public class PlacementView extends JFrame {
         controlPanel.add(infoLabel);
 
         controlPanel.add(Box.createVerticalGlue());
+        controlPanel.revalidate();
+        controlPanel.repaint();
+    }
+
+    private void createTrapsControls() {
+        controlPanel.removeAll();
+
+        JLabel title = new JLabel("Placement des pièges");
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        controlPanel.add(title);
+
+        // Sélecteur de piège
+        JLabel trapLabel = new JLabel("Piège à placer:");
+        trapLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        controlPanel.add(trapLabel);
+
+        trapSelector = new JComboBox<>();
+        trapSelector.setMaximumSize(new Dimension(250, 30));
+        trapSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
+        controlPanel.add(boatSelector);
+
+        // Info
+        infoLabel = new JLabel("Cliquez sur la grille");
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        infoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        controlPanel.add(infoLabel);
+
         controlPanel.revalidate();
         controlPanel.repaint();
     }
