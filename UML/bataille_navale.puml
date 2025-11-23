@@ -253,6 +253,7 @@ package model {
             - username : String
             - numberBoat : Integer[*]
 
+
             + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapMode : TrapPlacement)
             + getGridSize() : Integer
             + getUsername() : Integer
@@ -260,14 +261,21 @@ package model {
             + getModeGame() : ModeGame
             + getRobotMode() : RobotMode
             + getTrapMode() : TrapPlacement
+            + getTotalBoatSquares() : Integer
+            + isValid() : Boolean
+            + toString() : String
         }
 
         class GamePlacement {
-            + <<create>> GamePlacement(boatPlacementPlayer : Position[*], trapPlacementPlayer :  Position[*], boatPlacementRobot: Position[*], trapPlacementRobot :  Position[*])
+            + <<create>> GamePlacement()
             + getBoatPlacementPlayer(type : BoatName) : Position
             + getBoatPlacementRobot(type : BoatName) : Position
             + getTrapPlacementPlayer(type : TrapType) : Position
             + getTrapPlacementRobot(type : TrapType) : Position
+            + setBoatPlacementPlayer(type : BoatName, pos : Position)
+            + setBoatPlacementRobot(type : BoatName, pos : Position)
+            + setTrapPlacementPlayer(type : TrapType, pos : Position)
+            + setTrapPlacementRobot(type : TrapType, pos : Position)
         }
 
         class Game {
@@ -407,13 +415,38 @@ package views {
     class MenuView {
         + <<create>> MenuView()
         - initComponents()
-        - openConfiguration()
+        - createMenuButton(text : String)
+        + addNewGameListener(listener : ActionListener)
+        + addQuitListener(listener : ActionListener)
     }
 
     class ConfigurationView {
+        - customBoatNumbers : Integer[*]
         + <<create>> ConfigurationView()
         - initComponents()
-        - openViewPlacement()
+        - openBoatCustomizationDialog()
+        - updateDialogTotal(spinner : Jspinner[*], sizes : Integer[*], label : Jlabel)
+        - calculateDialogTotal( spinner : Jspinner[*], sizes : Integer[*]) : Integer
+        - createSection(title : String) : Jlabel
+        - updateTrapPanel()
+        - updateBoatInfo()
+        - createButton(text : String, bgColor : Color) : JButton
+        + addBackListener(listener : ActionListener)
+        + addNextListener(listener : ActionListener)
+        + addCustomizeBoatListener(listener : ActionListener)
+        + getUsernam() : String
+        + getGridSize() : Integer
+        + isStandardMode() : Boolean
+        + isRandomRobot() : Boolean
+        + isDefaultBoats() : Boolean
+        + getCustomBoatNumbers() : Integer[*]
+        + setCustomBoatNumbers(numbers : Integer[*])
+        + getTrapPlacementMode : String
+        + showError(message : String)
+        + showSuccess(message : String)
+
+
+
     }
 
     class PlacementView {
