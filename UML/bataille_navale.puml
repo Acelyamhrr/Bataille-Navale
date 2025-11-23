@@ -1,0 +1,417 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam classFontStyle Bold
+hide enum methods
+
+' Configuration de la mise en page
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+' Espacement et taille
+skinparam defaultFontSize 11
+skinparam classAttributeFontSize 10
+skinparam packageFontSize 12
+skinparam packageFontStyle bold
+
+' Espacement entre les packages
+'top to bottom direction
+left to right direction
+
+package model {
+
+    package enums {
+
+        enum BoatName <<enumeration>> {
+            AIRCRAFT_CARRIER
+            CRUISER
+            DESTROYER
+            SUBMARINE
+            TORPEDO_BOAT
+        }
+
+        enum ModeGame <<enumeration>>{
+            STANDARD
+            ISLAND
+        }
+
+        enum WeaponType <<enumeration>> {
+            MISSILE
+            BOMB
+            SONAR
+        }
+
+        enum TrapType <<enumeration>> {
+            BLACKHOLE
+            TORNADO
+        }
+
+        enum Orientation <<enumeration>> {
+            VERTICAL
+            HORIZONTAL
+        }
+
+        enum State <<enumeration>> {
+            INTACT
+            EMPTY
+            SEARCHED
+        }
+
+        enum RobotMode <<enumeration>> {
+            RANDOM
+            SMART
+        }
+
+        enum TrapPlacement <<enumeration>> {
+            FIXED
+            RANDOM
+            MANUAL
+        }
+
+        enum ResultRound <<enumeration>> {
+            FAILURE
+            SINK
+            ATTACK
+            SEARCH
+        }
+    }
+
+    package contents {
+
+        interface Content <<interface>> {
+            + getPosition() : Position
+            + setPosition(x : Integer, y : Integer, orientation : Orientation)
+        }
+
+        package fleet {
+
+            class Boat implements model.contents.Content {
+                - numberSquares : Integer
+                - attacked : Boolean[*]
+
+                + <<create>> Boat(name : BoatName, numberSquares : Integer)
+                + getPosition() : Position
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+                + hasSunk() : Boolean
+                + attack(position : Position)
+                - notifyObservers()
+            }
+
+            class BoatFactory {
+                + <<create>> BoatFactory()
+                + createAircraftCarrier() : Boat
+                + createCruiser() : Boat
+                + createDestroyer() : Boat
+                + createSubmarine() : Boat
+                + createTorpedoBoat() : Boat
+            }
+        }
+
+        package weapons {
+
+            abstract class Weapon <<abstract>> implements model.contents.Content {
+                + <<create>> Weapon(name : WeaponType)
+                + getPosition() : Position
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+                + {abstract} use(position : Position) : Position[*]
+            }
+
+            class WeaponFactory() {
+                + <<create>> WeaponFactory()
+                + createMissile() : Weapon
+                + createBomb() : Weapon
+                + createSonar() : Weapon
+            }
+
+            class Missile extends Weapon {
+                + <<create>> Misile()
+                + use(position : Position) : Position[*]
+            }
+
+            class Bomb extends Weapon {
+                + <<create>> Bomb()
+                + use(position : Position) : Position[*]
+            }
+
+            class Sonar extends Weapon {
+                + <<create>> Sonar()
+                + use(position : Position) : Position[*]
+            }
+        }
+
+        package traps {
+
+            abstract class Trap <<abstract>> implements model.contents.Content {
+                + <<create>> Trap(name : TrapType)
+                + getPosition() : Position
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+            }
+
+            class TrapFactory {
+                + <<create>> TrapFactory()
+                + createBlackHole() : Trap
+                + createTornado() : Trap
+            }
+
+            class BlackHole extends Trap {
+                + <<create>> BlackHole()
+            }
+
+            class Tornado extends Trap {
+                - numberUse : Integer
+
+                + <<create>> Tornado()
+                + isActive() : Boolean
+                + getNewPosition(position : Position) : Position
+                + activate()
+            }
+        }
+    }
+
+    package players {
+
+        class Player {
+            - username : String
+            - isRobot : Boolean
+            - weapons : Integer[*]
+
+            + <<create>> Player(name : String, robot : Boolean)
+            + hasTornadoActive() : Boolean
+            + tornadoTrigger(position : Position) : Position
+            + setTornado(tornado : Tornado)
+            + receiveAttack(position : Position)
+            + allBoatSunk() : Boolean
+            + useWeapon(weapon : WeaponType)
+            + reset()
+        }
+    }
+
+    package grid {
+
+        class Position {
+            - x : Integer
+            - y : Integer
+
+            + <<create>> Position(x : Integer, y : Integer, orientation : Orientation)
+            + getX() : Integer
+            + getY() : Integer
+            + getOrientation : Orientation
+        }
+
+        class Grid {
+            - size : Integer
+
+            + <<create>> Grid(size : Integer, mode : ModeGame)
+            + placeBoat(b : Boat, position : Position)
+            + placeTrap(t : Trap, position : Position)
+            + attack(position : Position)
+            + reset()
+        }
+
+        class Square {
+            - attacked : Boolean
+            - inIsland : Boolean
+
+            + <<create>> Square(position : Position, island : Boolean)
+            + isEmpty() : Boolean
+            + getContent() : Content
+            + setContent(content : Content)
+            + attack()
+            + wasAttacked() : Boolean
+            + getPosition() : Position
+            - notifyObservers()
+        }
+
+        class Island {
+            - size : Integer
+
+            + <<create>> Island(position : Position, size : Integer, squares : Squares[*])
+            + contains(position : Position) : Boolean
+        }
+
+    }
+
+    package history {
+
+        class History implements model.Observer {
+            - actions : String[*]
+
+            + <<create>> History()
+            + reset()
+            + boatAttacked(position : Position)
+            + boatSunk(position : Position, size : Integer)
+            + squareAttacked(position : Position)
+            + squareIsland(position : Position, state : State)
+        }
+    }
+
+    package game {
+        class GameConfig {
+            - gridSize : Integer
+            - username : String
+            - numberBoat : Integer[*]
+
+            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapMode : TrapPlacement)
+            + getGridSize() : Integer
+            + getUsername() : Integer
+            + getNumberBoat() : Integer[*]
+            + getModeGame() : ModeGame
+            + getRobotMode() : RobotMode
+            + getTrapMode() : TrapPlacement
+        }
+
+        class GamePlacement {
+            + <<create>> GamePlacement(boatPlacementPlayer : Position[*], trapPlacementPlayer :  Position[*], boatPlacementRobot: Position[*], trapPlacementRobot :  Position[*])
+            + getBoatPlacementPlayer(type : BoatName) : Position
+            + getBoatPlacementRobot(type : BoatName) : Position
+            + getTrapPlacementPlayer(type : TrapType) : Position
+            + getTrapPlacementRobot(type : TrapType) : Position
+        }
+
+        class Game {
+            + <<create>> Game(config : GameConfig, placement, GamePlacement)
+            + initialize()
+            + playTurn()
+            - playPlayerTurn(assaillant : Player, defender : Player)
+            - executeAttack(assaillant : Player, defender : Player, weapon : WeaponType, position : Position)
+            - executeMissile(assaillant : Player, defender : Player, position : Position)
+            - executeBomb(assaillant : Player, defender : Player, position : Position)
+            - executeSonar(assaillant : Player, defender : Player, position : Position)
+        }
+    }
+
+    interface Observer <<interface>> {
+        + boatAttacked(position : Position)
+        + boatSunk(position : Position, size : Integer)
+        + squareAttacked(position : Position)
+        + squareIsland(position : Position, state : State)
+    }
+
+}
+
+model.contents.fleet.Boat o-> "1\n- name" model.enums.BoatName : > is call
+model.contents.fleet.Boat o-> "1\n- position" model.grid.Position : > is located
+model.contents.fleet.Boat *-> "1..*\n observers" model.Observer : > is observed by
+
+model.contents.weapons.Weapon o-> "1\n- name" model.enums.WeaponType: > is call
+model.contents.weapons.Weapon o-> "1\n- position" model.grid.Position : > is located
+
+model.contents.traps.Trap o-> "1\n- name" model.enums.TrapType: > is call
+model.contents.traps.Trap o-> "1\n- position" model.grid.Position : > is located
+model.contents.traps.Tornado *-> "1..*\n- newPositions" model.grid.Position : > move
+
+
+model.grid.Position o-> "1\n- orientation" model.enums.Orientation : > is oriented
+
+model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
+model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
+model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
+model.grid.Grid ..> model.contents.fleet.Boat : > <<uses>>
+model.grid.Grid ..> model.contents.traps.Trap : > <<uses>>
+
+model.grid.Square *-> "1\n- content" model.contents.Content : > contains
+model.grid.Square o-> "1\n- position" model.grid.Position : > is located
+model.grid.Square o-> "1\n- islandState" model.enums.State : > is
+model.grid.Square *-> "1..*\n observers" model.Observer : > is observed by
+
+model.grid.Island o-> "1\n- position" model.grid.Position : > is located
+model.grid.Island *-> "1..*\n- squares" model.grid.Square : > contains
+
+
+model.players.Player o-> "1\n- grid" model.grid.Grid : > owns
+model.players.Player o-> "1\n- tornado" model.contents.traps.Tornado : > owns
+model.players.Player o-> "1..*\n- boats" model.contents.fleet.Boat : > owns
+
+
+model.history.History o-> "1..*\n- actions" model.history.Action : > has
+
+model.history.Action o-> "1\n- position" model.grid.Position : > localisation
+model.history.Action o-> "1\n- weapon" model.enums.WeaponType : > done with
+model.history.Action o-> "1\n- result" model.enums.ResultRound : > result
+
+
+model.game.GameConfig o-> "1\n- modeGame" model.enums.ModeGame : > has
+model.game.GameConfig o-> "1\n- robotMode" model.enums.RobotMode : > has
+model.game.GameConfig o-> "1\n- trapPlacement" model.enums.TrapPlacement : > has
+
+model.game.GamePlacement o-> "1..*\n boatPlacementPlayer" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n trapPlacementPlayer" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n boatPlacementRobot" model.grid.Position : > are located
+model.game.GamePlacement o-> "1..*\n trapPlacementRobot" model.grid.Position : > are located
+model.game.GamePlacement ..> model.enums.BoatName : > <<uses>
+model.game.GamePlacement ..> model.enums.TrapType : > <<uses>
+
+
+model.game.Game o-> "1\n- gameConfig" model.game.GameConfig : > is configured
+model.game.Game o-> "1\n- gamePlacement" model.game.GamePlacement : > has placement
+model.game.Game o-> "1\n- player" model.players.Player : > played by
+model.game.Game o-> "1\n- robot" model.players.Player : > played against
+model.game.Game ..> model.grid.Position : > <<uses>>
+model.game.Game ..> model.enums.WeaponType : > <<uses>>
+
+
+package controller {
+    class GameController {
+        + <<create>> GameController()
+        - configureGame() : GameConfig
+        - placementGame() : GamePlacement
+    }
+}
+
+controller.GameController o-> "1\n- currentGame" model.game.Game : > has
+controller.GameController ..> model.game.GameConfig : > <<instanciate>>
+controller.GameController ..> model.game.GamePlacement: > <<instanciate>>
+
+
+package views {
+    class MenuView {
+        + <<create>> MenuView()
+        - initComponents()
+        - openConfiguration()
+    }
+
+    class ConfigurationView {
+        + <<create>> ConfigurationView()
+        - initComponents()
+        - openViewPlacement()
+    }
+
+    class PlacementView {
+        - rows : Integer = 10
+        - cols : Integer = 10
+
+        + <<create>> PlacementView()
+        - initComponents()
+        - openGameView()
+        - returnMenu()
+    }
+
+    class GameView implements model.Observer{
+        - rows : Integer = 10
+        - cols : Integer = 10
+
+        + <<create>> GameView()
+        - initComponents()
+        - log(texte : String)
+        - returnMenu()
+        + boatAttacked(position : Position)
+        + boatSunk(position : Position, size : Integer)
+        + squareAttacked(position : Position)
+        + squareIsland(position : Position, state : State)
+    }
+
+    class EndView {
+        + <<create>> EndView(message : String)
+        - initComponents(message : String)
+    }
+}
+
+MenuView ..> ConfigurationView : > <<instanciate>>
+ConfigurationView ..> PlacementView : > <<instanciate>>
+ConfigurationView ..> MenuView : > <<instanciate>>
+PlacementView ..> GameView : > <<instanciate>>
+PlacementView ..> MenuView : > <<instanciate>>
+GameView ..> MenuView : > <<instanciate>>
+EndView ..> MenuView : > <<instanciate>>
+
+@enduml
