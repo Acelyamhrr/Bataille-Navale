@@ -95,6 +95,7 @@ package model {
                 + hasSunk() : Boolean
                 + attack(position : Position)
                 - notifyObservers()
+                + addObserver(observer : Observer)
             }
 
             class BoatFactory {
@@ -220,6 +221,7 @@ package model {
             + wasAttacked() : Boolean
             + getPosition() : Position
             - notifyObservers()
+            + addObserver(observer : Observer)
         }
 
         class Island {
