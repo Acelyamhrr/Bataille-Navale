@@ -512,9 +512,19 @@ public class GameController {
             return;
         }
         placementView.showSuccess("Placement validé ! Prêt à jouer.");
-        // TODO: Créer GamePlacement et passer à GameView
+        // TODO: Créer GamePlacement (setteurs pour le bot) et passer à GameView
 
         currentPlacement = new GamePlacement();
+
+        for(Map.Entry<BoatName, List<Position>> entry : playerBoats.entrySet()){
+            for(Position pos : entry.getValue()){
+                currentPlacement.setBoatPlacementPlayer(entry.getKey(), pos);
+            }
+        }
+
+        for(Map.Entry<TrapType, Position> entry : playerTraps.entrySet()){
+            currentPlacement.setTrapPlacementPlayer(entry.getKey(), entry.getValue());
+        }
     }
 
 
