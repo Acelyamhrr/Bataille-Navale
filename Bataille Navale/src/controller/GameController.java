@@ -31,6 +31,7 @@ public class GameController {
     private List<TrapType> trapsToPlace = new ArrayList<>();
     private int currentBoatIndex = 0;
     private int currentTrapIndex = 0;
+    private boolean currentPlacementBoat;
 
     public GameController() {}
 
@@ -120,32 +121,32 @@ public class GameController {
     private void openPlacement() {
         placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername());
         connectPlacementView();
+        placementView.setVisible(true);
+        configView.setVisible(false);
         initPlacement();
         updateGrid();
-        placementView.setVisible(true);;
-        configView.setVisible(false);
     }
 
     private void initPlacement(){
+        initBoatsToPlace();
         initTrapsToPlace();
         switch(currentConfig.getTrapMode()){
             case RANDOM:
-                initBoatsToPlace();
+                currentPlacementBoat = true;
                 updateBoatSelector();
                 updateGrid();
-                applyRandomPlacementTraps();
                 break;
             case FIXED:
+                currentPlacementBoat = false;
                 applyFixedPlacementTraps();
                 updateGrid();
-                initBoatsToPlace();
+                currentPlacementBoat = true;
                 updateBoatSelector();
                 break;
             case MANUAL:
-                initBoatsToPlace();
+                currentPlacementBoat = true;
                 updateBoatSelector();
                 updateGrid();
-                applyManualPlacementTraps();
                 break;
         }
     }
@@ -213,24 +214,52 @@ public class GameController {
     }
 
     private void onGridClick(int x, int y) {
-        if (currentBoatIndex >= boatsToPlace.size()) return;
+        // If the player is trying to place a boat
+        if(currentPlacementBoat) {
+            if (currentBoatIndex >= boatsToPlace.size()) return;
 
-        BoatName boat = boatsToPlace.get(currentBoatIndex);
-        Orientation orient = placementView.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+            BoatName boat = boatsToPlace.get(currentBoatIndex);
+            Orientation orient = placementView.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
-        if (canPlaceBoat(boat, x, y, orient)) {
-            if(!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
-            playerBoats.get(boat).add(new Position(x, y, orient));
-            currentBoatIndex++;
-            placementView.setInfoText("Bateau placé !");
-            updateBoatSelector();
-            updateGrid();
+            if (canPlaceBoat(boat, x, y, orient)) {
+                if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                playerBoats.get(boat).add(new Position(x, y, orient));
+                currentBoatIndex++;
+                placementView.setInfoText("Bateau placé !");
+                updateBoatSelector();
+                updateGrid();
 
-            if (currentBoatIndex >= boatsToPlace.size()) {
-                placementView.setInfoText("Tous les bateaux sont placés !");
+                if (currentBoatIndex >= boatsToPlace.size()) {
+                    placementView.setInfoText("Tous les bateaux sont placés !");
+                    currentPlacementBoat = false;
+                    if(currentConfig.getTrapMode() == TrapPlacement.RANDOM){
+                        applyRandomPlacementTraps();
+                    }
+                    else if(currentConfig.getTrapMode() == TrapPlacement.MANUAL){
+                        placementView.showSuccess("Placez les pièges.");
+                    }
+                }
+            } else {
+                placementView.setInfoText("Placement invalide !");
             }
-        } else {
-            placementView.setInfoText("Placement invalide !");
+        }
+        else{   // If it's a trap
+            if(currentTrapIndex >= trapsToPlace.size()) return;
+            TrapType type = trapsToPlace.get(currentTrapIndex);
+
+            if(canPlaceTrap(type, x, y)) {
+                playerTraps.put(type, new Position(x, y));
+                currentTrapIndex++;
+                placementView.setInfoText("Piège placé !");
+                updateGrid();
+
+                if(currentTrapIndex >= trapsToPlace.size()) {
+                    placementView.setInfoText("Tous les pièges sont placés !");
+                }
+            }
+            else{
+                placementView.setInfoText("Placement invalide !");
+            }
         }
     }
 
@@ -318,25 +347,46 @@ public class GameController {
         }
 
         // Preview hover
-        int hx = placementView.getHoverX();
-        int hy = placementView.getHoverY();
-        if (hx >= 0 && hy >= 0 && currentBoatIndex < boatsToPlace.size()) {
-            BoatName currentBoat = boatsToPlace.get(currentBoatIndex);
-            Orientation orient = placementView.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
-            boolean canPlace = canPlaceBoat(currentBoat, hx, hy, orient);
-            int boatSize = getBoatSize(currentBoat);
+        if(currentPlacementBoat) {
+            int hx = placementView.getHoverX();
+            int hy = placementView.getHoverY();
+            if (hx >= 0 && hy >= 0 && currentBoatIndex < boatsToPlace.size()) {
+                BoatName currentBoat = boatsToPlace.get(currentBoatIndex);
+                Orientation orient = placementView.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+                boolean canPlace = canPlaceBoat(currentBoat, hx, hy, orient);
+                int boatSize = getBoatSize(currentBoat);
 
-            for (int i = 0; i < boatSize; i++) {
-                int px = orient == Orientation.HORIZONTAL ? hx + i : hx;
-                int py = orient == Orientation.VERTICAL ? hy + i : hy;
-                if (px < size && py < size && !isCellOccupied(px, py)) {
-                    placementView.setCellColor(px, py, canPlace ? previewOk : previewBad);
+                for (int i = 0; i < boatSize; i++) {
+                    int px = orient == Orientation.HORIZONTAL ? hx + i : hx;
+                    int py = orient == Orientation.VERTICAL ? hy + i : hy;
+                    if (px < size && py < size && !isCellOccupied(px, py)) {
+                        placementView.setCellColor(px, py, canPlace ? previewOk : previewBad);
+                    }
                 }
             }
+        }
+        else{
+            int hx = placementView.getHoverX();
+            int hy = placementView.getHoverY();
+            if(hx >= 0 && hy >= 0 && currentTrapIndex < trapsToPlace.size()) {
+                TrapType currentTrap = trapsToPlace.get(currentTrapIndex);
+                boolean canPlace = canPlaceTrap(currentTrap, hx, hy);
+                placementView.setCellColor(hx, hy, canPlace ? previewOk : previewBad);
+            }
+        }
+
+        if(currentBoatIndex >= boatsToPlace.size() && currentTrapIndex == 0 && currentConfig.getTrapMode() == TrapPlacement.RANDOM){
+            applyRandomPlacementTraps();
         }
     }
 
     private void applyFixedPlacement() {
+        if(currentConfig.getTrapMode() ==  TrapPlacement.MANUAL || currentConfig.getTrapMode() ==  TrapPlacement.RANDOM){
+            playerTraps.clear();
+            currentTrapIndex = 0;
+            currentPlacementBoat = true;
+        }
+
         playerBoats.clear();
         int y = 0;
         for (BoatName boat : boatsToPlace) {
@@ -349,6 +399,12 @@ public class GameController {
     }
 
     private void applyRandomPlacement() {
+        if(currentConfig.getTrapMode() ==  TrapPlacement.MANUAL || currentConfig.getTrapMode() ==  TrapPlacement.RANDOM){
+            playerTraps.clear();
+            currentTrapIndex = 0;
+            currentPlacementBoat = true;
+        }
+
         playerBoats.clear();
         Random rand = new Random();
         int gridSize = currentConfig.getGridSize();
@@ -376,6 +432,12 @@ public class GameController {
     private void enableManualPlacement() {
         playerBoats.clear();
         currentBoatIndex = 0;
+        currentPlacementBoat = true;
+
+        if(currentConfig.getTrapMode() ==  TrapPlacement.MANUAL || currentConfig.getTrapMode() ==  TrapPlacement.RANDOM){
+            playerTraps.clear();
+            currentTrapIndex = 0;
+        }
         updateBoatSelector();
         updateGrid();
     }
@@ -383,7 +445,7 @@ public class GameController {
     private void applyFixedPlacementTraps(){
         playerTraps.clear();
         int x = 3;
-        int y = 4;
+        int y = 3;
 
         for(TrapType trap : trapsToPlace){
             if(canPlaceTrap(trap, x+1, y+1)) {
@@ -396,11 +458,12 @@ public class GameController {
             }
         }
 
+        currentTrapIndex =  trapsToPlace.size();
         updateGrid();
     }
 
     private void applyRandomPlacementTraps(){
-        playerBoats.clear();
+        playerTraps.clear();
         Random rand = new Random();
         int gridSize = currentConfig.getGridSize();
 
@@ -418,11 +481,8 @@ public class GameController {
             }
         }
 
+        currentTrapIndex =  trapsToPlace.size();
         updateGrid();
-    }
-
-    private void applyManualPlacementTraps(){
-
     }
 
     private void backToConfig() {
@@ -433,6 +493,10 @@ public class GameController {
     private void validatePlacement() {
         if (currentBoatIndex < boatsToPlace.size()) {
             placementView.showError("Placez tous les bateaux d'abord !");
+            return;
+        }
+        else if(currentTrapIndex < trapsToPlace.size()) {
+            placementView.showError("Placez tous les pièges d'abord !");
             return;
         }
         placementView.showSuccess("Placement validé ! Prêt à jouer.");
