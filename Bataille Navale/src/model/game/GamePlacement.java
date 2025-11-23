@@ -3,13 +3,15 @@ package model.game;
 import model.enums.*;
 import model.grid.Position;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GamePlacement {
-    private Map<BoatName, Position> boatPlacementPlayer;
+    private Map<BoatName, List<Position>> boatPlacementPlayer;
     private Map<TrapType, Position> trapPlacementPlayer;
-    private Map<BoatName, Position> boatPlacementRobot;
+    private Map<BoatName, List<Position>> boatPlacementRobot;
     private Map<TrapType, Position> trapPlacementRobot;
 
     public GamePlacement() {
@@ -20,11 +22,11 @@ public class GamePlacement {
     }
 
     // Getters
-    public Map<BoatName, Position> getBoatPlacementsPlayer() {
+    public Map<BoatName, List<Position>> getBoatPlacementsPlayer() {
         return new HashMap<>(boatPlacementPlayer);
     }
 
-    public Map<BoatName, Position> getBoatPlacementsRobot() {
+    public Map<BoatName, List<Position>> getBoatPlacementsRobot() {
         return new HashMap<>(boatPlacementRobot);
     }
 
@@ -38,11 +40,17 @@ public class GamePlacement {
 
     // Setters
     public void setBoatPlacementPlayer(BoatName type, Position pos) {
-        boatPlacementPlayer.put(type, pos);
+        if (!boatPlacementPlayer.containsKey(type)) {
+            boatPlacementPlayer.put(type, new ArrayList<>());
+        }
+        boatPlacementPlayer.get(type).add(pos);
     }
 
     public void setBoatPlacementRobot(BoatName type, Position pos) {
-        boatPlacementRobot.put(type, pos);
+        if (!boatPlacementRobot.containsKey(type)) {
+            boatPlacementRobot.put(type, new ArrayList<>());
+        }
+        boatPlacementRobot.get(type).add(pos);
     }
 
     public void setTrapPlacementPlayer(TrapType type, Position pos) {
