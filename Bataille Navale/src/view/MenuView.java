@@ -2,62 +2,91 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
+/**
+ * Vue du menu principal.
+ * NE CONNAÎT PAS le Controller - expose seulement des méthodes
+ * pour que le Controller puisse s'y connecter.
+ */
 public class MenuView extends JFrame {
+    private JButton newGameButton;
+    private JButton quitButton;
 
     public MenuView() {
-        setTitle("Bataille Navale - Menu");
+        setTitle("Bataille Navale");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 400);
         setLocationRelativeTo(null);
-
         initComponents();
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout());
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(30, 50, 100));
 
-        // title
-        JLabel title = new JLabel("BATAILLE NAVALE", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 32));
-        title.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
-        add(title, BorderLayout.NORTH);
+        // Titre
+        JLabel titleLabel = new JLabel("BATAILLE NAVALE", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 48));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(50, 0, 30, 0));
 
-        // in the middle : buttons etc..
-        JPanel centralPnl = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Panel des boutons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        buttonPanel.setBackground(new Color(30, 50, 100));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 150, 80, 150));
 
-        JButton btnNewGame = new JButton("Nouvelle Partie");
-        btnNewGame.setFont(new Font("Arial", Font.PLAIN, 18));
-        btnNewGame.setPreferredSize(new Dimension(250, 50));
-        btnNewGame.addActionListener(e -> ouvrirConfiguration());
-        centralPnl.add(btnNewGame, gbc);
+        newGameButton = createMenuButton("Nouvelle Partie");
+        quitButton = createMenuButton("Quitter");
 
-        gbc.gridy++;
-        JButton btnQuit = new JButton("Quitter");
-        btnQuit.setFont(new Font("Arial", Font.PLAIN, 18));
-        btnQuit.setPreferredSize(new Dimension(250, 50));
-        btnQuit.addActionListener(e -> System.exit(0));
-        centralPnl.add(btnQuit, gbc);
+        buttonPanel.add(newGameButton);
+        buttonPanel.add(Box.createVerticalStrut(20));
+        buttonPanel.add(quitButton);
 
-        add(centralPnl, BorderLayout.CENTER);
+        JLabel versionLabel = new JLabel("A31 Bataille Navale - Açelya - Elora", SwingConstants.CENTER);
+        versionLabel.setForeground(new Color(150, 170, 200));
+        versionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+
+        mainPanel.add(titleLabel, BorderLayout.NORTH);
+        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+        mainPanel.add(versionLabel, BorderLayout.SOUTH);
+
+        add(mainPanel);
     }
 
-    private void ouvrirConfiguration() {
-        ConfigurationView config = new ConfigurationView();
-        config.setVisible(true);
-        this.dispose();
-    }
+    // pour avoir le même type de boutons à chaque fois.
+    private JButton createMenuButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 20));
+        button.setForeground(Color.WHITE);
+        button.setBackground(new Color(70, 100, 150));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(300, 50));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MenuView menu = new MenuView();
-            menu.setVisible(true);
+        // hover quand on passe dessus
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(90, 120, 180));
+            }
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(70, 100, 150));
+            }
         });
+        return button;
+    }
+
+    // méthodes pour le controlleur
+
+    public void addNewGameListener(ActionListener listener) {
+        newGameButton.addActionListener(listener);
+    }
+
+    public void addQuitListener(ActionListener listener) {
+        quitButton.addActionListener(listener);
     }
 
 }
