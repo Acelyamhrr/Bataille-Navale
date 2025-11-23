@@ -481,12 +481,4 @@ package views {
     }
 }
 
-MenuView ..> ConfigurationView : > <<instanciate>>
-ConfigurationView ..> PlacementView : > <<instanciate>>
-ConfigurationView ..> MenuView : > <<instanciate>>
-PlacementView ..> GameView : > <<instanciate>>
-PlacementView ..> MenuView : > <<instanciate>>
-GameView ..> MenuView : > <<instanciate>>
-EndView ..> MenuView : > <<instanciate>>
-
 @enduml
