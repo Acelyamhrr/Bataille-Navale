@@ -280,6 +280,7 @@ public class GameController {
         int size = currentConfig.getGridSize();
         Color water = new Color(100, 150, 200);
         Color boat = new Color(80, 80, 80);
+        Color trap = new Color(243, 88, 48);
         Color previewOk = new Color(100, 200, 100);
         Color previewBad = new Color(200, 100, 100);
 
@@ -300,6 +301,12 @@ public class GameController {
                     placementView.setCellColor(bx, by, boat);
                 }
             }
+        }
+
+        // Pièges placés
+        for(Map.Entry<TrapType, Position> entry : playerTraps.entrySet()) {
+            Position pos = entry.getValue();
+            placementView.setCellColor(pos.getX(), pos.getY(), trap);
         }
 
         // Preview hover
