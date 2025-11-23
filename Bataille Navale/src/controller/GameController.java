@@ -25,8 +25,8 @@ public class GameController {
     // vue placement
     private PlacementView placementView;
     private GamePlacement currentPlacement;
-    private Map<BoatName, Position> playerBoats = new HashMap<>();
-    private Map<TrapType, Position> playerTraps = new HashMap<>();
+    private Map<BoatName, List<Position>> playerBoats = new HashMap<>();
+    private Map<TrapType, List<Position>> playerTraps = new HashMap<>();
     private List<BoatName> boatsToPlace = new ArrayList<>();
     private int currentBoatIndex = 0;
 
@@ -185,7 +185,8 @@ public class GameController {
         Orientation orient = placementView.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
         if (canPlaceBoat(boat, x, y, orient)) {
-            playerBoats.put(boat, new Position(x, y, orient));
+            if(!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+            playerBoats.get(boat).add(new Position(x, y, orient));
             currentBoatIndex++;
             placementView.setInfoText("Bateau placé !");
             updateBoatSelector();
@@ -217,13 +218,14 @@ public class GameController {
     }
 
     private boolean isCellOccupied(int x, int y) {
-        for (Map.Entry<BoatName, Position> entry : playerBoats.entrySet()) {
-            Position pos = entry.getValue();
-            int size = getBoatSize(entry.getKey());
-            for (int i = 0; i < size; i++) {
-                int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
-                int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
-                if (bx == x && by == y) return true;
+        for (Map.Entry<BoatName, List<Position>> entry : playerBoats.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                int size = getBoatSize(entry.getKey());
+                for (int i = 0; i < size; i++) {
+                    int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
+                    int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
+                    if (bx == x && by == y) return true;
+                }
             }
         }
         return false;
@@ -244,13 +246,14 @@ public class GameController {
         }
 
         // Bateaux placés
-        for (Map.Entry<BoatName, Position> entry : playerBoats.entrySet()) {
-            Position pos = entry.getValue();
-            int boatSize = getBoatSize(entry.getKey());
-            for (int i = 0; i < boatSize; i++) {
-                int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
-                int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
-                placementView.setCellColor(bx, by, boat);
+        for (Map.Entry<BoatName, List<Position>> entry : playerBoats.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                int boatSize = getBoatSize(entry.getKey());
+                for (int i = 0; i < boatSize; i++) {
+                    int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
+                    int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
+                    placementView.setCellColor(bx, by, boat);
+                }
             }
         }
 
@@ -277,7 +280,8 @@ public class GameController {
         playerBoats.clear();
         int y = 0;
         for (BoatName boat : boatsToPlace) {
-            playerBoats.put(boat, new Position(0, y++, Orientation.HORIZONTAL));
+            if(!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+            playerBoats.get(boat).add(new Position(0, y++, Orientation.HORIZONTAL));
         }
         currentBoatIndex = boatsToPlace.size();
         updateBoatSelector();
@@ -297,7 +301,8 @@ public class GameController {
                 int y = rand.nextInt(gridSize);
                 Orientation o = rand.nextBoolean() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
                 if (canPlaceBoat(boat, x, y, o)) {
-                    playerBoats.put(boat, new Position(x, y, o));
+                    if(!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                    playerBoats.get(boat).add(new Position(x, y, o));
                     placed = true;
                 }
                 attempts++;
@@ -327,6 +332,8 @@ public class GameController {
         }
         placementView.showSuccess("Placement validé ! Prêt à jouer.");
         // TODO: Créer GamePlacement et passer à GameView
+
+        currentPlacement = new GamePlacement();
     }
 
 
