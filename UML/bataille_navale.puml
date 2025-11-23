@@ -384,13 +384,20 @@ package controller {
         - onGridClick(x : Integer, y : Integer)
         - canPlaceBoat(boat : BoatName, x : Integer, y : Integer, orient : Orientation) : Boolean
         - canPlaceTrap(trap : TrapType, x : Integer, y : Integer) : Boolean
+        - canPlaceBoatRobot(boat : BoatName, x : Integer, y : Integer, orient : Orientation) : Boolean
+        - canPlaceTrapRobot(trap : TrapType, x : Integer, y : Integer) : Boolean
         - isCellOccupied(x : Integer, y : Integer) : Boolean
+        - isCellOccupiedRobot(x : Integer, y : Integer) : Boolean
         - updateGrid()
         - applyFixedPlacement()
         - applyRandomPlacement()
         - enableManualPlacement()
         - applyFixedPlacementTraps()
         - applyRandomPlacementTraps()
+        - applyRandomTrapsRobot()
+        - applyFixedTrapsRobot()
+        - applyFixedBoatsRobot()
+        - applyRandomBoatsRobot()
         - backToConfig()
         - validatePlacement()
         - quit()
@@ -446,9 +453,6 @@ package views {
         + getTrapPlacementMode : String
         + showError(message : String)
         + showSuccess(message : String)
-
-
-
     }
 
     class PlacementView {
