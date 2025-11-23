@@ -120,23 +120,31 @@ public class GameController {
     private void openPlacement() {
         placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername());
         connectPlacementView();
-        initBoatsToPlace();
-        updateBoatSelector();
+        initPlacement();
         updateGrid();
         placementView.setVisible(true);;
         configView.setVisible(false);
     }
 
-    private void initTrapsPlacement(){
+    private void initPlacement(){
         initTrapsToPlace();
         switch(currentConfig.getTrapMode()){
             case RANDOM:
+                initBoatsToPlace();
+                updateBoatSelector();
+                updateGrid();
                 applyRandomPlacementTraps();
                 break;
             case FIXED:
                 applyFixedPlacementTraps();
+                updateGrid();
+                initBoatsToPlace();
+                updateBoatSelector();
                 break;
             case MANUAL:
+                initBoatsToPlace();
+                updateBoatSelector();
+                updateGrid();
                 applyManualPlacementTraps();
                 break;
         }
@@ -387,6 +395,8 @@ public class GameController {
                 }
             }
         }
+
+        updateGrid();
     }
 
     private void applyRandomPlacementTraps(){
@@ -407,6 +417,8 @@ public class GameController {
                 attempts++;
             }
         }
+
+        updateGrid();
     }
 
     private void applyManualPlacementTraps(){
