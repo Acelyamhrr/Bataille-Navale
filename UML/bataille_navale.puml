@@ -94,7 +94,7 @@ package model {
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
                 + hasSunk() : Boolean
                 + attack(position : Position)
-                - notifyObservers()
+                - notifyObservers(position : Position)
                 + addObserver(observer : Observer)
             }
 
