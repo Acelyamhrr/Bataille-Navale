@@ -165,7 +165,7 @@ package model {
                 + <<create>> Tornado()
                 + isActive() : Boolean
                 + getNewPosition(position : Position) : Position
-                + activate()
+                + activate(gridSize : Integer)
             }
         }
     }
