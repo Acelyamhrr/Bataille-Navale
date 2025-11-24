@@ -39,7 +39,7 @@ public class Boat implements Content {
                 return false;
             }
         }
-
+        notifyObserversSunk();
         return true;
     }
 
@@ -54,16 +54,22 @@ public class Boat implements Content {
 
         this.attacked[pos] = true;
 
-        notifyObservers(position);
+        notifyObserversAttacked(position);
     }
 
     public void addObserver(Observer observer){
         this.observers.add(observer);
     }
 
-    private void notifyObservers(Position position){
+    private void notifyObserversAttacked(Position position){
         for(Observer observer : this.observers){
             observer.boatAttacked(position);
+        }
+    }
+
+    private void notifyObserversSunk(){
+        for(Observer observer : this.observers){
+            observer.boatSunk(this.position, this.numberSquares);
         }
     }
 }
