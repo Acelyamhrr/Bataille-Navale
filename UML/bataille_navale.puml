@@ -166,6 +166,7 @@ package model {
                 + isActive() : Boolean
                 + getNewPosition(position : Position) : Position
                 + activate(gridSize : Integer)
+                - exists(position : Position) : Boolean
             }
         }
     }
