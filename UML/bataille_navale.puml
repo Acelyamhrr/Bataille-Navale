@@ -224,6 +224,11 @@ package model {
             + getPosition() : Position
             - notifyObservers()
             + addObserver(observer : Observer)
+            + isNotSearched() : Boolean
+            + search() : Content
+            + isInIsland() : Boolean
+            - notifyObserversAttacked()
+            - notifyObserversIsland()
         }
 
         class Island {
