@@ -205,8 +205,8 @@ package model {
             - size : Integer
 
             + <<create>> Grid(size : Integer, mode : ModeGame)
-            + placeBoat(b : Boat, position : Position)
-            + placeTrap(t : Trap, position : Position)
+            + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
+            + placeTrap(t : Trap, x : Integer, y : Integer)
             + attack(position : Position)
             + reset()
         }
