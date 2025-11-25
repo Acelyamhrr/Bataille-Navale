@@ -234,8 +234,10 @@ package model {
         class Island {
             - size : Integer
 
-            + <<create>> Island(position : Position, size : Integer, squares : Squares[*])
+            + <<create>> Island(position : Position, size : Integer)
             + contains(position : Position) : Boolean
+            + addSquare(position : Position, square : Square)
+            + getSquare(position : Position) : Square
         }
 
     }
