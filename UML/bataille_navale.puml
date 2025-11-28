@@ -94,7 +94,8 @@ package model {
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
                 + hasSunk() : Boolean
                 + attack(position : Position)
-                - notifyObservers()
+                - notifyObserversAttacked(position : Position)
+                - notifyObserversSunk()
                 + addObserver(observer : Observer)
             }
 
@@ -164,7 +165,8 @@ package model {
                 + <<create>> Tornado()
                 + isActive() : Boolean
                 + getNewPosition(position : Position) : Position
-                + activate()
+                + activate(gridSize : Integer)
+                - exists(position : Position) : Boolean
             }
         }
     }
@@ -203,8 +205,8 @@ package model {
             - size : Integer
 
             + <<create>> Grid(size : Integer, mode : ModeGame)
-            + placeBoat(b : Boat, position : Position)
-            + placeTrap(t : Trap, position : Position)
+            + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
+            + placeTrap(t : Trap, x : Integer, y : Integer)
             + attack(position : Position)
             + reset()
         }
@@ -222,13 +224,20 @@ package model {
             + getPosition() : Position
             - notifyObservers()
             + addObserver(observer : Observer)
+            + isNotSearched() : Boolean
+            + search() : Content
+            + isInIsland() : Boolean
+            - notifyObserversAttacked()
+            - notifyObserversIsland()
         }
 
         class Island {
             - size : Integer
 
-            + <<create>> Island(position : Position, size : Integer, squares : Squares[*])
+            + <<create>> Island(position : Position, size : Integer)
             + contains(position : Position) : Boolean
+            + addSquare(position : Position, square : Square)
+            + getSquare(position : Position) : Square
         }
 
     }
