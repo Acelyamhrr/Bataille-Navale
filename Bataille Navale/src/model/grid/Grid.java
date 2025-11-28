@@ -34,7 +34,21 @@ public  class Grid {
     public void placeBoat(Boat b, int x, int y, Orientation orientation) {
         Position pos = new Position(x, y, orientation);
         b.setPosition(x, y, orientation);
+
+        //Placement de l'instance dans les cases occupées
         this.squares.get(pos).setContent(b);
+        if(orientation == Orientation.HORIZONTAL){
+            for(int i=1; i<b.getSize(); i++){
+                Position pos2 = new Position(pos.getX()+i, pos.getY());
+                this.squares.get(pos2).setContent(b);
+            }
+        }
+        else{
+            for(int i=1; i<b.getSize(); i++){
+                Position pos2 = new Position(pos.getX(), pos.getY()+i);
+                this.squares.get(pos2).setContent(b);
+            }
+        }
     }
 
     public void placeTrap(Trap trap, int x, int y) {

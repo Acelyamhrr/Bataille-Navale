@@ -46,10 +46,10 @@ public class Boat implements Content {
     public void attack(Position position){
         int pos;
         if(this.position.getOrientation() == Orientation.VERTICAL){
-            pos = position.getX() - this.position.getX();
+            pos = position.getY() - this.position.getY();
         }
         else{
-            pos = position.getY() - this.position.getY();
+            pos = position.getX() - this.position.getX();
         }
 
         this.attacked[pos] = true;
@@ -71,5 +71,9 @@ public class Boat implements Content {
         for(Observer observer : this.observers){
             observer.boatSunk(this.position, this.numberSquares);
         }
+    }
+
+    public int getSize(){
+        return this.numberSquares;
     }
 }

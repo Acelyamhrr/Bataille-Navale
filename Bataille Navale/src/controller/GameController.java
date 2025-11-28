@@ -590,11 +590,11 @@ public class GameController {
 
     private void applyFixedBoatsRobot(){
         robotBoats.clear();
-        int y = 0;
+        int x = 0;
         for (BoatName boat : boatsToPlace) {
-            if(canPlaceBoatRobot(boat, 0, y+1, Orientation.HORIZONTAL)) {
+            if(canPlaceBoatRobot(boat, x+1, 0, Orientation.HORIZONTAL)) {
                 if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
-                robotBoats.get(boat).add(new Position(0, y++, Orientation.HORIZONTAL));
+                robotBoats.get(boat).add(new Position(x++, 0, Orientation.HORIZONTAL));
             }
             else{
                 placementView.showError("Le bateau ne peut pas être placé là.");

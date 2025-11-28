@@ -97,6 +97,7 @@ package model {
                 - notifyObserversAttacked(position : Position)
                 - notifyObserversSunk()
                 + addObserver(observer : Observer)
+                + getSize() : Integer
             }
 
             class BoatFactory {
