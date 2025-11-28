@@ -19,14 +19,24 @@ public  class Grid {
         this.mode = mode;
         this.squares = new HashMap<Position, Square>();
 
-        //TODO : faire les squares et l'île
-        this.island = new Island(new Position(4, 4), 4); //TODO : ajuster la position de l'île
-
-        for(int i = 0; i < size; i++){
-            for(int j = 0; j < size; j++){
+        for(int i=0; i<size; i++){
+            for(int j=0; j<size; j++){
                 Position pos = new Position(i, j);
-                Square square = new Square(pos, false); //TODO : faire si inIsland
-                squares.put(pos, square);
+                this.squares.put(pos, new Square(pos));
+            }
+        }
+
+        if(mode == ModeGame.ISLAND){
+            int x = size/2 -2;
+            int y = size/2 -2;
+            this.island = new Island(new Position(x, y));
+
+            for(int i=x; i<x+4; i++){
+                for(int j=y; j<y+4; j++){
+                    Position pos = new Position(i, j);
+                    this.squares.get(pos).setIsland();
+                    this.island.addSquare(pos, this.squares.get(pos));
+                }
             }
         }
     }
@@ -62,7 +72,14 @@ public  class Grid {
     }
 
     public void reset(){
-        //TODO
+        this.squares.clear();
+
+        for(int i=0; i<size; i++){
+            for(int j=0; j<size; j++){
+                Position pos = new Position(i, j);
+                this.squares.put(pos, new Square(pos));
+            }
+        }
     }
 
 }

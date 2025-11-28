@@ -217,6 +217,8 @@ package model {
             - inIsland : Boolean
 
             + <<create>> Square(position : Position, island : Boolean)
+            + <<create>> Square(position : Position)
+            + setIsland()
             + isEmpty() : Boolean
             + getContent() : Content
             + setContent(content : Content)
@@ -233,9 +235,9 @@ package model {
         }
 
         class Island {
-            - size : Integer
+            - {static} size : Integer
 
-            + <<create>> Island(position : Position, size : Integer)
+            + <<create>> Island(position : Position)
             + contains(position : Position) : Boolean
             + addSquare(position : Position, square : Square)
             + getSquare(position : Position) : Square

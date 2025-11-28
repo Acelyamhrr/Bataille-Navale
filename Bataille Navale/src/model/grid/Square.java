@@ -26,6 +26,17 @@ public class Square {
         this.observers = new ArrayList<>();
     }
 
+    public Square(Position position) {
+        this.position = position;
+        this.inIsland = false;
+        this.observers = new ArrayList<>();
+    }
+
+    public void setIsland(){
+        this.inIsland = true;
+        this.islandState = State.INTACT;
+    }
+
     public boolean wasAttacked() {
         return this.attacked;
     }
