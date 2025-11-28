@@ -4,13 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Island {
-    private int size;
+    private static int SIZE = 4;
     private Position position;
     private Map<Position, Square> squares;
 
-    public Island(Position position, int size) {
+    public Island(Position position) {
         this.position = position;
-        this.size = size;
         this.squares = new HashMap<Position, Square>();
     }
 
