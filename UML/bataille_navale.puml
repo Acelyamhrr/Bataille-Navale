@@ -97,6 +97,7 @@ package model {
                 - notifyObserversAttacked(position : Position)
                 - notifyObserversSunk()
                 + addObserver(observer : Observer)
+                + getSize() : Integer
             }
 
             class BoatFactory {
@@ -228,6 +229,8 @@ package model {
             - inIsland : Boolean
 
             + <<create>> Square(position : Position, island : Boolean)
+            + <<create>> Square(position : Position)
+            + setIsland()
             + isEmpty() : Boolean
             + getContent() : Content
             + setContent(content : Content)
@@ -244,9 +247,9 @@ package model {
         }
 
         class Island {
-            - size : Integer
+            - {static} size : Integer
 
-            + <<create>> Island(position : Position, size : Integer)
+            + <<create>> Island(position : Position)
             + contains(position : Position) : Boolean
             + addSquare(position : Position, square : Square)
             + getSquare(position : Position) : Square
@@ -309,11 +312,11 @@ package model {
             + <<create>> Game(config : GameConfig, placement, GamePlacement)
             + initialize()
             + playTurn()
-            - playPlayerTurn(assaillant : Player, defender : Player)
-            - executeAttack(assaillant : Player, defender : Player, weapon : WeaponType, position : Position)
-            - executeMissile(assaillant : Player, defender : Player, position : Position)
-            - executeBomb(assaillant : Player, defender : Player, position : Position)
-            - executeSonar(assaillant : Player, defender : Player, position : Position)
+            - playPlayerTurn(isRobotAssaillant : Boolean)
+            - executeAttack(isRobotAssaillant : Boolean, weapon : WeaponType, position : Position)
+            - executeMissile(isRobotAssaillant : Boolean, position : Position)
+            - executeBomb(isRobotAssaillant : Boolean, position : Position)
+            - executeSonar(isRobotAssaillant : Boolean, position : Position)
         }
     }
 
