@@ -94,7 +94,8 @@ package model {
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
                 + hasSunk() : Boolean
                 + attack(position : Position)
-                - notifyObservers()
+                - notifyObserversAttacked(position : Position)
+                - notifyObserversSunk()
                 + addObserver(observer : Observer)
             }
 
@@ -164,7 +165,8 @@ package model {
                 + <<create>> Tornado()
                 + isActive() : Boolean
                 + getNewPosition(position : Position) : Position
-                + activate()
+                + activate(gridSize : Integer)
+                - exists(position : Position) : Boolean
             }
         }
     }
@@ -203,8 +205,8 @@ package model {
             - size : Integer
 
             + <<create>> Grid(size : Integer, mode : ModeGame)
-            + placeBoat(b : Boat, position : Position)
-            + placeTrap(t : Trap, position : Position)
+            + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
+            + placeTrap(t : Trap, x : Integer, y : Integer)
             + attack(position : Position)
             + reset()
         }
@@ -222,13 +224,20 @@ package model {
             + getPosition() : Position
             - notifyObservers()
             + addObserver(observer : Observer)
+            + isNotSearched() : Boolean
+            + search() : Content
+            + isInIsland() : Boolean
+            - notifyObserversAttacked()
+            - notifyObserversIsland()
         }
 
         class Island {
             - size : Integer
 
-            + <<create>> Island(position : Position, size : Integer, squares : Squares[*])
+            + <<create>> Island(position : Position, size : Integer)
             + contains(position : Position) : Boolean
+            + addSquare(position : Position, square : Square)
+            + getSquare(position : Position) : Square
         }
 
     }
@@ -384,13 +393,20 @@ package controller {
         - onGridClick(x : Integer, y : Integer)
         - canPlaceBoat(boat : BoatName, x : Integer, y : Integer, orient : Orientation) : Boolean
         - canPlaceTrap(trap : TrapType, x : Integer, y : Integer) : Boolean
+        - canPlaceBoatRobot(boat : BoatName, x : Integer, y : Integer, orient : Orientation) : Boolean
+        - canPlaceTrapRobot(trap : TrapType, x : Integer, y : Integer) : Boolean
         - isCellOccupied(x : Integer, y : Integer) : Boolean
+        - isCellOccupiedRobot(x : Integer, y : Integer) : Boolean
         - updateGrid()
         - applyFixedPlacement()
         - applyRandomPlacement()
         - enableManualPlacement()
         - applyFixedPlacementTraps()
         - applyRandomPlacementTraps()
+        - applyRandomTrapsRobot()
+        - applyFixedTrapsRobot()
+        - applyFixedBoatsRobot()
+        - applyRandomBoatsRobot()
         - backToConfig()
         - validatePlacement()
         - quit()
@@ -409,6 +425,8 @@ controller.GameController o-> "1..*\n- playerBoats" model.grid.Position : > has
 controller.GameController o-> "1..*\n- playerTraps" model.grid.Position : > has
 controller.GameController o-> "1..*\n- boatsToPlace" model.enums.BoatName : > has
 controller.GameController o-> "1..*\n- trapsToPlace" model.enums.TrapType : > has
+controller.GameController o-> "1..*\n- robotBoats" model.grid.Position : > has
+controller.GameController o-> "1..*\n- robotTraps" model.grid.Position : > has
 
 
 package views {
@@ -444,9 +462,6 @@ package views {
         + getTrapPlacementMode : String
         + showError(message : String)
         + showSuccess(message : String)
-
-
-
     }
 
     class PlacementView {
@@ -478,13 +493,5 @@ package views {
         - initComponents(message : String)
     }
 }
-
-MenuView ..> ConfigurationView : > <<instanciate>>
-ConfigurationView ..> PlacementView : > <<instanciate>>
-ConfigurationView ..> MenuView : > <<instanciate>>
-PlacementView ..> GameView : > <<instanciate>>
-PlacementView ..> MenuView : > <<instanciate>>
-GameView ..> MenuView : > <<instanciate>>
-EndView ..> MenuView : > <<instanciate>>
 
 @enduml
