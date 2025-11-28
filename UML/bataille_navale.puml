@@ -186,6 +186,18 @@ package model {
             + allBoatSunk() : Boolean
             + useWeapon(weapon : WeaponType)
             + reset()
+
+            + getUsername() : String
+            + isRobot() : Boolean
+            + getGrid() : Grid
+            + setGrid( grid: Grid)
+            + getBoats() : Boat[*]
+            + addBoat( boat: Boat)
+            + getWeapons() : Integer[*]
+            + setWeaponCount( weapon : WeaponType, count : Integer)
+            + getWeaponCount(weapon : WeaponType) : Integer
+            + getTornado() : Tornado
+            + toString() : String
         }
     }
 
@@ -253,6 +265,12 @@ package model {
             + boatSunk(position : Position, size : Integer)
             + squareAttacked(position : Position)
             + squareIsland(position : Position, state : State)
+
+            + getActions(): String[*]
+            + getHistory() : String
+            + getLastAction() : String
+            + getActionCount() : Integer
+            + getString() : String
         }
     }
 
