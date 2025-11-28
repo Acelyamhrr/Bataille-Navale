@@ -312,11 +312,11 @@ package model {
             + <<create>> Game(config : GameConfig, placement, GamePlacement)
             + initialize()
             + playTurn()
-            - playPlayerTurn(assaillant : Player, defender : Player)
-            - executeAttack(assaillant : Player, defender : Player, weapon : WeaponType, position : Position)
-            - executeMissile(assaillant : Player, defender : Player, position : Position)
-            - executeBomb(assaillant : Player, defender : Player, position : Position)
-            - executeSonar(assaillant : Player, defender : Player, position : Position)
+            - playPlayerTurn(isRobotAssaillant : Boolean)
+            - executeAttack(isRobotAssaillant : Boolean, weapon : WeaponType, position : Position)
+            - executeMissile(isRobotAssaillant : Boolean, position : Position)
+            - executeBomb(isRobotAssaillant : Boolean, position : Position)
+            - executeSonar(isRobotAssaillant : Boolean, position : Position)
         }
     }
 
