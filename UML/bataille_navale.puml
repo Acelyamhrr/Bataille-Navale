@@ -16,7 +16,7 @@ skinparam packageFontStyle bold
 
 ' Espacement entre les packages
 'top to bottom direction
-left to right direction
+'left to right direction
 
 package model {
 
@@ -311,6 +311,11 @@ package model {
         class Game {
             + <<create>> Game(config : GameConfig, placement, GamePlacement)
             + initialize()
+            - initializeBoatsPlayer()
+            - initializeBoatsRobot()
+            - initializeTrapsPlayer()
+            - initializeTrapsRobot()
+            - initializeWeaponsPlayers()
             + playTurn()
             - playPlayerTurn(isRobotAssaillant : Boolean)
             - executeAttack(isRobotAssaillant : Boolean, weapon : WeaponType, position : Position)
