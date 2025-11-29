@@ -51,7 +51,7 @@ public class Player {
         }
     }
 
-    // verifie si tout les bateaux du joueur sont coulés
+    // verifie si tous les bateaux du joueur sont coulés
     public Boolean allBoatSunk() {
         for (Boat boat : boats) {
             if (!boat.hasSunk()) {
@@ -67,7 +67,9 @@ public class Player {
         if (count == null || count <= 0) {
             throw new IllegalStateException("Pas d'arme de type " + weapon);
         }
-        weapons.put(weapon, count - 1);
+        if(weapon != WeaponType.MISSILE) {
+            weapons.put(weapon, count - 1);
+        }
     }
 
     public void reset() {
