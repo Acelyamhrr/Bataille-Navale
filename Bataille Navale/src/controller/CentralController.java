@@ -74,7 +74,7 @@ public class CentralController {
     }
 
     private void openPlacement() {
-        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername());
+        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), currentConfig.getModeGame() == ModeGame.ISLAND);
         placementController = new PlacementController(placementView, currentConfig);
         connectPlacementView();
         placementView.setVisible(true);
