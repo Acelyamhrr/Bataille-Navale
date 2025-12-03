@@ -165,49 +165,6 @@ public class GameView extends JFrame implements Observer {
         JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // ===== MÉTHODES DE DEBUG (À RETIRER PLUS TARD) =====
-
-    /**
-     * Affiche les bateaux du robot (pour debug uniquement).
-     * @param positions Liste des positions des bateaux du robot
-     * @param sizes Tailles correspondantes des bateaux
-     */
-    public void debugShowRobotBoats(java.util.List<Position> positions, java.util.List<Integer> sizes) {
-        Color robotBoat = new Color(200, 100, 100); // Rouge clair pour debug
-
-        for (int i = 0; i < positions.size(); i++) {
-            Position pos = positions.get(i);
-            int size = sizes.get(i);
-
-            for (int j = 0; j < size; j++) {
-                int x = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + j : pos.getX();
-                int y = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + j : pos.getY();
-
-                if (x < gridSize && y < gridSize) {
-                    playerGrid[y][x].setBackground(robotBoat);
-                    playerGrid[y][x].setText("R"); // "R" pour Robot
-                }
-            }
-        }
-    }
-
-    /**
-     * Affiche les pièges du robot (pour debug uniquement).
-     */
-    public void debugShowRobotTraps(java.util.List<Position> trapPositions) {
-        Color trapColor = new Color(255, 150, 0); // Orange pour les pièges
-
-        for (Position pos : trapPositions) {
-            if (pos.getX() < gridSize && pos.getY() < gridSize) {
-                playerGrid[pos.getY()][pos.getX()].setBackground(trapColor);
-                playerGrid[pos.getY()][pos.getX()].setText("T"); // "T" pour Trap
-            }
-        }
-    }
-
-    // ===== FIN DES MÉTHODES DE DEBUG =====
-
-
     // Méthodes Observer (pour l'historique)
 
     @Override
