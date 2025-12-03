@@ -6,7 +6,6 @@ import model.game.GamePlacement;
 import model.grid.Position;
 import view.*;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
@@ -16,7 +15,7 @@ import java.util.List;
  * CONNAÎT les Vues et le Modèle.
  * Fait le lien entre les deux.
  */
-public class GameController {
+public class CentralController {
     private MenuView menuView;
     private ConfigurationView configView;
     private PlacementView placementView;
@@ -28,7 +27,7 @@ public class GameController {
     private GameConfig currentConfig;
     private GamePlacement currentPlacement;
 
-    public GameController() {}
+    public CentralController() {}
 
     // démarre le jeu
     public void start() {
