@@ -1,10 +1,10 @@
-import controller.GameController;
+import controller.CentralController;
 import javax.swing.SwingUtilities;
 
 public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameController controller = new GameController();
+            CentralController controller = new CentralController();
             controller.start();
         });
     }
