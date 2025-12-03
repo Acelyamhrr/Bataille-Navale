@@ -93,3 +93,16 @@ Ce document définit la répartition des tâches, la planification et les object
 | 2 - 8 déc | IA + interface propre |
 | 9 - 15 déc | Armes & pièges |
 | 16 - 21 déc | Mode île + docs + rendu final |
+
+
+
+
+
+
+
+
+
+
+TO DO : 
+- Vérifier si le nb de bateau est placable par rapport a la taille de la grille et à l'île.
+- Placements fixe des bateaux et pièges.
