@@ -153,12 +153,15 @@ public class Game {
         }
     }
 
+    // représente UN tour de jeu
     public void playTurn(){
-        //TODO
+        playPlayerTurn(false);      // le joueur commence
+        playPlayerTurn(true);       // le robot continue
     }
 
+    // Joue le tour d'un joeu
     private void playPlayerTurn(boolean isRobotAssailant){
-        //TODO
+        
     }
 
     private void executeAttack(boolean isRobotAssailant, WeaponType weapon, Position position){

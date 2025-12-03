@@ -114,47 +114,10 @@ public class CentralController {
         gameView.setVisible(true);
         placementView.setVisible(false);
 
-        // DEBUG: Afficher les bateaux et pièges du robot
-        debugShowRobotPlacement();
-
         // TODO: Initialiser la partie (créer le Game, placer les bateaux, etc.)
         gameView.showSuccess("La partie commence !");
     }
 
-    private void debugShowRobotPlacement() {
-        // Récupérer tous les bateaux du robot depuis currentPlacement
-        List<Position> robotBoatPositions = new ArrayList<>();
-        List<Integer> robotBoatSizes = new ArrayList<>();
-
-        Map<BoatName, List<Position>> robotBoats = currentPlacement.getBoatPlacementsRobot();
-        for (Map.Entry<BoatName, List<Position>> entry : robotBoats.entrySet()) {
-            for (Position pos : entry.getValue()) {
-                robotBoatPositions.add(pos);
-                robotBoatSizes.add(getBoatSize(entry.getKey()));
-            }
-        }
-
-        // Récupérer les pièges du robot
-        List<Position> robotTrapPositions = new ArrayList<>();
-        Map<TrapType, Position> robotTraps = currentPlacement.getTrapPlacementsRobot();
-        for (Position pos : robotTraps.values()) {
-            robotTrapPositions.add(pos);
-        }
-
-        gameView.debugShowRobotBoats(robotBoatPositions, robotBoatSizes);
-        gameView.debugShowRobotTraps(robotTrapPositions);
-    }
-
-    private int getBoatSize(BoatName boat) {
-        switch (boat) {
-            case AIRCRAFT_CARRIER: return 5;
-            case CRUISER: return 4;
-            case DESTROYER: return 3;
-            case SUBMARINE: return 3;
-            case TORPEDO_BOAT: return 2;
-            default: return 0;
-        }
-    }
 
     private void connectGameView() {
         // TODO: Connecter les événements de la GameView
