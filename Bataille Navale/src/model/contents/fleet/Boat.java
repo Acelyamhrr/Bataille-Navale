@@ -3,6 +3,7 @@ package model.contents.fleet;
 import model.Observer;
 import model.contents.Content;
 import model.enums.BoatName;
+import model.enums.ContentType;
 import model.enums.Orientation;
 import model.grid.Position;
 
@@ -14,12 +15,14 @@ public class Boat implements Content {
     private BoatName name;
     private Position position;
     private ArrayList<Observer> observers;
+    private ContentType contentType;
 
     public Boat(BoatName name, int numberSquares){
         this.name = name;
         this.numberSquares = numberSquares;
         this.attacked = new boolean[numberSquares];
         this.observers = new ArrayList<>();
+        this.contentType = ContentType.BOAT;
     }
 
 
@@ -31,6 +34,11 @@ public class Boat implements Content {
     @Override
     public Position getPosition() {
         return this.position;
+    }
+
+    @Override
+    public ContentType getContentType() {
+        return this.contentType;
     }
 
     public boolean hasSunk(){

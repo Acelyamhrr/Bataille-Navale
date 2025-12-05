@@ -23,6 +23,7 @@ public class CentralController {
 
     private ConfigurationController configController;
     private PlacementController placementController;
+    private GameController gameController;
 
     private GameConfig currentConfig;
     private GamePlacement currentPlacement;
@@ -110,17 +111,11 @@ public class CentralController {
 
     private void openGame() {
         gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername());
-        connectGameView();
         gameView.setVisible(true);
         placementView.setVisible(false);
 
-        // TODO: Initialiser la partie (créer le Game, placer les bateaux, etc.)
         gameView.showSuccess("La partie commence !");
-    }
-
-
-    private void connectGameView() {
-        // TODO: Connecter les événements de la GameView
+        this.gameController = new GameController(gameView, currentConfig, currentPlacement);
     }
 
     // quit

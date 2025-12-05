@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class GameView extends JFrame {
     private final int gridSize;
@@ -55,11 +56,15 @@ public class GameView extends JFrame {
     private JLabel robotWeaponsLabel;
     private JLabel robotIslandLabel;
 
-    // Menu déroulant pour l'historqiue
+    // Menu déroulant pour l'historique
     private JPopupMenu menuPopup;
+    private JMenuItem restartItem;
+    private JMenuItem legendItem;
+    private JMenuItem quitItem;
 
     // Callback pour les clics sur la grille robot
-    private GridClickCallback gridClickCallback;
+    private BiConsumer<Integer, Integer> gridClickHandler;
+
 
     // Couleurs
     private static final Color WATER_COLOR = new Color(100, 150, 200);
@@ -271,7 +276,10 @@ public class GameView extends JFrame {
 
                 if (!isPlayerGrid) {
                     btn.addActionListener(e -> {
-                        if (gridClickCallback != null) { gridClickCallback.onGridClick(finalX, finalY); } });
+                        if (gridClickHandler != null) {
+                            gridClickHandler.accept(finalX, finalY);
+                        }
+                    });
                 }
 
                 buttons[y][x] = btn;
@@ -361,9 +369,9 @@ public class GameView extends JFrame {
     private void createMenuPopup() {
         menuPopup = new JPopupMenu();
 
-        JMenuItem restartItem = new JMenuItem("Recommencer");
-        JMenuItem legendItem = new JMenuItem("Légendes");
-        JMenuItem quitItem = new JMenuItem("Quitter");
+        restartItem = new JMenuItem("Recommencer");
+        legendItem = new JMenuItem("Légendes");
+        quitItem = new JMenuItem("Quitter");
 
         menuPopup.add(restartItem);
         menuPopup.add(legendItem);
@@ -404,10 +412,114 @@ public class GameView extends JFrame {
         panel.add(new JLabel(text));
     }
 
+    // Methodes pour le controller
+
+    public void setTurnNumber(int turn) {
+        turnLabel.setText("Tour " + turn);
+    }
 
 
+    public void setPlayerCellColor(int x, int y, Color color) {
+        this.playerGridButtons[y][x].setBackground(color);
+    }
+
+    public void setRobotCellColor(int x, int y, Color color) {
+        this.robotGridButtons[y][x].setBackground(color);
+    }
 
 
+    public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells, int totalCells) {
+        playerBoatsIntactLabel.setText("Bateaux intacts : " + intact);
+        playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
+        playerBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
+        playerMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
+        playerHitRatioLabel.setText("Cases touchées : " + hitCells + "/" + totalCells);
+    }
+
+    public void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells, int totalCells) {
+        robotBoatsIntactLabel.setText("Bateaux intacts : " + intact);
+        robotBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
+        robotBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
+        robotMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
+        robotHitRatioLabel.setText("Cases touchées : " + hitCells + "/" + totalCells);
+    }
+
+    public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
+        String text = "<html>Armes:<br/>";
+        text += "-Missile: ∞<br/>";
+        text += "-Bombe: " + bombs + "<br/>";
+        text += "-Sonar: " + sonars + "<br/>";
+        playerWeaponsLabel.setText(text);
+    }
+
+    public void updateRobotWeapons(int missiles, int bombs, int sonars) {
+        String text = "<html>Armes:<br/>";
+        text += "-Missile: ∞<br/>";
+        text += "-Bombe: " + bombs + "<br/>";
+        text += "-Sonar: " + sonars + "<br/>";
+        robotWeaponsLabel.setText(text);
+    }
+
+    public void updatePlayerIsland(int remaining) {
+        playerIslandLabel.setText("Île restante: " + remaining);
+    }
+
+    public void updateRobotIsland(int remaining) {
+        robotIslandLabel.setText("île restante: " + remaining);
+    }
+
+    public void setPlayerAction(String action) {
+        this.playerActionArea.setText(action);
+    }
+
+    public void setRobotAction(String action) {
+        this.robotActionArea.setText(action);
+    }
+
+    public void appendHistory(String history) {
+        this.historyArea.append(history);
+    }
+
+    public void clearHistory() {
+        this.historyArea.setText("");
+    }
+
+    public boolean isShovelSelected(){
+        return this.shovelRadio.isSelected();
+    }
+
+    public WeaponType getSelectedWeapon(){
+        if(this.bombRadio.isSelected()){
+            return WeaponType.BOMB;
+        }
+        
+        if(this.sonarRadio.isSelected()){
+            return WeaponType.SONAR;
+        }
+
+        return WeaponType.MISSILE;
+    }
+
+    public void setWeaponEnabled(WeaponType weapon, boolean enabled){
+        switch(weapon){
+            case BOMB:
+                this.bombRadio.setEnabled(enabled);
+                break;
+            case SONAR:
+                this.sonarRadio.setEnabled(enabled);
+                break;
+            default:
+                this.missileRadio.setEnabled(true);
+        }
+    }
+
+    public void setGridClickHandler(BiConsumer<Integer, Integer> handler) {
+        this.gridClickHandler = handler;
+    }
+
+    public void addQuitListener(ActionListener listener) {this.quitItem.addActionListener(listener);}
+
+    public void addRestartListener(ActionListener listener) {this.restartItem.addActionListener(listener);}
 
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -415,10 +527,5 @@ public class GameView extends JFrame {
 
     public void showSuccess(String message) {
         JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    @FunctionalInterface
-    public interface GridClickCallback {
-        void onGridClick(int x, int y);
     }
 }

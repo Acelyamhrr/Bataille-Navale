@@ -2,6 +2,7 @@ package model.grid;
 
 import model.contents.fleet.Boat;
 import model.contents.traps.Trap;
+import model.enums.ContentType;
 import model.enums.ModeGame;
 import model.enums.Orientation;
 
@@ -80,6 +81,22 @@ public  class Grid {
                 this.squares.put(pos, new Square(pos));
             }
         }
+    }
+
+    public int getSize(){
+        return this.size;
+    }
+
+    public ContentType getContentTypeSquare(Position pos){
+        return this.squares.get(pos).getContentType();
+    }
+
+    public boolean squareIsInIsland(Position pos){
+        return this.squares.get(pos).isInIsland();
+    }
+
+    public Square getSquare(Position pos) {
+        return this.squares.get(pos);
     }
 
 }

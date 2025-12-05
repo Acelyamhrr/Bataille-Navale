@@ -3,6 +3,7 @@ package model.grid;
 import model.Observer;
 import model.contents.Content;
 import model.contents.fleet.Boat;
+import model.enums.ContentType;
 import model.enums.State;
 
 import java.util.ArrayList;
@@ -105,6 +106,10 @@ public class Square {
         for(Observer o : this.observers){
             o.squareIsland(this.position,  this.islandState);
         }
+    }
+
+    public ContentType getContentType() {
+        return this.content.getContentType();
     }
 
 }
