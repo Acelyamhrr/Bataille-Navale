@@ -1,6 +1,7 @@
 package model.contents.traps;
 
 import model.contents.Content;
+import model.enums.ContentType;
 import model.enums.Orientation;
 import model.enums.TrapType;
 import model.grid.Position;
@@ -8,9 +9,11 @@ import model.grid.Position;
 public abstract class Trap implements Content {
     private TrapType name;
     private Position position;
+    private ContentType contentType;
 
     public Trap(TrapType name){
         this.name = name;
+        this.contentType = ContentType.TRAP;
     }
 
     @Override
@@ -21,5 +24,10 @@ public abstract class Trap implements Content {
     @Override
     public Position getPosition(){
         return this.position;
+    }
+
+    @Override
+    public ContentType getContentType() {
+        return this.contentType;
     }
 }

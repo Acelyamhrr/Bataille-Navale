@@ -180,4 +180,16 @@ public class Game {
         //TODO
     }
 
+    public Player getPlayer(){
+        return this.player;
+    }
+
+    public Player getRobot(){
+        return this.robot;
+    }
+
+    public boolean checkGameOver(){
+        return this.player.allBoatSunk() || this.robot.allBoatSunk();
+    }
+
 }

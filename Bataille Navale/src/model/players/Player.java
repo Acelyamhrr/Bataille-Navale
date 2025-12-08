@@ -52,7 +52,7 @@ public class Player {
     }
 
     // verifie si tous les bateaux du joueur sont coulés
-    public Boolean allBoatSunk() {
+    public boolean allBoatSunk() {
         for (Boat boat : boats) {
             if (!boat.hasSunk()) {
                 return false;

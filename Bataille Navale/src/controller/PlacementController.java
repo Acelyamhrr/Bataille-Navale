@@ -346,8 +346,6 @@ public class PlacementController {
             applyRandomTrapsRobot();
         }
 
-        view.showSuccess("Grille robot créée !");
-
         // Créer GamePlacement
         GamePlacement placement = new GamePlacement();
 
@@ -383,11 +381,23 @@ public class PlacementController {
         Color trap = new Color(243, 88, 48);
         Color previewOk = new Color(100, 200, 100);
         Color previewBad = new Color(200, 100, 100);
+        Color island = new Color(248, 193, 59);
 
         // Reset
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 view.setCellColor(x, y, water);
+            }
+        }
+
+        // Squares island
+        if(this.config.getModeGame() == ModeGame.ISLAND) {
+            int ix = this.config.getGridSize() / 2 - 2;
+            int iy = this.config.getGridSize() / 2 - 2;
+            for (int i = ix; i < ix + 4; i++) {
+                for (int j = iy; j < iy + 4; j++) {
+                    view.setCellColor(i, j, island);
+                }
             }
         }
 
@@ -495,8 +505,7 @@ public class PlacementController {
 
     // valider placements
 
-    private boolean canPlaceBoat(BoatName boat, int x, int y, Orientation orient,
-                                 Map<BoatName, List<Position>> boats, Map<TrapType, Position> traps) {
+    private boolean canPlaceBoat(BoatName boat, int x, int y, Orientation orient, Map<BoatName, List<Position>> boats, Map<TrapType, Position> traps) {
         int size = getBoatSize(boat);
         int gridSize = config.getGridSize();
 
@@ -506,16 +515,30 @@ public class PlacementController {
         for (int i = 0; i < size; i++) {
             int cx = orient == Orientation.HORIZONTAL ? x + i : x;
             int cy = orient == Orientation.VERTICAL ? y + i : y;
+
+            if (squareInIsland(cx, cy)) return false;
+
             if (isCellOccupied(cx, cy, boats, traps)) return false;
         }
         return true;
     }
 
-    private boolean canPlaceTrap(TrapType type, int x, int y,
-                                 Map<BoatName, List<Position>> boats, Map<TrapType, Position> traps) {
+    private boolean squareInIsland(int cx, int cy) {
+        if(this.config.getModeGame() == ModeGame.ISLAND) {
+            int ix = this.config.getGridSize() / 2 - 2;
+            int iy = this.config.getGridSize() / 2 - 2;
+
+            return (cx >= ix && cx < ix + 4) && (cy >= iy && cy < iy + 4);
+        }
+        return false;
+    }
+
+    private boolean canPlaceTrap(TrapType type, int x, int y, Map<BoatName, List<Position>> boats, Map<TrapType, Position> traps) {
         int gridSize = config.getGridSize();
 
         if (x >= gridSize || y >= gridSize) return false;
+
+        if (squareInIsland(x, y)) return false;
 
         return !isCellOccupied(x, y, boats, traps);
     }

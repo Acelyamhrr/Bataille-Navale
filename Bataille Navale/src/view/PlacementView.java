@@ -27,8 +27,11 @@ public class PlacementView extends JFrame {
     // Callback pour le hover
     private BiConsumer<Integer, Integer> gridHoverCallback;
 
-    public PlacementView(int gridSize, String username) {
+    private boolean modeIsland;
+
+    public PlacementView(int gridSize, String username, boolean modeIsland) {
         this.gridSize = gridSize;
+        this.modeIsland = modeIsland;
 
         setTitle("Placement - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -95,7 +98,20 @@ public class PlacementView extends JFrame {
             for (int x = 0; x < gridSize; x++) {
                 JButton btn = new JButton();
                 btn.setPreferredSize(new Dimension(45, 45));
-                btn.setBackground(new Color(100, 150, 200));
+
+                //Color for island or water
+                if(this.modeIsland){
+                    int xIsland = this.gridSize/2 -2;
+                    int yIsland = this.gridSize/2 -2;
+
+                    if((y >= yIsland && y < yIsland + 4) && (x >= xIsland && x < xIsland + 4)){
+                        btn.setBackground(new Color(248, 193, 59));
+                    }
+                }
+                else {
+                    btn.setBackground(new Color(100, 150, 200));
+                }
+
                 btn.setFocusPainted(false);
                 btn.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
 
