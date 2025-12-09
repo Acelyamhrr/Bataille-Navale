@@ -43,11 +43,7 @@ public class GameController {
 
     private void updateAllDisplays() {
         view.setTurnNumber(turnNumber);
-        //updateStats();
         //updateWeapons();
-        if (config.getModeGame() == ModeGame.ISLAND) {
-            //updateIsland();
-        }
     }
     
     public void handleGridClick(int x, int y) {
@@ -80,6 +76,10 @@ public class GameController {
 
     public boolean hasIsland(){
         return this.config.getModeGame() == ModeGame.ISLAND;
+    }
+
+    public int getNumberBoats(){
+        return this.config.getNumberBoatsTotal();
     }
 
 }

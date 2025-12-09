@@ -37,6 +37,14 @@ public class GameConfig {
         return total;
     }
 
+    public int getNumberBoatsTotal(){
+        int total = 0;
+        for (int j : numberBoat) {
+            total += j;
+        }
+        return total;
+    }
+
     public boolean isValid() {
         // trop de cases
         if (getTotalBoatSquares() > 35) {
