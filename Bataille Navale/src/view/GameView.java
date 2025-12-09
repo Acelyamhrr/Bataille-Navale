@@ -270,7 +270,14 @@ public class GameView extends JFrame {
         for (int y = 0; y < gridSize; y++) {
             for (int x = 0; x < gridSize; x++) {
                 JButton btn = new JButton();
-                btn.setBackground(WATER_COLOR);
+
+                if(this.gameController.isInIsland(x, y)){
+                    btn.setBackground(ISLAND_COLOR);
+                }
+                else{
+                    btn.setBackground(WATER_COLOR);
+                }
+
                 btn.setPreferredSize(new Dimension(40, 40));
                 btn.setFocusPainted(false);
                 btn.setBorderPainted(true);

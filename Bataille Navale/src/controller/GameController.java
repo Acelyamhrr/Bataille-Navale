@@ -39,6 +39,13 @@ public class GameController {
         game.initialize();
     }
 
+    public boolean isInIsland(int x, int y){
+        Player player = this.game.getPlayer();
+        Grid grid = player.getGrid();
+        boolean inIsland = grid.squareIsInIsland(new Position(x, y));
+        return this.config.getModeGame() == ModeGame.ISLAND && inIsland;
+    }
+
     public void setView(GameView view) {
         this.view = view;
 
@@ -122,34 +129,37 @@ public class GameController {
                 Square square = grid.getSquare(new Position(x, y));
                 Color color = WATER_COLOR;
 
-                if (!square.wasAttacked()) {
-                    if (!square.isEmpty()) {
-                        Content content = square.getContent();
-                        ContentType contentType = content.getContentType();
+                // Vérifier si la case contient quelque chose
+                if (!square.isEmpty()) {
+                    Content content = square.getContent();
+                    ContentType contentType = content.getContentType();
 
-                        if (contentType == ContentType.BOAT) {
+                    // Si c'est un bateau
+                    if (contentType == ContentType.BOAT) {
+                        // Si la case a été attaquée
+                        if (square.wasAttacked()) {
                             Boat boat = (Boat) content;
                             if (boat.hasSunk()) {
-                                color = SUNK_COLOR;
+                                color = SUNK_COLOR; // Bateau coulé
                             } else {
-                                color = HIT_COLOR;
+                                color = HIT_COLOR; // Bateau touché
                             }
                         }
+                    }
+                }
+                // Case vide attaquée (manqué)
+                else if (square.wasAttacked()) {
+                    color = MISS_COLOR;
+                }
+
+                // Si mode île et case sur l'île
+                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
+                    if (!square.wasAttacked()) {
+                        color = ISLAND_COLOR; // Île non fouillée
+                    } else if (square.isEmpty()) {
+                        color = ISLAND_SEARCHED_EMPTY; // Île fouillée vide
                     } else {
-                        color = MISS_COLOR;
-                    }
-                }
-                else if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
-                    color = ISLAND_COLOR;
-
-                }
-
-                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland() && square.wasAttacked()) {
-                    if (square.isEmpty()) {
-                        color= ISLAND_SEARCHED_EMPTY;
-                    }
-                    else {
-                        color = ISLAND_SEARCHED_FOUND;
+                        color = ISLAND_SEARCHED_FOUND; // Île fouillée avec objet
                     }
                 }
 
@@ -179,7 +189,7 @@ public class GameController {
     }
 
     public void restart() {
-        // to do
+        // TODO
     }
 
     public void quit() {
@@ -187,7 +197,7 @@ public class GameController {
     }
 
 
-
+    /*
     private void displayPlayerGrid(){
         Player player = game.getPlayer();
         Grid playerGrid = player.getGrid();
@@ -214,23 +224,6 @@ public class GameController {
             }
         }
     }
-
-    private void displayRobotGrid(){
-        Player robot = game.getRobot();
-        Grid robotGrid = robot.getGrid();
-
-        for(int y=0; y<robotGrid.getSize(); y++){
-            for(int x=0; x<robotGrid.getSize(); x++){
-                Position pos = new Position(x, y);
-
-                if(robotGrid.squareIsInIsland(pos)){
-                    this.view.setRobotCellColor(x, y, ISLAND_COLOR);
-                }
-                else{
-                    this.view.setRobotCellColor(x, y, WATER_COLOR);
-                }
-            }
-        }
-    }
+    */
 
 }
