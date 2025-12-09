@@ -32,7 +32,7 @@ public class GameController {
         Player player = this.game.getPlayer();
         Grid grid = player.getGrid();
         boolean inIsland = grid.squareIsInIsland(new Position(x, y));
-        return this.config.getModeGame() == ModeGame.ISLAND && inIsland;
+        return hasIsland() && inIsland;
     }
 
     public void setView(GameView view) {
@@ -78,34 +78,8 @@ public class GameController {
         System.exit(0);
     }
 
-
-    /*
-    private void displayPlayerGrid(){
-        Player player = game.getPlayer();
-        Grid playerGrid = player.getGrid();
-
-        for(int y=0; y<playerGrid.getSize(); y++){
-            for(int x=0; x<playerGrid.getSize(); x++){
-                Position pos = new Position(x, y);
-                ContentType type = playerGrid.getContentTypeSquare(pos);
-
-                switch(type){
-                    case BOAT:
-                        this.view.setPlayerCellColor(x, y, BOAT_COLOR);
-                        break;
-                    case TRAP:
-                        this.view.setPlayerCellColor(x, y, TRAP_COLOR);
-                        break;
-                    default:
-                        this.view.setPlayerCellColor(x, y, WATER_COLOR);
-                }
-
-                if(playerGrid.squareIsInIsland(pos)){
-                    this.view.setPlayerCellColor(x, y, ISLAND_COLOR);
-                }
-            }
-        }
+    public boolean hasIsland(){
+        return this.config.getModeGame() == ModeGame.ISLAND;
     }
-    */
 
 }

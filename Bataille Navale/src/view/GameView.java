@@ -204,34 +204,20 @@ public class GameView extends JFrame implements Observer {
         panel.setBorder(BorderFactory.createTitledBorder( BorderFactory.createLineBorder(Color.DARK_GRAY, 2), title, TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14) ));
 
         // Créer les labels de stats
-        if (title.contains("Joueur")) {
-            playerBoatsIntactLabel = new JLabel("Bateaux intacts: 0");
-            playerBoatsTouchedLabel = new JLabel("Bateaux touchés: 0");
-            playerBoatsSunkLabel = new JLabel("Bateaux coulés: 0");
-            playerMissedShotsLabel = new JLabel("Tirs dans l'eau: 0");
-            playerHitRatioLabel = new JLabel("Cases touchées: 0/0");
-            playerWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
-            playerIslandLabel = new JLabel("Île restante: 16");
-
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerBoatsIntactLabel));
-            panel.add(createStatsLabel(playerBoatsTouchedLabel));
-            panel.add(createStatsLabel(playerBoatsSunkLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerMissedShotsLabel));
-            panel.add(createStatsLabel(playerHitRatioLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerWeaponsLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerIslandLabel));
-        } else {
+        if (title.contains("Robot")) {
             robotBoatsIntactLabel = new JLabel("Bateaux intacts: 0");
             robotBoatsTouchedLabel = new JLabel("Bateaux touchés: 0");
             robotBoatsSunkLabel = new JLabel("Bateaux coulés: 0");
             robotMissedShotsLabel = new JLabel("Tirs dans l'eau: 0");
             robotHitRatioLabel = new JLabel("Cases touchées: 0/0");
             robotWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
-            robotIslandLabel = new JLabel("Île restante: ");
+
+            if(this.gameController.hasIsland()){
+                robotIslandLabel = new JLabel("Île restante: 16");
+            }
+            else{
+                robotIslandLabel = new JLabel("Île restante: -");
+            }
 
             panel.add(Box.createVerticalStrut(10));
             panel.add(createStatsLabel(robotBoatsIntactLabel));
@@ -244,6 +230,32 @@ public class GameView extends JFrame implements Observer {
             panel.add(createStatsLabel(robotWeaponsLabel));
             panel.add(Box.createVerticalStrut(10));
             panel.add(createStatsLabel(robotIslandLabel));
+        } else {
+            playerBoatsIntactLabel = new JLabel("Bateaux intacts: 0");
+            playerBoatsTouchedLabel = new JLabel("Bateaux touchés: 0");
+            playerBoatsSunkLabel = new JLabel("Bateaux coulés: 0");
+            playerMissedShotsLabel = new JLabel("Tirs dans l'eau: 0");
+            playerHitRatioLabel = new JLabel("Cases touchées: 0/0");
+            playerWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
+
+            if(this.gameController.hasIsland()){
+                playerIslandLabel = new JLabel("Île restante: 16");
+            }
+            else{
+                playerIslandLabel = new JLabel("Île restante: -");
+            }
+
+            panel.add(Box.createVerticalStrut(10));
+            panel.add(createStatsLabel(playerBoatsIntactLabel));
+            panel.add(createStatsLabel(playerBoatsTouchedLabel));
+            panel.add(createStatsLabel(playerBoatsSunkLabel));
+            panel.add(Box.createVerticalStrut(10));
+            panel.add(createStatsLabel(playerMissedShotsLabel));
+            panel.add(createStatsLabel(playerHitRatioLabel));
+            panel.add(Box.createVerticalStrut(10));
+            panel.add(createStatsLabel(playerWeaponsLabel));
+            panel.add(Box.createVerticalStrut(10));
+            panel.add(createStatsLabel(playerIslandLabel));
         }
 
         panel.add(Box.createVerticalGlue());
@@ -558,13 +570,20 @@ public class GameView extends JFrame implements Observer {
         JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
     }
 
+
+    //Méthodes de l'observer
+
     @Override
     public void boatAttacked(Position position, boolean robot) {
         if(robot){
             this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+
+            //Mise à jour des stats TODO
         }
         else{
             this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+
+            //Mise à jour des stats TODO
         }
     }
 
@@ -585,6 +604,9 @@ public class GameView extends JFrame implements Observer {
                 default:
                     this.robotGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
             }
+
+            //Mise à jour des stats TODO
+            this.robotBoatsSunkLabel.setText("Bateaux coulés : ");
         }
         else{
             switch (position.getOrientation()){
@@ -601,6 +623,9 @@ public class GameView extends JFrame implements Observer {
                 default:
                     this.playerGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
             }
+
+            //Mise à jour des stats TODO
+            this.playerBoatsSunkLabel.setText("Bateaux coulés : ");
         }
     }
 
