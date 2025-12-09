@@ -17,6 +17,7 @@ public class Boat implements Content {
     private ArrayList<Observer> observers;
     private ContentType contentType;
     private boolean robot;
+    private boolean alreadySunk;
 
     public Boat(BoatName name, int numberSquares){
         this.name = name;
@@ -24,6 +25,7 @@ public class Boat implements Content {
         this.attacked = new boolean[numberSquares];
         this.observers = new ArrayList<>();
         this.contentType = ContentType.BOAT;
+        this.alreadySunk = false;
     }
 
     public void belongsTo(boolean robot){
@@ -52,7 +54,11 @@ public class Boat implements Content {
                 return false;
             }
         }
-        notifyObserversSunk();
+
+        if (!alreadySunk) {
+            notifyObserversSunk();
+            alreadySunk = true;
+        }
         return true;
     }
 

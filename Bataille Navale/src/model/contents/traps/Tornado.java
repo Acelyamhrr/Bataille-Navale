@@ -13,7 +13,7 @@ public class Tornado extends Trap {
 
     public Tornado() {
         super(TrapType.TORNADO);
-        this.numberUse = 3;
+        this.numberUse = 0;
     }
 
     public boolean isActive(){
@@ -22,6 +22,7 @@ public class Tornado extends Trap {
 
     public void activate(int gridSize){
         Random rand = new Random();
+        numberUse = 3;
         newPositions = new HashMap<>();
 
         for(int i = 0; i < gridSize; i++){
@@ -43,10 +44,10 @@ public class Tornado extends Trap {
     private boolean exists(Position p){
         for(Map.Entry<Position, Position> entry : newPositions.entrySet()){
             if(entry.getValue().equals(p)){
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public Position getNewPosition(Position position){

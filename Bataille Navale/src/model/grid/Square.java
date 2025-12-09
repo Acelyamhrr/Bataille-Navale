@@ -96,7 +96,7 @@ public class Square {
     }
 
     public boolean isNotSearched(){
-        return this.islandState != State.INTACT;
+        return this.islandState == State.INTACT;
     }
 
     private void notifyObserversAttacked(){
@@ -112,6 +112,9 @@ public class Square {
     }
 
     public ContentType getContentType() {
+        if (this.content == null) {
+            return ContentType.EMPTY;
+        }
         return this.content.getContentType();
     }
 

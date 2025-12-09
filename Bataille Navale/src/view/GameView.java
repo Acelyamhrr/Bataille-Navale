@@ -581,7 +581,7 @@ public class GameView extends JFrame implements Observer {
             this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
 
             //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18)) -1;
+            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
             touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) +1;
             sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
             missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
@@ -625,7 +625,7 @@ public class GameView extends JFrame implements Observer {
 
             //Mise à jour des stats
             intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18)) -1;
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18));
+            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) -1;
             sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17)) +1;
             missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
             hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(17));
