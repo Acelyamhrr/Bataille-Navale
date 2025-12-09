@@ -30,9 +30,10 @@ public class Game {
         player = new Player(gameConfig.getUsername(), false);
         robot = new Player("Robot", true);
 
-        Grid grid = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame());
-        player.setGrid(grid);
-        robot.setGrid(grid);
+        Grid gridPlayer = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame());
+        Grid gridRobot = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame());
+        player.setGrid(gridPlayer);
+        robot.setGrid(gridRobot);
 
         initializeBoatsPlayer();
         initializeBoatsRobot();
