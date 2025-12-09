@@ -14,16 +14,18 @@ public  class Grid {
     private Map<Position, Square> squares;
     private ModeGame mode;
     private Island island;
+    private boolean robot;
 
-    public Grid(int size, ModeGame mode) {
+    public Grid(int size, ModeGame mode, boolean robot) {
         this.size = size;
         this.mode = mode;
         this.squares = new HashMap<Position, Square>();
+        this.robot = robot;
 
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 Position pos = new Position(i, j);
-                this.squares.put(pos, new Square(pos));
+                this.squares.put(pos, new Square(pos, robot));
             }
         }
 
@@ -78,7 +80,7 @@ public  class Grid {
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 Position pos = new Position(i, j);
-                this.squares.put(pos, new Square(pos));
+                this.squares.put(pos, new Square(pos, this.robot));
             }
         }
     }

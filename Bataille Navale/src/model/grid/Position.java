@@ -12,6 +12,7 @@ public class Position {
     public Position(int x, int y) {
         this.x = x;
         this.y = y;
+        this.orientation = Orientation.NONE;
     }
 
     public Position(int x, int y, Orientation orientation) {

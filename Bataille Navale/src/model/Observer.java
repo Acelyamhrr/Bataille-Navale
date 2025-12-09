@@ -10,15 +10,15 @@ import model.grid.Position;
 public interface Observer {
 
     //Notifie qu'un bateau a été touché.
-    void boatAttacked(Position position);
+    void boatAttacked(Position position, boolean robot);
 
      // Notifie qu'un bateau a été coulé
-     void boatSunk(Position position, int size);
+     void boatSunk(Position position, int size, boolean robot);
 
      //Notifie qu'une case a été attaquée (dans l'eau).
-     void squareAttacked(Position position);
+     void squareAttacked(Position position, boolean robot);
 
 
      //Notifie qu'une case de l'île a été explorée
-     void squareIsland(Position position, State state);
+     void squareIsland(Position position, State state, boolean robot);
 }

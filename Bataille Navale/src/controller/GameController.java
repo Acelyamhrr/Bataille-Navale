@@ -21,17 +21,6 @@ public class GameController {
 
     private int turnNumber = 1;
 
-    private static final Color WATER_COLOR = new Color(100, 150, 200);
-    private static final Color BOAT_COLOR = new Color(80, 80, 80);
-    private static final Color HIT_COLOR = new Color(255, 100, 100);
-    private static final Color SUNK_COLOR = new Color(150, 50, 50);
-    private static final Color MISS_COLOR = new Color(200, 200, 200);
-    private static final Color ISLAND_COLOR = new Color(210, 180, 140);
-    private static final Color ISLAND_SEARCHED_EMPTY = new Color(190, 160, 120);
-    private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
-    private static final Color TRAP_COLOR = new Color(243, 88, 48);
-
-
     public GameController(GameConfig config, GamePlacement placement) {
         this.config = config;
 
@@ -54,117 +43,10 @@ public class GameController {
 
     private void updateAllDisplays() {
         view.setTurnNumber(turnNumber);
-        updatePlayerGrid();
-        updateRobotGrid();
         //updateStats();
         //updateWeapons();
         if (config.getModeGame() == ModeGame.ISLAND) {
             //updateIsland();
-        }
-    }
-
-    private void updatePlayerGrid() {
-        int size = config.getGridSize();
-        Player player = game.getPlayer();
-        Grid grid = player.getGrid();
-
-        // Pour chaque case
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                Square square = grid.getSquare(new Position(x, y));
-                Color color = WATER_COLOR;
-
-                // Vérifier si la case contient quelque chose
-                if (!square.isEmpty()) {
-                    Content content = square.getContent();
-                    ContentType contentType = content.getContentType();
-
-                    // Si c'est un bateau
-                    if (contentType == ContentType.BOAT) {
-                        color = BOAT_COLOR;
-
-                        // Si la case a été attaquée
-                        if (square.wasAttacked()) {
-                            Boat boat = (Boat) content;
-                            if (boat.hasSunk()) {
-                                color = SUNK_COLOR; // Bateau coulé
-                            } else {
-                                color = HIT_COLOR; // Bateau touché
-                            }
-                        }
-                    }
-                    // Si c'est un piège
-                    else if (contentType == ContentType.TRAP) {
-                        color = TRAP_COLOR;
-                    }
-                }
-                // Case vide attaquée (manqué)
-                else if (square.wasAttacked()) {
-                    color = MISS_COLOR;
-                }
-
-                // Si mode île et case sur l'île
-                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
-                    if (!square.wasAttacked()) {
-                        color = ISLAND_COLOR; // Île non fouillée
-                    } else if (square.isEmpty()) {
-                        color = ISLAND_SEARCHED_EMPTY; // Île fouillée vide
-                    } else {
-                        color = ISLAND_SEARCHED_FOUND; // Île fouillée avec objet
-                    }
-                }
-
-                view.setPlayerCellColor(x, y, color);
-            }
-        }
-    }
-
-    private void updateRobotGrid() {
-        int size = config.getGridSize();
-        Player robot = game.getRobot();
-        Grid grid = robot.getGrid();
-
-        for(int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                Square square = grid.getSquare(new Position(x, y));
-                Color color = WATER_COLOR;
-
-                // Vérifier si la case contient quelque chose
-                if (!square.isEmpty()) {
-                    Content content = square.getContent();
-                    ContentType contentType = content.getContentType();
-
-                    // Si c'est un bateau
-                    if (contentType == ContentType.BOAT) {
-                        // Si la case a été attaquée
-                        if (square.wasAttacked()) {
-                            Boat boat = (Boat) content;
-                            if (boat.hasSunk()) {
-                                color = SUNK_COLOR; // Bateau coulé
-                            } else {
-                                color = HIT_COLOR; // Bateau touché
-                            }
-                        }
-                    }
-                }
-                // Case vide attaquée (manqué)
-                else if (square.wasAttacked()) {
-                    color = MISS_COLOR;
-                }
-
-                // Si mode île et case sur l'île
-                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
-                    if (!square.wasAttacked()) {
-                        color = ISLAND_COLOR; // Île non fouillée
-                    } else if (square.isEmpty()) {
-                        color = ISLAND_SEARCHED_EMPTY; // Île fouillée vide
-                    } else {
-                        color = ISLAND_SEARCHED_FOUND; // Île fouillée avec objet
-                    }
-                }
-
-                view.setRobotCellColor(x, y, color);
-            }
         }
     }
     

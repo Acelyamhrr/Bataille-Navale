@@ -10,6 +10,7 @@ import model.enums.TrapType;
 import model.enums.WeaponType;
 import model.grid.Grid;
 import model.grid.Position;
+import model.history.History;
 import model.players.*;
 
 import java.util.List;
@@ -20,18 +21,20 @@ public class Game {
     private GamePlacement gamePlacement;
     private Player player;
     private Player robot;
+    private History history;
 
     public Game(GameConfig gameConfig, GamePlacement gamePlacement) {
         this.gameConfig = gameConfig;
         this.gamePlacement = gamePlacement;
+        this.history = new History();
     }
 
     public void initialize() {
         player = new Player(gameConfig.getUsername(), false);
         robot = new Player("Robot", true);
 
-        Grid gridPlayer = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame());
-        Grid gridRobot = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame());
+        Grid gridPlayer = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame(), false);
+        Grid gridRobot = new Grid(gameConfig.getGridSize(), gameConfig.getModeGame(), true);
         player.setGrid(gridPlayer);
         robot.setGrid(gridRobot);
 
@@ -67,6 +70,8 @@ public class Game {
                         boat = boatFactory.createAircraftCarrier();
                 }
 
+                boat.belongsTo(false);
+
                 this.player.getGrid().placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
                 this.player.addBoat(boat);
             }
@@ -97,6 +102,7 @@ public class Game {
                     default:
                         boat = boatFactory.createAircraftCarrier();
                 }
+                boat.belongsTo(true);
 
                 this.robot.getGrid().placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
                 this.robot.addBoat(boat);

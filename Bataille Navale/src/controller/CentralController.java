@@ -111,7 +111,7 @@ public class CentralController {
 
     private void openGame() {
         this.gameController = new GameController(currentConfig, currentPlacement);
-        gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername(), gameController);
+        gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername(), gameController, this.currentPlacement);
         this.gameController.setView(gameView);
 
         gameView.setVisible(true);

@@ -1,20 +1,21 @@
 package view;
 
 import controller.GameController;
+import model.Observer;
 import model.enums.*;
+import model.game.GamePlacement;
 import model.grid.Position;
+
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class GameView extends JFrame {
+public class GameView extends JFrame implements Observer {
     private final int gridSize;
     private final String username;
 
@@ -80,7 +81,7 @@ public class GameView extends JFrame {
     private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
     private static final Color TRAP_COLOR = new Color(243, 88, 48);
 
-    public GameView(int gridSize, String username, GameController gameController) {
+    public GameView(int gridSize, String username, GameController gameController, GamePlacement placement) {
         this.gridSize = gridSize;
         this.username = username;
         this.gameController = gameController;
@@ -90,10 +91,10 @@ public class GameView extends JFrame {
         setSize(1400, 900);
         setLocationRelativeTo(null);
 
-        initComponents();
+        initComponents(placement);
     }
 
-    private void initComponents() {
+    private void initComponents(GamePlacement placement) {
         setLayout(new BorderLayout(10, 10));
 
         // Panel principal
@@ -136,13 +137,13 @@ public class GameView extends JFrame {
         // Grille joueur
         gbc.gridx = 1;
         gbc.weightx = 0.35;
-        playerGridPanel = createGridPanel(true);
+        playerGridPanel = createGridPanel(true, placement);
         gridsAndStatsPanel.add(playerGridPanel, gbc);
 
         // Grille robot
         gbc.gridx = 2;
         gbc.weightx = 0.35;
-        robotGridPanel = createGridPanel(false);
+        robotGridPanel = createGridPanel(false, placement);
         gridsAndStatsPanel.add(robotGridPanel, gbc);
 
         // Stats robot
@@ -256,7 +257,7 @@ public class GameView extends JFrame {
         return label;
     }
 
-    private JPanel createGridPanel(boolean isPlayerGrid) {
+    private JPanel createGridPanel(boolean isPlayerGrid, GamePlacement placement) {
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder( BorderFactory.createLineBorder(Color.DARK_GRAY, 2), isPlayerGrid ? "Votre grille" : "Grille adverse", TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14) ));
@@ -296,6 +297,43 @@ public class GameView extends JFrame {
 
         if (isPlayerGrid) {
             playerGridButtons = buttons;
+
+            Map<BoatName, List<Position>> placementsBoats = placement.getBoatPlacementsPlayer();
+
+            for(Map.Entry<BoatName, List<Position>> entry : placementsBoats.entrySet()){
+                int size = 2;
+                switch(entry.getKey()){
+                    case AIRCRAFT_CARRIER:
+                        size = 5;
+                        break;
+                    case CRUISER:
+                        size = 4;
+                        break;
+                    case DESTROYER, SUBMARINE:
+                        size = 3;
+                        break;
+                }
+
+                for(Position position : entry.getValue()){
+                    if(position.getOrientation() == Orientation.HORIZONTAL){
+                        for (int i = 0; i < size; i++) {
+                            playerGridButtons[position.getY()][position.getX()+i].setBackground(BOAT_COLOR);
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < size; i++) {
+                            playerGridButtons[position.getY()+i][position.getX()].setBackground(BOAT_COLOR);
+                        }
+                    }
+                }
+            }
+
+            Map<TrapType, Position> placementTraps = placement.getTrapPlacementsPlayer();
+
+            for(Map.Entry<TrapType, Position> entry : placementTraps.entrySet()){
+                playerGridButtons[entry.getValue().getY()][entry.getValue().getX()].setBackground(TRAP_COLOR);
+            }
+
         } else {
             robotGridButtons = buttons;
         }
@@ -427,16 +465,6 @@ public class GameView extends JFrame {
         turnLabel.setText("Tour " + turn);
     }
 
-
-    public void setPlayerCellColor(int x, int y, Color color) {
-        this.playerGridButtons[y][x].setBackground(color);
-    }
-
-    public void setRobotCellColor(int x, int y, Color color) {
-        this.robotGridButtons[y][x].setBackground(color);
-    }
-
-
     public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells, int totalCells) {
         playerBoatsIntactLabel.setText("Bateaux intacts : " + intact);
         playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
@@ -528,5 +556,93 @@ public class GameView extends JFrame {
 
     public void showSuccess(String message) {
         JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    @Override
+    public void boatAttacked(Position position, boolean robot) {
+        if(robot){
+            this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+        }
+        else{
+            this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+        }
+    }
+
+    @Override
+    public void boatSunk(Position position, int size, boolean robot) {
+        if(robot){
+            switch (position.getOrientation()){
+                case VERTICAL:
+                    for(int i=0; i<size; i++){
+                        this.robotGridButtons[position.getY()+i][position.getX()].setBackground(SUNK_COLOR);
+                    }
+                    break;
+                case HORIZONTAL:
+                    for(int i=0; i<size; i++){
+                        this.robotGridButtons[position.getY()][position.getX()+i].setBackground(SUNK_COLOR);
+                    }
+                    break;
+                default:
+                    this.robotGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
+            }
+        }
+        else{
+            switch (position.getOrientation()){
+                case VERTICAL:
+                    for(int i=0; i<size; i++){
+                        this.playerGridButtons[position.getY()+i][position.getX()].setBackground(SUNK_COLOR);
+                    }
+                    break;
+                case HORIZONTAL:
+                    for(int i=0; i<size; i++){
+                        this.playerGridButtons[position.getY()][position.getX()+i].setBackground(SUNK_COLOR);
+                    }
+                    break;
+                default:
+                    this.playerGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
+            }
+        }
+    }
+
+    @Override
+    public void squareAttacked(Position position, boolean robot) {
+        if(robot){
+            if(!(this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) || this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
+                this.robotGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
+            }
+        }
+        else{
+            if(!(this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) || this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
+                this.playerGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
+            }
+        }
+    }
+
+    @Override
+    public void squareIsland(Position position, State state, boolean robot) {
+        if(robot){
+            switch(state){
+                case EMPTY:
+                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_EMPTY);
+                    break;
+                case SEARCHED:
+                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_FOUND);
+                    break;
+                default:
+                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_COLOR);
+            }
+        }
+        else{
+            switch(state){
+                case EMPTY:
+                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_EMPTY);
+                    break;
+                case SEARCHED:
+                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_FOUND);
+                    break;
+                default:
+                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_COLOR);
+            }
+        }
     }
 }
