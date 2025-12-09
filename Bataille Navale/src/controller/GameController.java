@@ -2,8 +2,6 @@ package controller;
 
 import model.contents.Content;
 import model.contents.fleet.Boat;
-import model.contents.traps.Trap;
-import model.contents.weapons.Weapon;
 import model.enums.ContentType;
 import model.enums.*;
 import model.game.Game;
@@ -34,31 +32,27 @@ public class GameController {
     private static final Color TRAP_COLOR = new Color(243, 88, 48);
 
 
-    public GameController(GameView view, GameConfig config, GamePlacement placement) {
-        this.view = view;
+    public GameController(GameConfig config, GamePlacement placement) {
         this.config = config;
 
         this.game = new Game(config, placement);
         game.initialize();
-
-        connectView();
-        updateAllDisplays();
     }
 
-    private void connectView() {
-        view.setGridClickHandler((x, y) -> handleGridClick(x, y));
-        view.addRestartListener(e -> restart());
-        view.addQuitListener(e -> quit());
+    public void setView(GameView view) {
+        this.view = view;
+
+        updateAllDisplays();
     }
 
     private void updateAllDisplays() {
         view.setTurnNumber(turnNumber);
         updatePlayerGrid();
         updateRobotGrid();
-        updateStats();
-        updateWeapons();
+        //updateStats();
+        //updateWeapons();
         if (config.getModeGame() == ModeGame.ISLAND) {
-            updateIsland();
+            //updateIsland();
         }
     }
 
@@ -164,7 +158,7 @@ public class GameController {
         }
     }
     
-    private void handleGridClick(int x, int y) {
+    public void handleGridClick(int x, int y) {
         Position target = new Position(x,y);
 
         if (view.isShovelSelected()) {
@@ -177,18 +171,18 @@ public class GameController {
     }
 
     private void handleWeaponUse(WeaponType weapon, Position target) {
-
+        System.out.println("Target: " + target.getX() + " " + target.getY());
     }
 
     private void handleIslandSearch(Position target) {
 
     }
 
-    private void restart() {
+    public void restart() {
         // to do
     }
 
-    private void quit() {
+    public void quit() {
         System.exit(0);
     }
 

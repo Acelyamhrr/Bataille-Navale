@@ -1,5 +1,6 @@
 package view;
 
+import controller.GameController;
 import model.enums.*;
 import model.grid.Position;
 
@@ -65,6 +66,8 @@ public class GameView extends JFrame {
     // Callback pour les clics sur la grille robot
     private BiConsumer<Integer, Integer> gridClickHandler;
 
+    private GameController gameController;
+
 
     // Couleurs
     private static final Color WATER_COLOR = new Color(100, 150, 200);
@@ -77,9 +80,10 @@ public class GameView extends JFrame {
     private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
     private static final Color TRAP_COLOR = new Color(243, 88, 48);
 
-    public GameView(int gridSize, String username) {
+    public GameView(int gridSize, String username, GameController gameController) {
         this.gridSize = gridSize;
         this.username = username;
+        this.gameController = gameController;
 
         setTitle("Bataille Navale - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -275,11 +279,7 @@ public class GameView extends JFrame {
                 final int finalY = y;
 
                 if (!isPlayerGrid) {
-                    btn.addActionListener(e -> {
-                        if (gridClickHandler != null) {
-                            gridClickHandler.accept(finalX, finalY);
-                        }
-                    });
+                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY));
                 }
 
                 buttons[y][x] = btn;
@@ -370,8 +370,10 @@ public class GameView extends JFrame {
         menuPopup = new JPopupMenu();
 
         restartItem = new JMenuItem("Recommencer");
+        restartItem.addActionListener(e-> this.gameController.restart());
         legendItem = new JMenuItem("Légendes");
         quitItem = new JMenuItem("Quitter");
+        quitItem.addActionListener(e -> this.gameController.quit());
 
         menuPopup.add(restartItem);
         menuPopup.add(legendItem);
@@ -512,14 +514,6 @@ public class GameView extends JFrame {
                 this.missileRadio.setEnabled(true);
         }
     }
-
-    public void setGridClickHandler(BiConsumer<Integer, Integer> handler) {
-        this.gridClickHandler = handler;
-    }
-
-    public void addQuitListener(ActionListener listener) {this.quitItem.addActionListener(listener);}
-
-    public void addRestartListener(ActionListener listener) {this.restartItem.addActionListener(listener);}
 
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erreur", JOptionPane.ERROR_MESSAGE);

@@ -110,12 +110,14 @@ public class CentralController {
     }
 
     private void openGame() {
-        gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername());
+        this.gameController = new GameController(currentConfig, currentPlacement);
+        gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername(), gameController);
+        this.gameController.setView(gameView);
+
         gameView.setVisible(true);
         placementView.setVisible(false);
 
         gameView.showSuccess("La partie commence !");
-        this.gameController = new GameController(gameView, currentConfig, currentPlacement);
     }
 
     // quit
