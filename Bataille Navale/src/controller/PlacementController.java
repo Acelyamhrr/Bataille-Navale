@@ -485,7 +485,12 @@ public class PlacementController {
             } else {
                 applyFixedBoatsRobot();
             }
-            applyRandomTrapsRobot();
+            if(config.getModeGame() == ModeGame.STANDARD){
+                applyRandomTrapsRobot();
+            }
+            else{
+                applyRandomIslandRobot();
+            }
         }
 
         // Créer GamePlacement
@@ -503,6 +508,12 @@ public class PlacementController {
             }
         }
 
+        for(Map.Entry<WeaponType, List<Position>> entry : playerWeapons.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                placement.setWeaponPlacementPlayer(entry.getKey(), pos);
+            }
+        }
+
         for (Map.Entry<BoatName, List<Position>> entry : robotBoats.entrySet()) {
             for (Position pos : entry.getValue()) {
                 placement.setBoatPlacementRobot(entry.getKey(), pos);
@@ -512,6 +523,12 @@ public class PlacementController {
         for (Map.Entry<TrapType, List<Position>> entry : robotTraps.entrySet()) {
             for(Position pos : entry.getValue()) {
                 placement.setTrapPlacementRobot(entry.getKey(), pos);
+            }
+        }
+
+        for(Map.Entry<WeaponType, List<Position>> entry : robotWeapons.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                placement.setWeaponPlacementRobot(entry.getKey(), pos);
             }
         }
 
