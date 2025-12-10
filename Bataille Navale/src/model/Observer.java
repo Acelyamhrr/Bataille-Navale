@@ -12,6 +12,9 @@ public interface Observer {
     //Notifie qu'un bateau a été touché.
     void boatAttacked(Position position, boolean robot);
 
+    //Notifie qu'un bateau a été touché pour la première fois
+    void boatTouched(boolean robot);
+
      // Notifie qu'un bateau a été coulé
      void boatSunk(Position position, int size, boolean robot);
 

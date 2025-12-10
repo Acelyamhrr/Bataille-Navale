@@ -28,8 +28,10 @@ B - Les règles du jeu
 
 Elles sont disponibles :
 
-- en version textuelle : <https://www.regles-du-jeu.fr/bataille-navale.html>.
-- en vidéo (ou pas) : <https://www.youtube.com/watch?v=6tcoaWil3QA>.
+- en version textuelle :
+  - version officielle du jeu de société : <Regles_officielles.pdf>,
+  - version récente : <https://www.regles-du-jeu.fr/bataille-navale.html>.
+)- en vidéo (ou pas) : <https://www.youtube.com/watch?v=6tcoaWil3QA>.
 
 ### Materiel
 
