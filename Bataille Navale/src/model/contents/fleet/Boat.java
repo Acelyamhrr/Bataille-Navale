@@ -9,15 +9,14 @@ import model.grid.Position;
 
 import java.util.ArrayList;
 
-public class Boat implements Content {
+public class Boat extends Content {
     private int numberSquares;
     private boolean[] attacked;
     private BoatName name;
-    private Position position;
     private ArrayList<Observer> observers;
-    private ContentType contentType;
     private boolean robot;
     private boolean alreadySunk;
+    private boolean alreadyTouched;
 
     public Boat(BoatName name, int numberSquares){
         this.name = name;
@@ -26,6 +25,7 @@ public class Boat implements Content {
         this.observers = new ArrayList<>();
         this.contentType = ContentType.BOAT;
         this.alreadySunk = false;
+        this.alreadyTouched = false;
     }
 
     public void belongsTo(boolean robot){
@@ -73,6 +73,11 @@ public class Boat implements Content {
 
         this.attacked[pos] = true;
 
+        if (!alreadyTouched) {
+            notifyObserversTouched(this.position, this.numberSquares);
+            alreadyTouched = true;
+        }
+
         notifyObserversAttacked(position);
     }
 
@@ -89,6 +94,12 @@ public class Boat implements Content {
     private void notifyObserversSunk(){
         for(Observer observer : this.observers){
             observer.boatSunk(this.position, this.numberSquares, this.robot);
+        }
+    }
+
+    private void notifyObserversTouched(Position position, int numberSquares){
+        for(Observer observer : this.observers){
+            observer.boatTouched(this.robot);
         }
     }
 

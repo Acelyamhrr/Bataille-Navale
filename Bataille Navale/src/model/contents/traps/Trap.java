@@ -6,10 +6,8 @@ import model.enums.Orientation;
 import model.enums.TrapType;
 import model.grid.Position;
 
-public abstract class Trap implements Content {
+public abstract class Trap extends Content {
     private TrapType name;
-    private Position position;
-    private ContentType contentType;
 
     public Trap(TrapType name){
         this.name = name;

@@ -27,6 +27,13 @@ public class History implements Observer {
     }
 
     @Override
+    public void boatTouched(boolean robot) {
+        String player = robot?"Robot":"Player";
+        String action = String.format("Bateau trouvé sur la grille du %s", player);
+        actions.add(action);
+    }
+
+    @Override
     public void boatSunk(Position position, int size, boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("Bateau de taille %d coulé en position (%d, %d) sur la grille du %s", size, position.getX(), position.getY(), player);

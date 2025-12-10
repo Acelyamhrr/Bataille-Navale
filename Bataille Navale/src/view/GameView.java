@@ -203,7 +203,7 @@ public class GameView extends JFrame implements Observer {
             robotBoatsTouchedLabel = new JLabel("Bateaux touchés : 0");
             robotBoatsSunkLabel = new JLabel("Bateaux coulés : 0");
             robotMissedShotsLabel = new JLabel("Tirs dans l'eau : 0");
-            robotHitRatioLabel = new JLabel("Cases touchées : 0/" + this.gridSize * this.gridSize);
+            robotHitRatioLabel = new JLabel("Cases de bateaux touchées : 0/" + this.gameController.getNumberBoatSquares());
             robotWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
 
             if(this.gameController.hasIsland()){
@@ -229,7 +229,7 @@ public class GameView extends JFrame implements Observer {
             playerBoatsTouchedLabel = new JLabel("Bateaux touchés : 0");
             playerBoatsSunkLabel = new JLabel("Bateaux coulés : 0");
             playerMissedShotsLabel = new JLabel("Tirs dans l'eau : 0");
-            playerHitRatioLabel = new JLabel("Cases touchées : 0/" + this.gridSize * this.gridSize);
+            playerHitRatioLabel = new JLabel("Cases de bateaux touchées : 0/" + this.gameController.getNumberBoatSquares());
             playerWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
 
             if(this.gameController.hasIsland()){
@@ -476,7 +476,7 @@ public class GameView extends JFrame implements Observer {
         playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         playerBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
         playerMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        playerHitRatioLabel.setText("Cases touchées : " + hitCells + "/" + this.gridSize * this.gridSize);
+        playerHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + this.gameController.getNumberBoatSquares());
     }
 
     private void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells) {
@@ -484,7 +484,7 @@ public class GameView extends JFrame implements Observer {
         robotBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         robotBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
         robotMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        robotHitRatioLabel.setText("Cases touchées : " + hitCells + "/" + this.gridSize * this.gridSize);
+        robotHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + this.gameController.getNumberBoatSquares());
     }
 
     public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
@@ -578,10 +578,10 @@ public class GameView extends JFrame implements Observer {
 
             //Mise à jour des stats
             intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) +1;
+            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18));
             sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
             missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(17)) +1;
+            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28)) +1;
 
             updateRobotStats(intact, touched, sunk, missed, hitCells);
         }
@@ -591,11 +591,11 @@ public class GameView extends JFrame implements Observer {
             }
 
             //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18)) -1;
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18)) +1;
+            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18));
+            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18));
             sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
             missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(17)) +1;
+            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28)) +1;
 
             updatePlayerStats(intact, touched, sunk, missed, hitCells);
         }
@@ -622,11 +622,11 @@ public class GameView extends JFrame implements Observer {
             }
 
             //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18)) -1;
+            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
             touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) -1;
             sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17)) +1;
             missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(17));
+            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
 
             updateRobotStats(intact, touched, sunk, missed, hitCells);
         }
@@ -647,11 +647,36 @@ public class GameView extends JFrame implements Observer {
             }
 
             //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18)) -1;
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18));
+            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18));
+            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18))-1;
             sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17)) +1;
             missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(17));
+            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
+
+            updatePlayerStats(intact, touched, sunk, missed, hitCells);
+        }
+    }
+
+    @Override
+    public void boatTouched(boolean robot) {
+        int intact, touched, sunk, missed, hitCells;
+        if(robot){
+            //Mise à jour des stats
+            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18)) -1;
+            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) +1;
+            sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
+            missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
+            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
+
+            updateRobotStats(intact, touched, sunk, missed, hitCells);
+        }
+        else{
+            //Mise à jour des stats
+            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18)) -1;
+            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18)) +1;
+            sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
+            missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
+            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
 
             updatePlayerStats(intact, touched, sunk, missed, hitCells);
         }
@@ -671,7 +696,7 @@ public class GameView extends JFrame implements Observer {
             touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18));
             sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
             missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18)) +1;
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(17)) +1;
+            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
 
             updateRobotStats(intact, touched, sunk, missed, hitCells);
         }
@@ -685,7 +710,7 @@ public class GameView extends JFrame implements Observer {
             touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18));
             sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
             missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18)) +1;
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(17)) +1;
+            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
 
             updatePlayerStats(intact, touched, sunk, missed, hitCells);
         }
