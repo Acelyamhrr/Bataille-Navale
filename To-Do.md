@@ -107,3 +107,4 @@ TO DO :
 - Vérifier si le nb de bateau est placable par rapport a la taille de la grille et à l'île.
 - Placements fixe des bateaux et pièges.
 - Placement des armes et pièges sur l'île.
+- Refaire Content -> transformer en classe abstraite
