@@ -14,6 +14,7 @@ import model.game.GamePlacement;
 import model.grid.*;
 import model.grid.Position;
 import model.players.Player;
+import view.EndView;
 import view.GameView;
 
 import java.awt.*;
@@ -487,6 +488,7 @@ public class GameController {
         WeaponFactory factory = new WeaponFactory();
         Weapon weapon = factory.createMissile();
 
+
         ArrayList<Position> positions = weapon.use(target);
         System.out.println("Robot attaque avec un missile");
 
@@ -503,10 +505,31 @@ public class GameController {
             winner = game.getPlayer().getUsername();
         }
 
-        view.showSuccess("Partie terminée ! Vainqueur : " + winner);
-        // TODO: Afficher l'écran de fin de partie
-    }
+        // recup les stats depuis les labels de la vue
+        int playerBoatsIntact = Integer.parseInt(view.getPlayerBoatsIntactLabel().getText().substring(18));
+        int playerBoatsTouched = Integer.parseInt(view.getPlayerBoatsTouchedLabel().getText().substring(18));
+        int playerBoatsSunk = Integer.parseInt(view.getPlayerBoatsSunkLabel().getText().substring(17));
+        int playerMissedShots = Integer.parseInt(view.getPlayerMissedShotsLabel().getText().substring(18));
+        String[] playerHitRatioParts = view.getPlayerHitRatioLabel().getText().split("/");
+        int playerHitCells = Integer.parseInt(playerHitRatioParts[0].substring(28));
+        int playerTotalCells = Integer.parseInt(playerHitRatioParts[1]);
 
+        int robotBoatsIntact = Integer.parseInt(view.getRobotBoatsIntactLabel().getText().substring(18));
+        int robotBoatsTouched = Integer.parseInt(view.getRobotBoatsTouchedLabel().getText().substring(18));
+        int robotBoatsSunk = Integer.parseInt(view.getRobotBoatsSunkLabel().getText().substring(17));
+        int robotMissedShots = Integer.parseInt(view.getRobotMissedShotsLabel().getText().substring(18));
+        String[] robotHitRatioParts = view.getRobotHitRatioLabel().getText().split("/");
+        int robotHitCells = Integer.parseInt(robotHitRatioParts[0].substring(28));
+        int robotTotalCells = Integer.parseInt(robotHitRatioParts[1]);
+
+        EndView endView = new EndView( winner, turnNumber, playerBoatsIntact, playerBoatsTouched, playerBoatsSunk, playerMissedShots, playerHitCells, playerTotalCells, robotBoatsIntact, robotBoatsTouched, robotBoatsSunk, robotMissedShots, robotHitCells, robotTotalCells, game.getPlayer().getUsername() );
+
+        endView.addQuitListener(e -> quit());
+        endView.addRestartListener(e -> restart());
+
+        endView.setVisible(true);
+        view.dispose();
+    }
 
 
 

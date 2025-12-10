@@ -1,0 +1,153 @@
+package view;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionListener;
+
+
+
+public class EndView extends JFrame{
+
+    private JButton restartButton;
+    private JButton quitButton;
+
+    public EndView(String winner, int turnNumber, int playerBoatsIntact, int playerBoatsTouched, int playerBoatsSunk, int playerMissedShots, int playerHitCells, int playerTotalCells, int robotBoatsIntact, int robotBoatsTouched, int robotBoatsSunk, int robotMissedShots, int robotHitCells, int robotTotalCells, String playerName ) {
+
+        setTitle("Fin de partie - Bataille Navale");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(700, 600);
+        setLocationRelativeTo(null);
+        setResizable(false);
+
+        initCompenents(winner, turnNumber, playerBoatsIntact, playerBoatsTouched, playerBoatsSunk, playerMissedShots, playerHitCells, playerTotalCells, robotBoatsIntact, robotBoatsTouched, robotBoatsSunk, robotMissedShots, robotHitCells, robotTotalCells, playerName);
+
+
+
+    }
+
+    private void initCompenents(String winner, int turnNumber, int playerBoatsIntact, int playerBoatsTouched, int playerBoatsSunk, int playerMissedShots, int playerHitCells, int playerTotalCells, int robotBoatsIntact, int robotBoatsTouched, int robotBoatsSunk, int robotMissedShots, int robotHitCells, int robotTotalCells, String playerName) {
+        JPanel mainPanel = new JPanel(new BorderLayout(20,20));
+        mainPanel.setBorder(new EmptyBorder(30,30,30,30));
+        mainPanel.setBackground(new Color(240,240,240));
+
+        JPanel winnerPanel = new JPanel();
+        winnerPanel.setBackground((winner.equals(playerName)) ? new Color(54, 126, 24): new Color(204, 54, 54));
+        winnerPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
+
+        JLabel winnerLabel = new JLabel("\uD83C\uDFC6 VICTOIRE DE : " + winner.toUpperCase() + " ! \uD83C\uDFC6");
+        winnerLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        winnerLabel.setForeground(Color.WHITE);
+        winnerPanel.add(winnerLabel);
+
+        mainPanel.add(winnerPanel, BorderLayout.NORTH);
+
+        JPanel statsPanel = new JPanel(new BorderLayout(10,10));
+        statsPanel.setBackground(new Color(240,240,240));
+
+        JLabel statsTitle = new JLabel("📊 Statistiques de la partie", SwingConstants.CENTER);
+        statsTitle.setFont(new Font("Arial", Font.BOLD, 20));
+        statsTitle.setBorder(new EmptyBorder(0,0,15,0));
+        statsPanel.add(statsTitle, BorderLayout.NORTH);
+
+        JLabel turnsLabel = new JLabel("Nombre de tours joués : " + turnNumber, SwingConstants.CENTER);
+        turnsLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        turnsLabel.setBorder(new EmptyBorder(0,0,10,0));
+
+        JPanel comparisonPanel = new JPanel(new GridLayout(0, 3, 15, 8));
+        comparisonPanel.setBackground(new Color(240, 240, 240));
+        comparisonPanel.setBorder(new EmptyBorder(10, 20, 10, 20));
+
+        addHeader(comparisonPanel, "");
+        addHeader(comparisonPanel, playerName);
+        addHeader(comparisonPanel, "Robot");
+
+        //stats
+        addStatRow(comparisonPanel, "Bateaux intacts", String.valueOf(playerBoatsIntact), String.valueOf(robotBoatsIntact));
+        addStatRow(comparisonPanel, "Bateaux touchés", String.valueOf(playerBoatsTouched), String.valueOf(robotBoatsTouched));
+        addStatRow(comparisonPanel, "Bateaux coulés", String.valueOf(playerBoatsSunk), String.valueOf(robotBoatsSunk));
+        addStatRow(comparisonPanel, "Tirs dans l'eau", String.valueOf(playerMissedShots), String.valueOf(robotMissedShots));
+        addStatRow(comparisonPanel, "Précision", calculatePrecision(playerHitCells - playerMissedShots, playerHitCells), calculatePrecision(robotHitCells - robotMissedShots, robotHitCells));
+        addStatRow(comparisonPanel, "Cases toucées", playerHitCells + "/" + playerTotalCells, robotHitCells + "/" + robotTotalCells);
+
+
+        JPanel centerContent = new JPanel(new BorderLayout());
+        centerContent.setBackground(new Color(240,240,240));
+        centerContent.add(turnsLabel, BorderLayout.NORTH);
+        centerContent.add(comparisonPanel, BorderLayout.CENTER);
+
+        statsPanel.add(centerContent, BorderLayout.CENTER);
+        mainPanel.add(statsPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20,0));
+        buttonPanel.setBackground(new Color(240,240,240));
+
+        restartButton = new JButton("🔄 Recommencer");
+        restartButton.setFont(new Font("Arial", Font.BOLD, 16));
+        restartButton.setPreferredSize(new Dimension(200, 50));
+        restartButton.setBackground(new Color(100, 150, 255));
+        restartButton.setForeground(Color.WHITE);
+        restartButton.setFocusPainted(false);
+        restartButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+
+        quitButton = new JButton("❌ Quitter");
+        quitButton.setFont(new Font("Arial", Font.BOLD, 16));
+        quitButton.setPreferredSize(new Dimension(200, 50));
+        quitButton.setBackground(new Color(255, 100, 100));
+        quitButton.setForeground(Color.WHITE);
+        quitButton.setFocusPainted(false);
+        quitButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+
+        buttonPanel.add(restartButton);
+        buttonPanel.add(quitButton);
+
+
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
+
+
+
+
+    }
+
+    private void addHeader(JPanel panel, String text) {
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        label.setForeground(new Color(50,50,50));
+        panel.add(label);
+    }
+
+    private void addStatRow(JPanel panel, String statName, String playerValue, String robotValue) {
+        JLabel nameLabel = new JLabel(statName);
+        nameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+
+        JLabel playerLabel = new JLabel(playerValue, SwingConstants.CENTER);
+        playerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        playerLabel.setForeground(new Color(0, 100, 200));
+
+        JLabel robotLabel = new JLabel(robotValue, SwingConstants.CENTER);
+        robotLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        robotLabel.setForeground(new Color(200, 50, 50));
+
+        panel.add(nameLabel);
+        panel.add(playerLabel);
+        panel.add(robotLabel);
+    }
+
+    private String calculatePrecision(int hits, int totalShots) {
+        if (totalShots == 0) return "0%";
+        double precision = (hits * 100.0) / totalShots;
+        return String.format("%.1f%%", precision);
+    }
+
+    public void addRestartListener(ActionListener listener) {
+        restartButton.addActionListener(listener);
+    }
+
+    public void addQuitListener(ActionListener listener) {
+        quitButton.addActionListener(listener);
+    }
+
+}
