@@ -10,15 +10,19 @@ import java.util.Map;
 
 public class GamePlacement {
     private Map<BoatName, List<Position>> boatPlacementPlayer;
-    private Map<TrapType, Position> trapPlacementPlayer;
+    private Map<TrapType,List<Position>> trapPlacementPlayer;
+    private Map<WeaponType, List<Position>> weaponPlacementPlayer;
     private Map<BoatName, List<Position>> boatPlacementRobot;
-    private Map<TrapType, Position> trapPlacementRobot;
+    private Map<TrapType, List<Position>> trapPlacementRobot;
+    private Map<WeaponType, List<Position>> weaponPlacementRobot;
 
     public GamePlacement() {
         this.boatPlacementPlayer = new HashMap<>();
         this.trapPlacementPlayer = new HashMap<>();
+        this.weaponPlacementPlayer = new HashMap<>();
         this.boatPlacementRobot = new HashMap<>();
         this.trapPlacementRobot = new HashMap<>();
+        this.weaponPlacementRobot = new HashMap<>();
     }
 
     // Getters
@@ -30,13 +34,17 @@ public class GamePlacement {
         return new HashMap<>(boatPlacementRobot);
     }
 
-    public Map<TrapType, Position> getTrapPlacementsPlayer() {
+    public Map<TrapType, List<Position>> getTrapPlacementsPlayer() {
         return new HashMap<>(trapPlacementPlayer);
     }
 
-    public Map<TrapType, Position> getTrapPlacementsRobot() {
+    public Map<TrapType, List<Position>> getTrapPlacementsRobot() {
         return new HashMap<>(trapPlacementRobot);
     }
+
+    public Map<WeaponType, List<Position>> getWeaponPlacementPlayer(){ return new HashMap<>(weaponPlacementPlayer); }
+
+    public Map<WeaponType, List<Position>> getWeaponPlacementRobot() { return new HashMap<>(weaponPlacementRobot); }
 
     // Setters
     public void setBoatPlacementPlayer(BoatName type, Position pos) {
@@ -54,11 +62,33 @@ public class GamePlacement {
     }
 
     public void setTrapPlacementPlayer(TrapType type, Position pos) {
-        trapPlacementPlayer.put(type, pos);
+        if(!trapPlacementPlayer.containsKey(type)){
+            trapPlacementPlayer.put(type, new ArrayList<>());
+        }
+        trapPlacementPlayer.get(type).add(pos);
     }
 
     public void setTrapPlacementRobot(TrapType type, Position pos) {
-        trapPlacementRobot.put(type, pos);
+        if(!trapPlacementRobot.containsKey(type)){
+            trapPlacementRobot.put(type, new ArrayList<>());
+        }
+        trapPlacementRobot.get(type).add(pos);
+    }
+
+    public void setWeaponPlacementPlayer(WeaponType type, Position pos){
+        if(!weaponPlacementPlayer.containsKey(type)){
+            weaponPlacementPlayer.put(type, new ArrayList<>());
+        }
+
+        weaponPlacementPlayer.get(type).add(pos);
+    }
+
+    public void setWeaponPlacementRobot(WeaponType type, Position pos){
+        if(!weaponPlacementRobot.containsKey(type)){
+            weaponPlacementRobot.put(type, new ArrayList<>());
+        }
+
+        weaponPlacementRobot.get(type).add(pos);
     }
 
 }

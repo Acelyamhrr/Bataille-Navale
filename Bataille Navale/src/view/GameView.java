@@ -74,6 +74,7 @@ public class GameView extends JFrame implements Observer {
     private static final Color ISLAND_SEARCHED_EMPTY = new Color(190, 160, 120);
     private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
     private static final Color TRAP_COLOR = new Color(243, 88, 48);
+    private static final Color WEAPON_COLOR = new Color(218, 14, 232);
 
     public GameView(int gridSize, String username, GameController gameController, GamePlacement placement) {
         this.gridSize = gridSize;
@@ -334,10 +335,20 @@ public class GameView extends JFrame implements Observer {
                 }
             }
 
-            Map<TrapType, Position> placementTraps = placement.getTrapPlacementsPlayer();
+            Map<TrapType, List<Position>> placementTraps = placement.getTrapPlacementsPlayer();
 
-            for(Map.Entry<TrapType, Position> entry : placementTraps.entrySet()){
-                playerGridButtons[entry.getValue().getY()][entry.getValue().getX()].setBackground(TRAP_COLOR);
+            for(Map.Entry<TrapType, List<Position>> entry : placementTraps.entrySet()){
+                for(Position pos  : entry.getValue()){
+                    playerGridButtons[pos.getY()][pos.getX()].setBackground(TRAP_COLOR);
+                }
+            }
+
+            Map<WeaponType, List<Position>> placementWeapons = placement.getWeaponPlacementPlayer();
+
+            for(Map.Entry<WeaponType, List<Position>> entry : placementWeapons.entrySet()){
+                for(Position pos  : entry.getValue()){
+                    playerGridButtons[pos.getY()][pos.getX()].setBackground(WEAPON_COLOR);
+                }
             }
 
         } else {
