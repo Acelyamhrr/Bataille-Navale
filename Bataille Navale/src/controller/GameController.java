@@ -511,7 +511,7 @@ public class GameController {
         int playerBoatsSunk = Integer.parseInt(view.getPlayerBoatsSunkLabel().getText().substring(17));
         int playerMissedShots = Integer.parseInt(view.getPlayerMissedShotsLabel().getText().substring(18));
         String[] playerHitRatioParts = view.getPlayerHitRatioLabel().getText().split("/");
-        int playerHitCells = Integer.parseInt(playerHitRatioParts[0].substring(17));
+        int playerHitCells = Integer.parseInt(playerHitRatioParts[0].substring(28));
         int playerTotalCells = Integer.parseInt(playerHitRatioParts[1]);
 
         int robotBoatsIntact = Integer.parseInt(view.getRobotBoatsIntactLabel().getText().substring(18));
@@ -519,7 +519,7 @@ public class GameController {
         int robotBoatsSunk = Integer.parseInt(view.getRobotBoatsSunkLabel().getText().substring(17));
         int robotMissedShots = Integer.parseInt(view.getRobotMissedShotsLabel().getText().substring(18));
         String[] robotHitRatioParts = view.getRobotHitRatioLabel().getText().split("/");
-        int robotHitCells = Integer.parseInt(robotHitRatioParts[0].substring(17));
+        int robotHitCells = Integer.parseInt(robotHitRatioParts[0].substring(28));
         int robotTotalCells = Integer.parseInt(robotHitRatioParts[1]);
 
         EndView endView = new EndView( winner, turnNumber, playerBoatsIntact, playerBoatsTouched, playerBoatsSunk, playerMissedShots, playerHitCells, playerTotalCells, robotBoatsIntact, robotBoatsTouched, robotBoatsSunk, robotMissedShots, robotHitCells, robotTotalCells, game.getPlayer().getUsername() );
