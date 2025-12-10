@@ -6,14 +6,11 @@ import model.enums.*;
 import model.game.GamePlacement;
 import model.grid.Position;
 
-
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class GameView extends JFrame implements Observer {
     private final int gridSize;
@@ -63,9 +60,6 @@ public class GameView extends JFrame implements Observer {
     private JMenuItem restartItem;
     private JMenuItem legendItem;
     private JMenuItem quitItem;
-
-    // Callback pour les clics sur la grille robot
-    private BiConsumer<Integer, Integer> gridClickHandler;
 
     private GameController gameController;
 
@@ -477,7 +471,7 @@ public class GameView extends JFrame implements Observer {
         turnLabel.setText("Tour " + turn);
     }
 
-    public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells) {
+    private void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells) {
         playerBoatsIntactLabel.setText("Bateaux intacts : " + intact);
         playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         playerBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
@@ -485,7 +479,7 @@ public class GameView extends JFrame implements Observer {
         playerHitRatioLabel.setText("Cases touchées : " + hitCells + "/" + this.gridSize * this.gridSize);
     }
 
-    public void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells) {
+    private void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells) {
         robotBoatsIntactLabel.setText("Bateaux intacts : " + intact);
         robotBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         robotBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
@@ -578,7 +572,9 @@ public class GameView extends JFrame implements Observer {
         int intact, touched, sunk, missed, hitCells;
 
         if(robot){
-            this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+            if(this.robotGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
+                this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+            }
 
             //Mise à jour des stats
             intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
@@ -590,7 +586,9 @@ public class GameView extends JFrame implements Observer {
             updateRobotStats(intact, touched, sunk, missed, hitCells);
         }
         else{
-            this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+            if(this.playerGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
+                this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
+            }
 
             //Mise à jour des stats
             intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18)) -1;

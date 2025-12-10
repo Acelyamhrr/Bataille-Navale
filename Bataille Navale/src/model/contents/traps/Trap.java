@@ -30,4 +30,8 @@ public abstract class Trap implements Content {
     public ContentType getContentType() {
         return this.contentType;
     }
+
+    public TrapType getName() {
+        return this.name;
+    }
 }
