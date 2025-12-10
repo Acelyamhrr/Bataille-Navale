@@ -113,38 +113,42 @@ public class Game {
     private void initializeTrapsPlayer() {
         TrapFactory trapFactory = new TrapFactory();
 
-        Map<TrapType, Position> trapPlacementsPlayer = gamePlacement.getTrapPlacementsPlayer();
-        for(Map.Entry<TrapType, Position> entry : trapPlacementsPlayer.entrySet()) {
-            Trap trap;
-            switch(entry.getKey()) {
-                case BLACKHOLE:
-                    trap = trapFactory.createBlackHole();
-                    break;
-                default:
-                    trap = trapFactory.createTornado();
-                    this.player.setTornado((Tornado) trap);
-            }
+        Map<TrapType, List<Position>> trapPlacementsPlayer = gamePlacement.getTrapPlacementsPlayer();
+        for(Map.Entry<TrapType, List<Position>> entry : trapPlacementsPlayer.entrySet()) {
+            for(Position pos : entry.getValue()){
+                Trap trap;
+                switch(entry.getKey()) {
+                    case BLACKHOLE:
+                        trap = trapFactory.createBlackHole();
+                        break;
+                    default:
+                        trap = trapFactory.createTornado();
+                        this.player.setTornado((Tornado) trap);
+                }
 
-            this.player.getGrid().placeTrap(trap, entry.getValue().getX(), entry.getValue().getY());
+                this.player.getGrid().placeTrap(trap, pos.getX(), pos.getY());
+            }
         }
     }
 
     private void initializeTrapsRobot() {
         TrapFactory trapFactory = new TrapFactory();
 
-        Map<TrapType, Position> trapPlacementsRobot = gamePlacement.getTrapPlacementsRobot();
-        for(Map.Entry<TrapType, Position> entry : trapPlacementsRobot.entrySet()) {
-            Trap trap;
-            switch(entry.getKey()) {
-                case BLACKHOLE:
-                    trap = trapFactory.createBlackHole();
-                    break;
-                default:
-                    trap = trapFactory.createTornado();
-                    this.robot.setTornado((Tornado) trap);
-            }
+        Map<TrapType, List<Position>> trapPlacementsRobot = gamePlacement.getTrapPlacementsRobot();
+        for(Map.Entry<TrapType, List<Position>> entry : trapPlacementsRobot.entrySet()) {
+            for(Position pos : entry.getValue()) {
+                Trap trap;
+                switch (entry.getKey()) {
+                    case BLACKHOLE:
+                        trap = trapFactory.createBlackHole();
+                        break;
+                    default:
+                        trap = trapFactory.createTornado();
+                        this.robot.setTornado((Tornado) trap);
+                }
 
-            this.robot.getGrid().placeTrap(trap, entry.getValue().getX(), entry.getValue().getY());
+                this.robot.getGrid().placeTrap(trap, pos.getX(), pos.getY());
+            }
         }
     }
 
