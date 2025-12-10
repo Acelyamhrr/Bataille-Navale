@@ -749,4 +749,44 @@ public class GameView extends JFrame implements Observer {
             updatePlayerIsland(remaining);
         }
     }
+
+    public JLabel getPlayerBoatsIntactLabel() {
+        return playerBoatsIntactLabel;
+    }
+
+    public JLabel getPlayerBoatsTouchedLabel() {
+        return playerBoatsTouchedLabel;
+    }
+
+    public JLabel getPlayerBoatsSunkLabel() {
+        return playerBoatsSunkLabel;
+    }
+
+    public JLabel getPlayerMissedShotsLabel() {
+        return playerMissedShotsLabel;
+    }
+
+    public JLabel getPlayerHitRatioLabel() {
+        return playerHitRatioLabel;
+    }
+
+    public JLabel getRobotBoatsIntactLabel() {
+        return robotBoatsIntactLabel;
+    }
+
+    public JLabel getRobotBoatsTouchedLabel() {
+        return robotBoatsTouchedLabel;
+    }
+
+    public JLabel getRobotBoatsSunkLabel() {
+        return robotBoatsSunkLabel;
+    }
+
+    public JLabel getRobotMissedShotsLabel() {
+        return robotMissedShotsLabel;
+    }
+
+    public JLabel getRobotHitRatioLabel() {
+        return robotHitRatioLabel;
+    }
 }
