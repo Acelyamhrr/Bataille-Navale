@@ -2,8 +2,8 @@ package controller;
 
 import model.contents.Content;
 import model.contents.fleet.Boat;
-import model.contents.traps.BlackHole;
 import model.contents.traps.Tornado;
+import model.contents.traps.Trap;
 import model.contents.weapons.Weapon;
 import model.contents.weapons.WeaponFactory;
 import model.enums.ContentType;
@@ -215,6 +215,7 @@ public class GameController {
 
         }
 
+        /* On ne veut savoir que la case utilisé. N'appliquer que sur les cases hors île par contre
         Position[] adjacent = {
                 new Position(center.getX() - 1, center.getY()),
                 new Position(center.getX() + 1, center.getY()),
@@ -227,6 +228,7 @@ public class GameController {
                 return true;
             }
         }
+        */
 
         return false;
     }
@@ -259,10 +261,10 @@ public class GameController {
                 System.out.println("    Content type: " + contentType);
 
                 if (contentType == ContentType.TRAP) {
-                    Content content = square.getContent();
+                    Trap content = (Trap) square.getContent();
 
                     // Vérifier si c'est une tornade
-                    if (content instanceof Tornado) {
+                    if (content.getName() == TrapType.TORNADO) {
                         System.out.println("    -> TORNADE TOUCHEE! Activation...");
                         Tornado tornado = (Tornado) content;
 
@@ -278,7 +280,7 @@ public class GameController {
                         continue;
                     }
                     // Sinon c'est un trou noir
-                    else if (content instanceof BlackHole) {
+                    else if (content.getName() == TrapType.BLACKHOLE) {
                         System.out.println("    -> TROU NOIR DETECTE!");
                         // Trou noir : l'attaque revient sur l'attaquant
                         Player attacker = isRobot ? game.getRobot() : game.getPlayer();
@@ -343,11 +345,16 @@ public class GameController {
 
             Square square = target.getGrid().getSquare(pos);
 
-            // Compter les cases avec contenu
+            // Compter les cases avec contenu (boat ou blackhole)
             if (!square.isEmpty()) {
                 ContentType type = square.getContent().getContentType();
-                if (type == ContentType.BOAT || type == ContentType.TRAP) {
+                if (type == ContentType.BOAT) {
                     boatCells++;
+                } else if (type == ContentType.TRAP) {
+                    Trap trap =  (Trap) square.getContent();
+                    if(trap.getName() == TrapType.BLACKHOLE) {
+                        boatCells++;
+                    }
                 }
             }
         }
