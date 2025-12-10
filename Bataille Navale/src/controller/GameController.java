@@ -492,4 +492,8 @@ public class GameController {
         return this.config.getNumberBoatsTotal();
     }
 
+    public int getNumberBoatSquares(){
+        return this.config.getTotalBoatSquares();
+    }
+
 }
