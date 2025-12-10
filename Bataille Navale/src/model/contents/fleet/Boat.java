@@ -9,13 +9,11 @@ import model.grid.Position;
 
 import java.util.ArrayList;
 
-public class Boat implements Content {
+public class Boat extends Content {
     private int numberSquares;
     private boolean[] attacked;
     private BoatName name;
-    private Position position;
     private ArrayList<Observer> observers;
-    private ContentType contentType;
     private boolean robot;
     private boolean alreadySunk;
     private boolean alreadyTouched;

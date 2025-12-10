@@ -8,10 +8,8 @@ import model.grid.Position;
 
 import java.util.ArrayList;
 
-public abstract class Weapon implements Content {
+public abstract class Weapon extends Content {
     private WeaponType name;
-    private Position position;
-    private ContentType contentType;
 
     public Weapon(WeaponType name){
         this.name = name;
