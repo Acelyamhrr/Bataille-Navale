@@ -9,11 +9,11 @@
 - [x] **Niveau 2** : 1 à 3 bateaux de chaque type (max 35 cases, impacte les 2 joueurs)
 
 ## D3 - Placement des bateaux de l'ordinateur
-- [x] **Niveau 1** : Placement fixe
+- [x] **Niveau 1** : Placement fixe ⚠️ (à refaire)
 - [x] **Niveau 2** : Placement aléatoire
 
 ## D4 - Placement des bateaux du joueur humain
-- [x] **Niveau 1** : Placement fixe
+- [x] **Niveau 1** : Placement fixe ⚠️ (à refaire)
 - [x] **Niveau 2** : Placement aléatoire
 - [x] **Niveau 3** : Placement personnalisé avec choix orientation + position
 
@@ -25,7 +25,7 @@
 - [x] Quand un joueur a coulé tous les bateaux adverses
 
 ## D7 - Recommencer une partie
-- [ ] **Niveau 0** : Pas de possibilité de recommencer ⚠️ (actuellement à ce niveau)
+- [x] **Niveau 0** : Pas de possibilité de recommencer ⚠️ (actuellement à ce niveau)
 - [ ] **Niveau 1** : Recommencer sans redémarrer l'application
 
 ## D8 - Armes supplémentaires et pièges
@@ -44,7 +44,7 @@
 - [x] Interface pour sélectionner Missile / Bombe / Sonar
 
 ## D10 - Placement des pièges
-- [x] **Niveau 1** : Placement fixe avant les bateaux
+- [x] **Niveau 1** : Placement fixe avant les bateaux ⚠️ (à refaire)
 - [x] **Niveau 2** : Placement aléatoire après les bateaux
 - [x] **Niveau 3** : Placement manuel par le joueur après les bateaux
 
@@ -53,8 +53,8 @@
 - [x] **Niveau 2** : Mode au choix lors de la configuration
 
 ## D12 - Placement des armes/pièges sur l'île
-- [x] **Niveau 1** : Placement aléatoire
-- [x] **Niveau 2** : Placement manuel après placement des bateaux
+- [] **Niveau 1** : Placement aléatoire
+- [] **Niveau 2** : Placement manuel après placement des bateaux
 
 ## D13 - Visualisation de l'historique
 - [x] **Niveau 1** : Visualisation dans la console
