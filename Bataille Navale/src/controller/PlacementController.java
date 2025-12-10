@@ -381,7 +381,7 @@ public class PlacementController {
         Color trap = new Color(243, 88, 48);
         Color previewOk = new Color(100, 200, 100);
         Color previewBad = new Color(200, 100, 100);
-        Color island = new Color(248, 193, 59);
+        Color island = new Color(210, 180, 140);
 
         // Reset
         for (int y = 0; y < size; y++) {

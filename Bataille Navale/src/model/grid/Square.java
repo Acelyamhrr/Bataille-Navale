@@ -15,10 +15,12 @@ public class Square {
     private Position position;
     private State islandState;
     private ArrayList<Observer> observers;
+    private boolean robot;
 
-    public Square(Position position, boolean inIsland) {
+    public Square(Position position, boolean inIsland, boolean robot) {
         this.position = position;
         this.inIsland = inIsland;
+        this.robot = robot;
 
         if(inIsland) {
             this.islandState = State.INTACT;
@@ -27,10 +29,11 @@ public class Square {
         this.observers = new ArrayList<>();
     }
 
-    public Square(Position position) {
+    public Square(Position position, boolean robot) {
         this.position = position;
         this.inIsland = false;
         this.observers = new ArrayList<>();
+        this.robot = robot;
     }
 
     public void setIsland(){
@@ -69,11 +72,11 @@ public class Square {
     public void attack(){
         this.attacked = true;
 
-        if(this.content instanceof Boat){
+        if(getContentType() == ContentType.BOAT) {
             Boat b = (Boat) this.content;
             b.attack(this.position);
         }
-        else{
+        else if (!isInIsland()){
             notifyObserversAttacked();
         }
     }
@@ -93,22 +96,25 @@ public class Square {
     }
 
     public boolean isNotSearched(){
-        return this.islandState != State.INTACT;
+        return this.islandState == State.INTACT;
     }
 
     private void notifyObserversAttacked(){
         for(Observer o : this.observers){
-            o.squareAttacked(this.position);
+            o.squareAttacked(this.position, this.robot);
         }
     }
 
     private void notifyObserversIsland(){
         for(Observer o : this.observers){
-            o.squareIsland(this.position,  this.islandState);
+            o.squareIsland(this.position,  this.islandState, this.robot);
         }
     }
 
     public ContentType getContentType() {
+        if (this.content == null) {
+            return ContentType.EMPTY;
+        }
         return this.content.getContentType();
     }
 

@@ -2,8 +2,10 @@ package controller;
 
 import model.contents.Content;
 import model.contents.fleet.Boat;
-import model.contents.traps.Trap;
+import model.contents.traps.BlackHole;
+import model.contents.traps.Tornado;
 import model.contents.weapons.Weapon;
+import model.contents.weapons.WeaponFactory;
 import model.enums.ContentType;
 import model.enums.*;
 import model.game.Game;
@@ -15,6 +17,7 @@ import model.players.Player;
 import view.GameView;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class GameController {
     private Game game;
@@ -22,149 +25,85 @@ public class GameController {
     private GameConfig config;
 
     private int turnNumber = 1;
+    private boolean playerTurn = true;
 
-    private static final Color WATER_COLOR = new Color(100, 150, 200);
-    private static final Color BOAT_COLOR = new Color(80, 80, 80);
-    private static final Color HIT_COLOR = new Color(255, 100, 100);
-    private static final Color SUNK_COLOR = new Color(150, 50, 50);
-    private static final Color MISS_COLOR = new Color(200, 200, 200);
-    private static final Color ISLAND_COLOR = new Color(210, 180, 140);
-    private static final Color ISLAND_SEARCHED_EMPTY = new Color(190, 160, 120);
-    private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
-    private static final Color TRAP_COLOR = new Color(243, 88, 48);
-
-
-    public GameController(GameView view, GameConfig config, GamePlacement placement) {
-        this.view = view;
+    public GameController(GameConfig config, GamePlacement placement) {
         this.config = config;
 
         this.game = new Game(config, placement);
         game.initialize();
+    }
 
-        connectView();
+    public boolean isInIsland(int x, int y){
+        Player player = this.game.getPlayer();
+        Grid grid = player.getGrid();
+        boolean inIsland = grid.squareIsInIsland(new Position(x, y));
+        return hasIsland() && inIsland;
+    }
+
+    public void setView(GameView view) {
+        this.view = view;
+
+        registerObservers();        // enregistre la vue comme observer sur tous les boats et squares
+
         updateAllDisplays();
     }
 
-    private void connectView() {
-        view.setGridClickHandler((x, y) -> handleGridClick(x, y));
-        view.addRestartListener(e -> restart());
-        view.addQuitListener(e -> quit());
+    private void registerObservers() {
+        for (Boat boat : game.getPlayer().getBoats()) {
+            boat.addObserver(view);
+        }
+
+        for (Boat boat : game.getRobot().getBoats()) {
+            boat.addObserver(view);
+        }
+
+        Grid playerGrid = game.getPlayer().getGrid();
+        Grid robotGrid = game.getRobot().getGrid();
+
+        for (int x = 0; x < config.getGridSize(); x++) {
+            for (int y = 0; y < config.getGridSize(); y++) {
+                Position pos = new Position(x, y);
+                playerGrid.getSquare(pos).addObserver(view);
+                robotGrid.getSquare(pos).addObserver(view);
+            }
+        }
     }
 
     private void updateAllDisplays() {
         view.setTurnNumber(turnNumber);
-        updatePlayerGrid();
-        updateRobotGrid();
-        updateStats();
-        updateWeapons();
-        if (config.getModeGame() == ModeGame.ISLAND) {
-            updateIsland();
-        }
+        updateWeaponsDisplay();
     }
 
-    private void updatePlayerGrid() {
-        int size = config.getGridSize();
+    private void updateWeaponsDisplay() {
         Player player = game.getPlayer();
-        Grid grid = player.getGrid();
-
-        // Pour chaque case
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                Square square = grid.getSquare(new Position(x, y));
-                Color color = WATER_COLOR;
-
-                // Vérifier si la case contient quelque chose
-                if (!square.isEmpty()) {
-                    Content content = square.getContent();
-                    ContentType contentType = content.getContentType();
-
-                    // Si c'est un bateau
-                    if (contentType == ContentType.BOAT) {
-                        color = BOAT_COLOR;
-
-                        // Si la case a été attaquée
-                        if (square.wasAttacked()) {
-                            Boat boat = (Boat) content;
-                            if (boat.hasSunk()) {
-                                color = SUNK_COLOR; // Bateau coulé
-                            } else {
-                                color = HIT_COLOR; // Bateau touché
-                            }
-                        }
-                    }
-                    // Si c'est un piège
-                    else if (contentType == ContentType.TRAP) {
-                        color = TRAP_COLOR;
-                    }
-                }
-                // Case vide attaquée (manqué)
-                else if (square.wasAttacked()) {
-                    color = MISS_COLOR;
-                }
-
-                // Si mode île et case sur l'île
-                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
-                    if (!square.wasAttacked()) {
-                        color = ISLAND_COLOR; // Île non fouillée
-                    } else if (square.isEmpty()) {
-                        color = ISLAND_SEARCHED_EMPTY; // Île fouillée vide
-                    } else {
-                        color = ISLAND_SEARCHED_FOUND; // Île fouillée avec objet
-                    }
-                }
-
-                view.setPlayerCellColor(x, y, color);
-            }
-        }
-    }
-
-    private void updateRobotGrid() {
-        int size = config.getGridSize();
         Player robot = game.getRobot();
-        Grid grid = robot.getGrid();
 
-        for(int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                Square square = grid.getSquare(new Position(x, y));
-                Color color = WATER_COLOR;
+        // maj des armes du joueur
+        view.updatePlayerWeapons(
+                player.getWeaponCount(WeaponType.MISSILE),
+                player.getWeaponCount(WeaponType.BOMB),
+                player.getWeaponCount(WeaponType.SONAR)
+        );
 
-                if (!square.wasAttacked()) {
-                    if (!square.isEmpty()) {
-                        Content content = square.getContent();
-                        ContentType contentType = content.getContentType();
+        // maj des armes du robot
+        view.updateRobotWeapons(
+                robot.getWeaponCount(WeaponType.MISSILE),
+                robot.getWeaponCount(WeaponType.BOMB),
+                robot.getWeaponCount(WeaponType.SONAR)
+        );
 
-                        if (contentType == ContentType.BOAT) {
-                            Boat boat = (Boat) content;
-                            if (boat.hasSunk()) {
-                                color = SUNK_COLOR;
-                            } else {
-                                color = HIT_COLOR;
-                            }
-                        }
-                    } else {
-                        color = MISS_COLOR;
-                    }
-                }
-                else if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland()) {
-                    color = ISLAND_COLOR;
-
-                }
-
-                if (config.getModeGame() == ModeGame.ISLAND && square.isInIsland() && square.wasAttacked()) {
-                    if (square.isEmpty()) {
-                        color= ISLAND_SEARCHED_EMPTY;
-                    }
-                    else {
-                        color = ISLAND_SEARCHED_FOUND;
-                    }
-                }
-
-                view.setRobotCellColor(x, y, color);
-            }
-        }
+        // activer/desactiver les btn
+        view.setWeaponEnabled(WeaponType.BOMB, player.getWeaponCount(WeaponType.BOMB)>0);
+        view.setWeaponEnabled(WeaponType.SONAR, player.getWeaponCount(WeaponType.SONAR)>0);
     }
     
-    private void handleGridClick(int x, int y) {
+    public void handleGridClick(int x, int y) {
+        if (!playerTurn) {
+            view.showError("Ce n'est pas votre tour !");
+            return;
+        }
+
         Position target = new Position(x,y);
 
         if (view.isShovelSelected()) {
@@ -174,69 +113,376 @@ public class GameController {
             WeaponType weapon = view.getSelectedWeapon();
             handleWeaponUse(weapon, target);
         }
+
+        // après le player, c'est au tour du robot
+        playerTurn = false;
+        playRobotTurn();
+
+        if (game.checkGameOver()) {
+            endGame();
+        }
+        else {
+            turnNumber++;
+            playerTurn = true;
+            updateAllDisplays();
+        }
     }
 
-    private void handleWeaponUse(WeaponType weapon, Position target) {
+    private void handleWeaponUse(WeaponType weaponType, Position target) {
+        Player player = game.getPlayer();
+        Player robot = game.getRobot();
+
+        // verifier que le joueur a l'arme
+        if (player.getWeaponCount(weaponType) <= 0) {
+            view.showError("Vous n'avez plus cette arme !");
+            return;
+        }
+
+        Square targetSquare = robot.getGrid().getSquare(target);
+        if (targetSquare.wasAttacked()) {
+            view.showError("Cette case a déjà été attaquée !");
+            return;
+        }
+
+        // appliquer la tornade si active
+        Position finalTarget = target;
+        if (robot.hasTornadoActive()) {
+            System.out.println(robot.hasTornadoActive());
+            finalTarget = robot.tornadoTrigger(target);
+            view.setPlayerAction("Tornade activée ! Votre tir a été détourné vers " + finalTarget.getX() + "," + finalTarget.getY());
+        }
+
+        // créer l'arme et obtenir les pos à attaquer
+        WeaponFactory factory = new WeaponFactory();
+        Weapon weapon = null;
+
+        switch (weaponType) {
+            case MISSILE:
+                weapon = factory.createMissile();
+
+                if (hasIsland() && robot.getGrid().squareIsInIsland(finalTarget)) {
+                    view.showError("Le missile ne peut pas être utilisé sur l'île !");
+                    return;
+                }
+                break;
+            case BOMB:
+                weapon = factory.createBomb();
+
+                // verif qu'aucune case de la bombe n'est dans l'ile
+                if (hasIsland() && bombHitsIsland(finalTarget)) {
+                    view.showError("La bombe ne peut pas toucher l'île !");
+                    return;
+                }
+                break;
+            case SONAR:
+                weapon = factory.createSonar();
+
+                // verif que le sonar n'est pas sur l'île
+                if (hasIsland() && robot.getGrid().squareIsInIsland(finalTarget)) {
+                    view.showError("Le sonar ne peut pas être utilisé sur l'île !");
+                    return;
+                }
+                break;
+        }
+
+        if (weapon == null) return;
+
+        // utiliser l'arme (decremente le comp)
+        player.useWeapon(weaponType);
+
+        // obtenir les pos affectés
+        ArrayList<Position> positions = weapon.use(finalTarget);
+
+        // traiter selon le type d'arme
+        if (weaponType == WeaponType.SONAR) {
+            executeSonar(positions, robot, false);
+        }
+        else {
+            // missile ou bombe c'est pareil, on attaque les positions de la liste
+            executeAttack(positions, robot, false);
+        }
+        updateWeaponsDisplay();
+
+        System.out.println("Target: " + target.getX() + " " + target.getY());
+    }
+
+    private boolean bombHitsIsland(Position center) {
+        Grid robotGrid = game.getRobot().getGrid();
+
+        // verifier le centre et les 4 cases adjacentes
+        if (robotGrid.squareIsInIsland(center)) {
+            return true;
+
+        }
+
+        Position[] adjacent = {
+                new Position(center.getX() - 1, center.getY()),
+                new Position(center.getX() + 1, center.getY()),
+                new Position(center.getX(), center.getY() - 1),
+                new Position(center.getX(), center.getY() + 1)
+        };
+
+        for (Position pos : adjacent) {
+            if (robotGrid.squareIsInIsland(pos)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void executeAttack(ArrayList<Position> positions, Player target, boolean isRobot) {
+        System.out.println("\n--- DEBUT executeAttack ---");
+        System.out.println("Nombre de positions: " + positions.size());
+        System.out.println("Cible: " + (target.isRobot() ? "Robot" : "Joueur"));
+        System.out.println("Attaquant est robot: " + isRobot);
+
+
+        StringBuilder action = new StringBuilder();
+        int hits = 0;
+        int misses = 0;
+        boolean sunkBoat = false;
+
+        for (Position pos : positions) {
+
+            System.out.println("  Attaque position: " + pos.getX() + "," + pos.getY());
+
+
+
+            Square square = target.getGrid().getSquare(pos);
+            System.out.println("    Square récupérée, isEmpty: " + square.isEmpty());
+
+
+            // Vérifier si c'est un piège
+            if (!square.isEmpty()) {
+                ContentType contentType = square.getContent().getContentType();
+                System.out.println("    Content type: " + contentType);
+
+                if (contentType == ContentType.TRAP) {
+                    Content content = square.getContent();
+
+                    // Vérifier si c'est une tornade
+                    if (content instanceof Tornado) {
+                        System.out.println("    -> TORNADE TOUCHEE! Activation...");
+                        Tornado tornado = (Tornado) content;
+
+                        // Activer la tornade
+                        if (!tornado.isActive()) {
+                            tornado.activate(config.getGridSize());
+                            System.out.println("    -> Tornade activée pour 3 utilisations");
+                            action.append("Tornade touchée ! Les 3 prochains tirs de ").append(isRobot ? "votre adversaire" : "vous").append(" seront détournés !\n");
+                        }
+
+                        // Attaquer quand même la case
+                        target.receiveAttack(pos);
+                        continue;
+                    }
+                    // Sinon c'est un trou noir
+                    else if (content instanceof BlackHole) {
+                        System.out.println("    -> TROU NOIR DETECTE!");
+                        // Trou noir : l'attaque revient sur l'attaquant
+                        Player attacker = isRobot ? game.getRobot() : game.getPlayer();
+                        attacker.receiveAttack(pos);
+                        action.append("Trou noir touché ! L'attaque revient sur vous en ").append(pos.getX()).append(",").append(pos.getY()).append("\n");
+                        continue;
+                    }
+                }
+            }
+
+            System.out.println("    Attaque de la square...");
+            // Attaque normale
+            target.receiveAttack(pos);
+
+            // Compter les hits et misses
+            if (!square.isEmpty() && square.getContent().getContentType() == ContentType.BOAT) {
+                System.out.println("    -> TOUCHE!");
+
+                hits++;
+                Boat boat = (Boat) square.getContent();
+                if (boat.hasSunk()) {
+                    System.out.println("    -> BATEAU COULE!");
+
+                    sunkBoat = true;
+                }
+            } else {
+                System.out.println("    -> A l'eau");
+                misses++;
+            }
+        }
+
+        if (sunkBoat) {
+            action.append("Bateau coulé !");
+        } else if (hits > 0) {
+            action.append("Touché ! (").append(hits).append(" case(s))");
+        } else {
+            action.append("À l'eau !");
+        }
+
+        System.out.println("Résultat: " + action.toString());
+        System.out.println("--- FIN executeAttack ---\n");
+
+
+
+        if (isRobot) {
+            view.setRobotAction(action.toString());
+        } else {
+            view.setPlayerAction(action.toString());
+        }
+
+        // Ajouter à l'historique
+        view.appendHistory("Tour " + turnNumber + " - " +
+                (isRobot ? "Robot" : game.getPlayer().getUsername()) + ": " +
+                action.toString() + "\n");
 
     }
+
+    private void executeSonar(ArrayList<Position> positions, Player target, boolean isRobot) {
+        int boatCells = 0;
+
+        for (Position pos : positions) {
+
+            Square square = target.getGrid().getSquare(pos);
+
+            // Compter les cases avec contenu
+            if (!square.isEmpty()) {
+                ContentType type = square.getContent().getContentType();
+                if (type == ContentType.BOAT || type == ContentType.TRAP) {
+                    boatCells++;
+                }
+            }
+        }
+
+        String action = "Sonar : " + boatCells + " case(s) occupée(s) détectée(s)";
+
+        if (isRobot) {
+            view.setRobotAction(action);
+        } else {
+            view.setPlayerAction(action);
+        }
+
+        view.appendHistory("Tour " + turnNumber + " - " +
+                (isRobot ? "Robot" : game.getPlayer().getUsername()) + ": " +
+                action + "\n");
+    }
+
 
     private void handleIslandSearch(Position target) {
+        Player robot = game.getRobot();
+
+        // Vérifier que c'est bien sur l'île
+        if (!robot.getGrid().squareIsInIsland(target)) {
+            view.showError("Cette case n'est pas sur l'île !");
+            return;
+        }
+
+        Square square = robot.getGrid().getSquare(target);
+
+        // Vérifier si déjà fouillée
+        if (!square.isNotSearched()) {
+            view.showError("Cette case a déjà été fouillée !");
+            return;
+        }
+
+        // Fouiller
+        Content found = square.search();
+
+        if (found != null && found.getContentType() == ContentType.WEAPON) {
+            // Arme trouvée : l'ajouter au joueur
+            Weapon foundWeapon = (Weapon) found;
+            WeaponType weaponType = foundWeapon.getName();
+
+            int currentCount = game.getPlayer().getWeaponCount(weaponType);
+            game.getPlayer().setWeaponCount(weaponType, currentCount + 1);
+
+            view.setPlayerAction("Arme trouvée sur l'île !");
+            view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
+                    ": Arme trouvée en " + target.getX() + "," + target.getY() + "\n");
+            updateWeaponsDisplay();
+        } else {
+            view.setPlayerAction("Case vide sur l'île");
+            view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
+                    ": Case vide en " + target.getX() + "," + target.getY() + "\n");
+        }
+    }
+
+    private void playRobotTurn() {
+        System.out.println("\n*** TOUR DU ROBOT ***");
+
+
+        Player robot = game.getRobot();
+        Player player = game.getPlayer();
+
+        System.out.println("Player has tornado: " + (player.getTornado() != null));
+        System.out.println("Player tornado active: " + player.hasTornadoActive());
+
+
+
+
+        // tir aléatoire simple (niveau 1) - todo intelligent
+        java.util.Random rand = new java.util.Random();
+        Position target;
+        Square square;
+
+        // Trouver une case non encore attaquée
+        do {
+            int x = rand.nextInt(config.getGridSize());
+            int y = rand.nextInt(config.getGridSize());
+            target = new Position(x, y);
+            square = player.getGrid().getSquare(target);
+        } while (square.wasAttacked());
+
+        System.out.println("Robot vise: " + target.getX() + "," + target.getY());
+
+
+        // Appliquer la tornade du joueur si active
+        if (player.hasTornadoActive()) {
+            System.out.println("TORNADE DU JOUEUR ACTIVE!");
+
+            target = player.tornadoTrigger(target);
+
+        }
+
+        // Le robot utilise toujours un missile (pour l'instant, a chager todo)
+        WeaponFactory factory = new WeaponFactory();
+        Weapon weapon = factory.createMissile();
+
+        ArrayList<Position> positions = weapon.use(target);
+        System.out.println("Robot attaque avec un missile");
+
+        executeAttack(positions, player, true);
+        System.out.println("*** FIN TOUR DU ROBOT ***\n");
 
     }
 
-    private void restart() {
-        // to do
+    private void endGame() {
+        String winner;
+        if (game.getPlayer().allBoatSunk()) {
+            winner = "Robot";
+        } else {
+            winner = game.getPlayer().getUsername();
+        }
+
+        view.showSuccess("Partie terminée ! Vainqueur : " + winner);
+        // TODO: Afficher l'écran de fin de partie
     }
 
-    private void quit() {
+
+
+
+    public void restart() {
+        // TODO
+    }
+
+    public void quit() {
         System.exit(0);
     }
 
-
-
-    private void displayPlayerGrid(){
-        Player player = game.getPlayer();
-        Grid playerGrid = player.getGrid();
-
-        for(int y=0; y<playerGrid.getSize(); y++){
-            for(int x=0; x<playerGrid.getSize(); x++){
-                Position pos = new Position(x, y);
-                ContentType type = playerGrid.getContentTypeSquare(pos);
-
-                switch(type){
-                    case BOAT:
-                        this.view.setPlayerCellColor(x, y, BOAT_COLOR);
-                        break;
-                    case TRAP:
-                        this.view.setPlayerCellColor(x, y, TRAP_COLOR);
-                        break;
-                    default:
-                        this.view.setPlayerCellColor(x, y, WATER_COLOR);
-                }
-
-                if(playerGrid.squareIsInIsland(pos)){
-                    this.view.setPlayerCellColor(x, y, ISLAND_COLOR);
-                }
-            }
-        }
+    public boolean hasIsland(){
+        return this.config.getModeGame() == ModeGame.ISLAND;
     }
 
-    private void displayRobotGrid(){
-        Player robot = game.getRobot();
-        Grid robotGrid = robot.getGrid();
-
-        for(int y=0; y<robotGrid.getSize(); y++){
-            for(int x=0; x<robotGrid.getSize(); x++){
-                Position pos = new Position(x, y);
-
-                if(robotGrid.squareIsInIsland(pos)){
-                    this.view.setRobotCellColor(x, y, ISLAND_COLOR);
-                }
-                else{
-                    this.view.setRobotCellColor(x, y, WATER_COLOR);
-                }
-            }
-        }
+    public int getNumberBoats(){
+        return this.config.getNumberBoatsTotal();
     }
 
 }

@@ -35,4 +35,7 @@ public abstract class Weapon implements Content {
 
     public abstract ArrayList<Position> use(Position position);
 
+    public WeaponType getName() {
+        return this.name;
+    }
 }

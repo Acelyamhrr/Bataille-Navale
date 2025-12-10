@@ -20,27 +20,31 @@ public class History implements Observer {
     }
 
     @Override
-    public void boatAttacked(Position position) {
-        String action = String.format("Bateau touché en position (%d, %d)", position.getX(), position.getY());
+    public void boatAttacked(Position position, boolean robot) {
+        String player = robot?"Robot":"Player";
+        String action = String.format("Bateau touché en position (%d, %d) sur la grille du %s", position.getX(), position.getY(), player);
         actions.add(action);
     }
 
     @Override
-    public void boatSunk(Position position, int size) {
-        String action = String.format("Bateau de taille %d coulé en position (%d, %d)", size, position.getX(), position.getY());
+    public void boatSunk(Position position, int size, boolean robot) {
+        String player = robot?"Robot":"Player";
+        String action = String.format("Bateau de taille %d coulé en position (%d, %d) sur la grille du %s", size, position.getX(), position.getY(), player);
         actions.add(action);
 
     }
 
     @Override
-    public void squareAttacked(Position position) {
-        String action = String.format("Case vide attaquée en position (%d, %d)", position.getX(), position.getY());
+    public void squareAttacked(Position position, boolean robot) {
+        String player = robot?"Robot":"Player";
+        String action = String.format("Case vide attaquée en position (%d, %d) sur la grille du %s", position.getX(), position.getY(), player);
         actions.add(action);
     }
 
     @Override
-    public void squareIsland(Position position, State state) {
-        String action = String.format("île en position (%d, %d) - État: %s", position.getX(), position.getY(), state);
+    public void squareIsland(Position position, State state, boolean robot) {
+        String player = robot?"Robot":"Player";
+        String action = String.format("île en position (%d, %d) sur la grille du %s - État: %s", position.getX(), position.getY(), player, state);
         actions.add(action);
     }
 
