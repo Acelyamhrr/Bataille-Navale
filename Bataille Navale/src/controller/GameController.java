@@ -106,14 +106,19 @@ public class GameController {
 
         Position target = new Position(x,y);
 
+        boolean actionSuccessful = false;
+
         if (view.isShovelSelected()) {
-            handleIslandSearch(target);
+            actionSuccessful = handleIslandSearch(target);
         }
         else {
             WeaponType weapon = view.getSelectedWeapon();
-            handleWeaponUse(weapon, target);
+            actionSuccessful = handleWeaponUse(weapon, target);
         }
 
+        if (!actionSuccessful) {
+            return;
+        }
         // après le player, c'est au tour du robot
         playerTurn = false;
         playRobotTurn();
@@ -128,27 +133,27 @@ public class GameController {
         }
     }
 
-    private void handleWeaponUse(WeaponType weaponType, Position target) {
+    private boolean handleWeaponUse(WeaponType weaponType, Position target) {
         Player player = game.getPlayer();
         Player robot = game.getRobot();
 
         // verifier que le joueur a l'arme
         if (player.getWeaponCount(weaponType) <= 0) {
             view.showError("Vous n'avez plus cette arme !");
-            return;
+            return false;
         }
 
         Square targetSquare = robot.getGrid().getSquare(target);
         if (targetSquare.wasAttacked()) {
             view.showError("Cette case a déjà été attaquée !");
-            return;
+            return false;
         }
 
         // appliquer la tornade si active
         Position finalTarget = target;
         if (robot.hasTornadoActive()) {
-            System.out.println(robot.hasTornadoActive());
             finalTarget = robot.tornadoTrigger(target);
+            view.showSuccess("⚠\uFE0F Tornade activée ! Votre tir a été détourné!");
             view.setPlayerAction("Tornade activée ! Votre tir a été détourné vers " + finalTarget.getX() + "," + finalTarget.getY());
         }
 
@@ -162,7 +167,7 @@ public class GameController {
 
                 if (hasIsland() && robot.getGrid().squareIsInIsland(finalTarget)) {
                     view.showError("Le missile ne peut pas être utilisé sur l'île !");
-                    return;
+                    return false;
                 }
                 break;
             case BOMB:
@@ -171,7 +176,7 @@ public class GameController {
                 // verif qu'aucune case de la bombe n'est dans l'ile
                 if (hasIsland() && bombHitsIsland(finalTarget)) {
                     view.showError("La bombe ne peut pas toucher l'île !");
-                    return;
+                    return false;
                 }
                 break;
             case SONAR:
@@ -180,12 +185,12 @@ public class GameController {
                 // verif que le sonar n'est pas sur l'île
                 if (hasIsland() && robot.getGrid().squareIsInIsland(finalTarget)) {
                     view.showError("Le sonar ne peut pas être utilisé sur l'île !");
-                    return;
+                    return false;
                 }
                 break;
         }
 
-        if (weapon == null) return;
+        if (weapon == null) return false;
 
         // utiliser l'arme (decremente le comp)
         player.useWeapon(weaponType);
@@ -204,6 +209,8 @@ public class GameController {
         updateWeaponsDisplay();
 
         System.out.println("Target: " + target.getX() + " " + target.getY());
+
+        return true;
     }
 
     private boolean bombHitsIsland(Position center) {
@@ -215,12 +222,11 @@ public class GameController {
 
         }
 
-        /* On ne veut savoir que la case utilisé. N'appliquer que sur les cases hors île par contre
         Position[] adjacent = {
-                new Position(center.getX() - 1, center.getY()),
-                new Position(center.getX() + 1, center.getY()),
-                new Position(center.getX(), center.getY() - 1),
-                new Position(center.getX(), center.getY() + 1)
+                new Position(center.getX() - 1, center.getY()),     //haut
+                new Position(center.getX() + 1, center.getY()),     // bas
+                new Position(center.getX(), center.getY() - 1),     // gauche
+                new Position(center.getX(), center.getY() + 1)      // droite
         };
 
         for (Position pos : adjacent) {
@@ -228,7 +234,7 @@ public class GameController {
                 return true;
             }
         }
-        */
+
 
         return false;
     }
@@ -248,7 +254,6 @@ public class GameController {
         for (Position pos : positions) {
 
             System.out.println("  Attaque position: " + pos.getX() + "," + pos.getY());
-
 
 
             Square square = target.getGrid().getSquare(pos);
@@ -272,6 +277,14 @@ public class GameController {
                         if (!tornado.isActive()) {
                             tornado.activate(config.getGridSize());
                             System.out.println("    -> Tornade activée pour 3 utilisations");
+
+                            String message = "🌪️ TORNADE ACTIVÉE !\n\nLes 3 prochains tirs de " +
+                                    (isRobot ? "vous" : "votre adversaire") +
+                                    " seront détournés !";
+                            if (isRobot) {
+                                view.showSuccess(message);
+                            }
+
                             action.append("Tornade touchée ! Les 3 prochains tirs de ").append(isRobot ? "votre adversaire" : "vous").append(" seront détournés !\n");
                         }
 
@@ -283,8 +296,20 @@ public class GameController {
                     else if (content.getName() == TrapType.BLACKHOLE) {
                         System.out.println("    -> TROU NOIR DETECTE!");
                         // Trou noir : l'attaque revient sur l'attaquant
+
+                        // on désactive
+                        square.setContent(null);
+
+
                         Player attacker = isRobot ? game.getRobot() : game.getPlayer();
                         attacker.receiveAttack(pos);
+
+                        String message = "🕳️ TROU NOIR !\n\nL'attaque revient sur vous en position " +
+                                pos.getX() + "," + pos.getY();
+                        if (!isRobot) {
+                            view.showSuccess(message);
+                        }
+
                         action.append("Trou noir touché ! L'attaque revient sur vous en ").append(pos.getX()).append(",").append(pos.getY()).append("\n");
                         continue;
                     }
@@ -343,6 +368,8 @@ public class GameController {
 
         for (Position pos : positions) {
 
+            if (pos.getX() >= 0 && pos.getX() < config.getGridSize() && pos.getY() >= 0 && pos.getY() < config.getGridSize()) {
+
             Square square = target.getGrid().getSquare(pos);
 
             // Compter les cases avec contenu (boat ou blackhole)
@@ -358,8 +385,13 @@ public class GameController {
                 }
             }
         }
+            }
 
         String action = "Sonar : " + boatCells + " case(s) occupée(s) détectée(s)";
+
+        if (!isRobot) {
+            view.showSuccess("📡 SONAR\n\n\nCases occupées: " + boatCells + "/9");
+        }
 
         if (isRobot) {
             view.setRobotAction(action);
@@ -373,13 +405,13 @@ public class GameController {
     }
 
 
-    private void handleIslandSearch(Position target) {
+    private boolean handleIslandSearch(Position target) {
         Player robot = game.getRobot();
 
         // Vérifier que c'est bien sur l'île
         if (!robot.getGrid().squareIsInIsland(target)) {
             view.showError("Cette case n'est pas sur l'île !");
-            return;
+            return false;
         }
 
         Square square = robot.getGrid().getSquare(target);
@@ -387,7 +419,7 @@ public class GameController {
         // Vérifier si déjà fouillée
         if (!square.isNotSearched()) {
             view.showError("Cette case a déjà été fouillée !");
-            return;
+            return false;
         }
 
         // Fouiller
@@ -410,6 +442,8 @@ public class GameController {
             view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
                     ": Case vide en " + target.getX() + "," + target.getY() + "\n");
         }
+
+        return true;
     }
 
     private void playRobotTurn() {
