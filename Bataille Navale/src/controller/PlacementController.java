@@ -282,42 +282,38 @@ public class PlacementController {
         int iy = this.config.getGridSize() / 2 - 2;
 
         for(TrapType trap : trapsToPlace){
-            for(int i=0; i<2; i++){
-                boolean placed = false;
-                int attempts = 0;
-                while (!placed && attempts < 100) {
-                    int x = rand.nextInt(ix, ix+4);
-                    int y = rand.nextInt(iy, iy+4);
-                    if(canPlaceTrapIsland(trap, x, y, playerBoats, playerTraps, playerWeapons)){
-                        if(!playerTraps.containsKey(trap)) {
-                            playerTraps.put(trap, new ArrayList<>());
-                        }
-                        playerTraps.get(trap).add(new Position(x, y));
-                        placed = true;
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(ix, ix+4);
+                int y = rand.nextInt(iy, iy+4);
+                if(canPlaceTrapIsland(trap, x, y, playerBoats, playerTraps, playerWeapons)){
+                    if(!playerTraps.containsKey(trap)) {
+                        playerTraps.put(trap, new ArrayList<>());
                     }
-                    attempts++;
+                    playerTraps.get(trap).add(new Position(x, y));
+                    placed = true;
                 }
+                attempts++;
             }
         }
         currentTrapIndex = trapsToPlace.size();
 
         playerWeapons.clear();
         for(WeaponType weapon : weaponsToPlace){
-            for(int i=0; i<2; i++){
-                boolean placed = false;
-                int attempts = 0;
-                while (!placed && attempts < 100) {
-                    int x = rand.nextInt(ix, ix+4);
-                    int y = rand.nextInt(iy, iy+4);
-                    if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, playerWeapons)){
-                        if(!playerWeapons.containsKey(weapon)){
-                            playerWeapons.put(weapon, new  ArrayList<>());
-                        }
-                        playerWeapons.get(weapon).add(new Position(x, y));
-                        placed = true;
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(ix, ix+4);
+                int y = rand.nextInt(iy, iy+4);
+                if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, playerWeapons)){
+                    if(!playerWeapons.containsKey(weapon)){
+                        playerWeapons.put(weapon, new  ArrayList<>());
                     }
-                    attempts++;
+                    playerWeapons.get(weapon).add(new Position(x, y));
+                    placed = true;
                 }
+                attempts++;
             }
         }
 
@@ -414,45 +410,39 @@ public class PlacementController {
         int iy = this.config.getGridSize() / 2 - 2;
 
         for(TrapType trap : trapsToPlace){
-            for(int i=0; i<2; i++){
-                boolean placed = false;
-                int attempts = 0;
-                while (!placed && attempts < 100) {
-                    int x = rand.nextInt(ix, ix+4);
-                    int y = rand.nextInt(iy, iy+4);
-                    if(canPlaceTrapIsland(trap, x, y, robotBoats, robotTraps, robotWeapons)){
-                        if(!robotTraps.containsKey(trap)) {
-                            robotTraps.put(trap, new ArrayList<>());
-                        }
-                        robotTraps.get(trap).add(new Position(x, y));
-                        placed = true;
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(ix, ix+4);
+                int y = rand.nextInt(iy, iy+4);
+                if(canPlaceTrapIsland(trap, x, y, robotBoats, robotTraps, robotWeapons)){
+                    if(!robotTraps.containsKey(trap)) {
+                        robotTraps.put(trap, new ArrayList<>());
                     }
-                    attempts++;
+                    robotTraps.get(trap).add(new Position(x, y));
+                    placed = true;
                 }
+                attempts++;
             }
         }
 
         robotWeapons.clear();
         for(WeaponType weapon : weaponsToPlace){
-            for(int i=0; i<2; i++){
-                boolean placed = false;
-                int attempts = 0;
-                while (!placed && attempts < 100) {
-                    int x = rand.nextInt(ix, ix+4);
-                    int y = rand.nextInt(iy, iy+4);
-                    if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, robotWeapons)){
-                        if(!robotWeapons.containsKey(weapon)){
-                            robotWeapons.put(weapon, new  ArrayList<>());
-                        }
-                        robotWeapons.get(weapon).add(new Position(x, y));
-                        placed = true;
+            boolean placed = false;
+            int attempts = 0;
+            while (!placed && attempts < 100) {
+                int x = rand.nextInt(ix, ix+4);
+                int y = rand.nextInt(iy, iy+4);
+                if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, robotWeapons)){
+                    if(!robotWeapons.containsKey(weapon)){
+                        robotWeapons.put(weapon, new  ArrayList<>());
                     }
-                    attempts++;
+                    robotWeapons.get(weapon).add(new Position(x, y));
+                    placed = true;
                 }
+                attempts++;
             }
         }
-
-        updateGrid();
     }
 
     // valider et créer
