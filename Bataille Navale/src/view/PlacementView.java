@@ -13,7 +13,7 @@ public class PlacementView extends JFrame {
     private JButton[][] gridButtons;
     private JLabel phaseLabel;
     private JLabel infoLabel;
-    private JComboBox<String> boatSelector;
+    private JComboBox<String> boatSelector, trapWeaponSelector;
     private JButton orientationButton;
     private JRadioButton fixedRadio, randomRadio, manualRadio;
     private JButton backButton, validateButton;
@@ -65,7 +65,7 @@ public class PlacementView extends JFrame {
         ));
         controlPanel.setPreferredSize(new Dimension(300, 0));
 
-        createBoatControls();
+        createControls();
 
         // Boutons du bas
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
@@ -145,10 +145,10 @@ public class PlacementView extends JFrame {
         return panel;
     }
 
-    private void createBoatControls() {
+    private void createControls() {
         controlPanel.removeAll();
 
-        JLabel title = new JLabel("Placement des bateaux");
+        JLabel title = new JLabel("Placement des éléments");
         title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         controlPanel.add(title);
@@ -188,6 +188,18 @@ public class PlacementView extends JFrame {
         boatSelector.setMaximumSize(new Dimension(250, 30));
         boatSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
         controlPanel.add(boatSelector);
+        controlPanel.add(Box.createVerticalStrut(15));
+
+        // Sélecteur de piège/arme
+        JLabel trapWeaponLabel = new JLabel("Piège/Arme à placer:");
+        trapWeaponLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        controlPanel.add(trapWeaponLabel);
+
+        trapWeaponSelector = new JComboBox<>();
+        trapWeaponSelector.setMaximumSize(new Dimension(250, 30));
+        trapWeaponSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
+        trapWeaponSelector.setEnabled(false);
+        controlPanel.add(trapWeaponSelector);
         controlPanel.add(Box.createVerticalStrut(15));
 
         // Orientation
@@ -236,6 +248,7 @@ public class PlacementView extends JFrame {
     public void addRandomModeListener(ActionListener l) { randomRadio.addActionListener(l); }
     public void addManualModeListener(ActionListener l) { manualRadio.addActionListener(l); }
     public void addBoatSelectorListener(ActionListener l) { boatSelector.addActionListener(l); }
+    public void addTrapWeaponSelectorListener(ActionListener l) { trapWeaponSelector.addActionListener(l); }
 
     public void setGridClickCallback(BiConsumer<Integer, Integer> callback) {
         this.gridClickCallback = callback;
@@ -266,6 +279,19 @@ public class PlacementView extends JFrame {
     public void setBoatOptions(String[] options) {
         boatSelector.removeAllItems();
         for (String opt : options) boatSelector.addItem(opt);
+    }
+
+    public void setTrapWeaponOptions(String[] options) {
+        trapWeaponSelector.removeAllItems();
+        for (String opt : options) trapWeaponSelector.addItem(opt);
+    }
+
+    public void enableBoatSelector(boolean enable) {
+        boatSelector.setEnabled(enable);
+    }
+
+    public void enableTrapWeaponSelector(boolean enable) {
+        trapWeaponSelector.setEnabled(enable);
     }
 
     public void setCellColor(int x, int y, Color color) {
