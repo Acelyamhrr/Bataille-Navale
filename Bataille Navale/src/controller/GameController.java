@@ -11,9 +11,12 @@ import model.enums.*;
 import model.game.Game;
 import model.game.GameConfig;
 import model.game.GamePlacement;
+import model.game.RobotStrategy.RandomRobotStrategy;
+import model.game.RobotStrategy.RobotStrategy;
 import model.grid.*;
 import model.grid.Position;
 import model.players.Player;
+import model.players.SmartRobotStrategy;
 import view.EndView;
 import view.GameView;
 
@@ -33,6 +36,14 @@ public class GameController {
 
         this.game = new Game(config, placement);
         game.initialize();
+
+        Player robot = game.getRobot();
+        if (config.getRobotMode() == RobotMode.SMART) {
+            robot.setStrategy(new SmartRobotStrategy());
+        }
+        else {
+            robot.setStrategy(new RandomRobotStrategy());
+        }
     }
 
     public boolean isInIsland(int x, int y){
@@ -254,6 +265,12 @@ public class GameController {
 
         for (Position pos : positions) {
 
+            if (pos.getX() < 0 || pos.getX() >= config.getGridSize() ||
+                    pos.getY() < 0 || pos.getY() >= config.getGridSize()) {
+                System.out.println("    -> Position hors limites, ignorée");
+                continue;
+            }
+
             System.out.println("  Attaque position: " + pos.getX() + "," + pos.getY());
 
 
@@ -458,43 +475,71 @@ public class GameController {
         System.out.println("Player tornado active: " + player.hasTornadoActive());
 
 
-
-
-        // tir aléatoire simple (niveau 1) - todo intelligent
-        java.util.Random rand = new java.util.Random();
-        Position target;
-        Square square;
-
-        // Trouver une case non encore attaquée
-        do {
-            int x = rand.nextInt(config.getGridSize());
-            int y = rand.nextInt(config.getGridSize());
-            target = new Position(x, y);
-            square = player.getGrid().getSquare(target);
-        } while (square.wasAttacked());
-
+        RobotStrategy strategy = robot.getStrategy();
+        Position target = strategy.chooseTarget(robot, player, config.getGridSize());
         System.out.println("Robot vise: " + target.getX() + "," + target.getY());
 
-
-        // Appliquer la tornade du joueur si active
+        Position finalTarget = target;
         if (player.hasTornadoActive()) {
             System.out.println("TORNADE DU JOUEUR ACTIVE!");
-
-            target = player.tornadoTrigger(target);
-
+            finalTarget = player.tornadoTrigger(target);
         }
 
-        // Le robot utilise toujours un missile (pour l'instant, a chager todo)
+        // Choisir l'arme avec la stratégie
+        WeaponType weaponChoice = strategy.chooseWeapon(robot, finalTarget);
+
+        System.out.println("Robot utilise: " + weaponChoice);
+
+        // Utiliser l'arme
         WeaponFactory factory = new WeaponFactory();
-        Weapon weapon = factory.createMissile();
+        Weapon weapon = null;
 
+        switch (weaponChoice) {
+            case MISSILE:
+                weapon = factory.createMissile();
+                break;
+            case BOMB:
+                weapon = factory.createBomb();
+                robot.useWeapon(WeaponType.BOMB);
+                break;
+            case SONAR:
+                weapon = factory.createSonar();
+                robot.useWeapon(WeaponType.SONAR);
+                System.out.println("Armes du robot dispo : " + robot.getWeapons());
+                break;
+        }
 
-        ArrayList<Position> positions = weapon.use(target);
-        System.out.println("Robot attaque avec un missile");
+        if (weapon == null) {
+            weapon = factory.createMissile();
+        }
 
-        executeAttack(positions, player, true);
+        ArrayList<Position> positions = weapon.use(finalTarget);
+
+        // Traiter selon le type d'arme
+        if (weaponChoice == WeaponType.SONAR) {
+            executeSonar(positions, player, true);
+            // Notifier la stratégie
+            strategy.notifyResult(finalTarget, false, false);
+        } else {
+            // Capturer le résultat de l'attaque
+            Square targetSquare = player.getGrid().getSquare(finalTarget);
+            boolean wasHit = !targetSquare.isEmpty() &&
+                    targetSquare.getContent().getContentType() == ContentType.BOAT;
+            boolean wasSunk = false;
+
+            if (wasHit) {
+                Boat boat = (Boat) targetSquare.getContent();
+                wasSunk = boat.hasSunk();
+            }
+
+            executeAttack(positions, player, true);
+
+            // Notifier la stratégie du résultat
+            strategy.notifyResult(finalTarget, wasHit, wasSunk);
+        }
+
+        updateWeaponsDisplay();
         System.out.println("*** FIN TOUR DU ROBOT ***\n");
-
     }
 
     private void endGame() {
