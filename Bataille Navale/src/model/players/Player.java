@@ -3,6 +3,7 @@ package model.players;
 import model.contents.fleet.Boat;
 import model.contents.traps.Tornado;
 import model.enums.WeaponType;
+import model.game.RobotStrategy.RobotStrategy;
 import model.grid.Grid;
 import model.grid.Position;
 
@@ -19,12 +20,15 @@ public class Player {
     private Tornado tornado;
     private List<Boat> boats;
 
+    private RobotStrategy strategy;
+
     public Player(String username, Boolean robot) {
         this.username = username;
         this.isRobot = robot;
         this.weapons = new HashMap<>();
         this.boats = new ArrayList<>();
         this.tornado = null;
+        this.strategy = null;
     }
 
     public Boolean hasTornadoActive() {
@@ -126,6 +130,14 @@ public class Player {
 
     public String toString() {
         return "Player{" + "username='" + username + '\'' + ", isRobot=" + isRobot + ", boats=" + boats.size() + ", hasTornado=" + (tornado != null) + '}';
+    }
+
+    public void setStrategy(RobotStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public RobotStrategy getStrategy() {
+        return strategy;
     }
 
 
