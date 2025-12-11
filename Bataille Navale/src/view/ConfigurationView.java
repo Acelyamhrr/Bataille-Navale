@@ -240,7 +240,7 @@ public class ConfigurationView extends JFrame {
     private void updateTrapPanel() {
         trapPanel.removeAll();
         if(modeIslandRadio.isSelected()) {
-            trapPanel.add(createSection("Placement des armes sur l'île"));
+            trapPanel.add(createSection("Placement des pièges et armes sur l'île"));
         }
         else{
             trapPanel.add(createSection("Placement des pièges"));

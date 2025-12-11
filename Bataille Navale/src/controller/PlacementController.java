@@ -78,7 +78,17 @@ public class PlacementController {
         if (currentPlacementBoat) {
             handleBoatPlacement(x, y);
         } else {
-            handleTrapPlacement(x, y);
+            if(config.getModeGame() ==  ModeGame.ISLAND) {
+                if(currentTrapIndex >= trapsToPlace.size()) {
+                    handleWeaponPlacementIsland(x, y);
+                }
+                else {
+                    handleTrapPlacementIsland(x, y);
+                }
+            }
+            else {
+                handleTrapPlacement(x, y);
+            }
         }
     }
 
@@ -99,18 +109,27 @@ public class PlacementController {
             if (currentBoatIndex >= boatsToPlace.size()) {
                 view.setInfoText("Tous les bateaux sont placés !");
                 currentPlacementBoat = false;
+                view.enableBoatSelector(false);
+                view.enableTrapWeaponSelector(true);
+
                 if(config.getModeGame() == ModeGame.STANDARD){
                     if (config.getTrapMode() == TrapPlacement.RANDOM) {
                         applyRandomPlacementTraps();
                     } else if (config.getTrapMode() == TrapPlacement.MANUAL) {
                         view.showSuccess("Placez les pièges.");
+                        updateTrapWeaponSelector();
                     }
                 }
                 else{
                     if (config.getTrapMode() == TrapPlacement.RANDOM) {
                         applyRandomIsland();
                     } else if (config.getTrapMode() == TrapPlacement.MANUAL) {
+                        playerWeapons.clear();
+                        currentWeaponIndex = 0;
+                        playerTraps.clear();
+                        currentTrapIndex = 0;
                         view.showSuccess("Placez les armes/pièges.");
+                        updateTrapWeaponSelector();
                     }
                 }
             }
@@ -130,12 +149,59 @@ public class PlacementController {
             playerTraps.get(type).add(new Position(x, y));
             currentTrapIndex++;
             view.setInfoText("Piège placé !");
+            updateTrapWeaponSelector();
             updateGrid();
 
             if (currentTrapIndex >= trapsToPlace.size()) {
                 view.setInfoText("Tous les pièges sont placés !");
             }
         } else {
+            view.setInfoText("Placement invalide !");
+        }
+    }
+
+    private void handleTrapPlacementIsland(int x, int y) {
+        if (currentTrapIndex >= trapsToPlace.size()) return;
+        TrapType type = trapsToPlace.get(currentTrapIndex);
+
+        if(canPlaceTrapIsland(type, x, y, playerBoats, playerTraps, playerWeapons)) {
+            if(!playerTraps.containsKey(type)) {
+                playerTraps.put(type, new ArrayList<>());
+            }
+            playerTraps.get(type).add(new Position(x, y));
+            currentTrapIndex++;
+            view.setInfoText("Piège placé !");
+            updateTrapWeaponSelector();
+            updateGrid();
+
+            if(currentTrapIndex >= trapsToPlace.size()) {
+                view.setInfoText("Pièges placés, veuillez placer les armes !");
+            }
+        }
+        else{
+            view.setInfoText("Placement invalide !");
+        }
+    }
+
+    private void handleWeaponPlacementIsland(int x, int y){
+        if(currentWeaponIndex >=  weaponsToPlace.size()) return;
+        WeaponType type = weaponsToPlace.get(currentWeaponIndex);
+
+        if(canPlaceWeaponIsland(type, x, y, playerBoats, playerTraps, playerWeapons)) {
+            if(!playerWeapons.containsKey(type)) {
+                playerWeapons.put(type, new ArrayList<>());
+            }
+            playerWeapons.get(type).add(new Position(x, y));
+            currentWeaponIndex++;
+            view.setInfoText("Arme placé !");
+            updateTrapWeaponSelector();
+            updateGrid();
+
+            if(currentWeaponIndex >=  weaponsToPlace.size()) {
+                view.setInfoText("Toutes les armes sont placées");
+            }
+        }
+        else{
             view.setInfoText("Placement invalide !");
         }
     }
@@ -159,12 +225,21 @@ public class PlacementController {
         }
         currentBoatIndex = boatsToPlace.size();
 
+        view.enableBoatSelector(false);
+        view.enableTrapWeaponSelector(true);
+
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
             currentPlacementBoat = false;
-            view.showSuccess("Placez les pièges.");
+            if(config.getModeGame() == ModeGame.STANDARD) {
+                view.showSuccess("Placez les pièges.");
+            }
+            else{
+                view.showSuccess("Placez les pièges/armes sur l'île.");
+            }
         }
 
         updateBoatSelector();
+        updateTrapWeaponSelector();
         updateGrid();
     }
 
@@ -198,12 +273,21 @@ public class PlacementController {
         }
         currentBoatIndex = boatsToPlace.size();
 
+        view.enableBoatSelector(false);
+        view.enableTrapWeaponSelector(true);
+
+
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
-            view.showSuccess("Placez les pièges.");
             currentPlacementBoat = false;
+            if (config.getModeGame() == ModeGame.STANDARD) {
+                view.showSuccess("Placez les pièges.");
+            } else {
+                view.showSuccess("Placez les pièges/armes sur l'île.");
+            }
         }
 
         updateBoatSelector();
+        updateTrapWeaponSelector();
         updateGrid();
     }
 
@@ -212,6 +296,9 @@ public class PlacementController {
         currentBoatIndex = 0;
         currentPlacementBoat = true;
 
+        view.enableBoatSelector(true);
+        view.enableTrapWeaponSelector(false);
+
         if (config.getTrapMode() == TrapPlacement.MANUAL || config.getTrapMode() == TrapPlacement.RANDOM) {
             playerTraps.clear();
             currentTrapIndex = 0;
@@ -219,6 +306,7 @@ public class PlacementController {
             currentWeaponIndex = 0;
         }
         updateBoatSelector();
+        updateTrapWeaponSelector();
         updateGrid();
     }
 
@@ -272,6 +360,7 @@ public class PlacementController {
         }
 
         currentTrapIndex = trapsToPlace.size();
+        view.setTrapWeaponOptions(new String[]{"Tous placés !"});
         updateGrid();
     }
 
@@ -318,6 +407,7 @@ public class PlacementController {
         }
 
         currentWeaponIndex = weaponsToPlace.size();
+        view.setTrapWeaponOptions(new String[]{"Tous placés !"});
         updateGrid();
     }
 
@@ -460,6 +550,11 @@ public class PlacementController {
             return null;
         }
 
+        if(config.getModeGame() == ModeGame.ISLAND && currentWeaponIndex < weaponsToPlace.size()) {
+            view.showError("Placez toutes les armes d'abord !");
+            return null;
+        }
+
         // Créer placement robot
         String modeBoat = view.getModeBoat();
         if (config.getTrapMode() == TrapPlacement.FIXED) {
@@ -478,9 +573,10 @@ public class PlacementController {
             if(config.getModeGame() == ModeGame.STANDARD){
                 applyRandomTrapsRobot();
             }
-            else{
-                applyRandomIslandRobot();
-            }
+        }
+
+        if(config.getModeGame() == ModeGame.ISLAND){
+            applyRandomIslandRobot();
         }
 
         // Créer GamePlacement
@@ -585,7 +681,12 @@ public class PlacementController {
         if (currentPlacementBoat) {
             previewBoatHover(size, previewOk, previewBad);
         } else {
-            previewTrapHover(size, previewOk, previewBad);
+            if(currentTrapIndex < trapsToPlace.size()) {
+                previewTrapHover(previewOk, previewBad, config.getModeGame() == ModeGame.ISLAND);
+            }
+            else{
+                previewWeaponHover(previewOk, previewBad);
+            }
         }
 
         if (currentBoatIndex >= boatsToPlace.size() && currentTrapIndex == 0 && config.getTrapMode() == TrapPlacement.RANDOM) {
@@ -617,12 +718,30 @@ public class PlacementController {
         }
     }
 
-    private void previewTrapHover(int size, Color previewOk, Color previewBad) {
+    private void previewTrapHover(Color previewOk, Color previewBad, boolean island) {
         int hx = view.getHoverX();
         int hy = view.getHoverY();
         if (hx >= 0 && hy >= 0 && currentTrapIndex < trapsToPlace.size()) {
             TrapType currentTrap = trapsToPlace.get(currentTrapIndex);
-            boolean canPlace = canPlaceTrap(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
+            boolean canPlace;
+            if(island) {
+                canPlace = canPlaceTrapIsland(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
+            }
+            else {
+                canPlace = canPlaceTrap(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
+            }
+            view.setCellColor(hx, hy, canPlace ? previewOk : previewBad);
+        }
+    }
+
+    private void previewWeaponHover(Color previewOk,  Color previewBad) {
+        int hx = view.getHoverX();
+        int hy = view.getHoverY();
+
+        if (hx >= 0 && hy >= 0 && currentWeaponIndex < weaponsToPlace.size()) {
+            WeaponType currentWeapon = weaponsToPlace.get(currentWeaponIndex);
+            boolean canPlace = canPlaceWeaponIsland(currentWeapon, hx, hy, playerBoats, playerTraps, playerWeapons);
+
             view.setCellColor(hx, hy, canPlace ? previewOk : previewBad);
         }
     }
@@ -642,6 +761,49 @@ public class PlacementController {
 
         if (options.isEmpty()) options.add("Tous placés !");
         view.setBoatOptions(options.toArray(new String[0]));
+    }
+
+    private void updateTrapWeaponSelector() {
+        List<String> options = new ArrayList<>();
+
+        if(config.getModeGame() == ModeGame.ISLAND) {
+            // Mode île : pièges puis armes
+            String[] trapNames = {"Trou noir", "Tornade"};
+            int[] trapPlaced = new int[2];
+            for (TrapType t : playerTraps.keySet()) {
+                trapPlaced[t.ordinal()] += playerTraps.get(t).size();
+            }
+
+            for (int i = 0; i < trapsToPlace.size(); i++) {
+                TrapType trap = trapsToPlace.get(i);
+                if (i >= currentTrapIndex) {
+                    options.add(trapNames[trap.ordinal()] + " (Piège)");
+                }
+            }
+
+            // Armes
+            if(currentTrapIndex >= trapsToPlace.size()) {
+                String[] weaponNames = {"Missile", "Bombe", "Sonar"};
+                for (int i = 0; i < weaponsToPlace.size(); i++) {
+                    WeaponType weapon = weaponsToPlace.get(i);
+                    if (i >= currentWeaponIndex) {
+                        options.add(weaponNames[weapon.ordinal()] + " (Arme)");
+                    }
+                }
+            }
+        } else {
+            // Mode standard : seulement les pièges
+            String[] trapNames = {"Trou noir", "Tornade"};
+            for (int i = 0; i < trapsToPlace.size(); i++) {
+                TrapType trap = trapsToPlace.get(i);
+                if (i >= currentTrapIndex) {
+                    options.add(trapNames[trap.ordinal()] + " (Piège)");
+                }
+            }
+        }
+
+        if (options.isEmpty()) options.add("Tous placés !");
+        view.setTrapWeaponOptions(options.toArray(new String[0]));
     }
 
     // init
