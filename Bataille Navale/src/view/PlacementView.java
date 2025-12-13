@@ -284,30 +284,29 @@ public class PlacementView extends JFrame {
     }
 
     public void setCellColor(int x, int y, String color) {
-        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-            switch(color){
-                case "island":
-                    gridButtons[y][x].setBackground(ISLAND_COLOR);
-                    break;
-                case "boat":
-                    gridButtons[y][x].setBackground(BOAT_COLOR);
-                    break;
-                case "trap":
-                    gridButtons[y][x].setBackground(TRAP_COLOR);
-                    break;
-                case "weapon":
-                    gridButtons[y][x].setBackground(WEAPON_COLOR);
-                    break;
-                case "previewOk":
-                    gridButtons[y][x].setBackground(PREVIEW_OK);
-                    break;
-                case "previewBad":
-                    gridButtons[y][x].setBackground(PREVIEW_BAD);
-                    break;
-                default:
-                    gridButtons[y][x].setBackground(WATER_COLOR);
-            }
+        switch(color){
+            case "island":
+                gridButtons[y][x].setBackground(ISLAND_COLOR);
+                break;
+            case "boat":
+                gridButtons[y][x].setBackground(BOAT_COLOR);
+                break;
+            case "trap":
+                gridButtons[y][x].setBackground(TRAP_COLOR);
+                break;
+            case "weapon":
+                gridButtons[y][x].setBackground(WEAPON_COLOR);
+                break;
+            case "previewOk":
+                gridButtons[y][x].setBackground(PREVIEW_OK);
+                break;
+            case "previewBad":
+                gridButtons[y][x].setBackground(PREVIEW_BAD);
+                break;
+            default:
+                gridButtons[y][x].setBackground(WATER_COLOR);
         }
+
     }
 
     public void setInfoText(String text) { infoLabel.setText(text); }
