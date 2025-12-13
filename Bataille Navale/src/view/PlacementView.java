@@ -309,6 +309,10 @@ public class PlacementView extends JFrame {
 
     }
 
+    public void setCellText(int x, int y, String text) {
+        gridButtons[y][x].setText(text);
+    }
+
     public void setInfoText(String text) { infoLabel.setText(text); }
     public void setPhaseText(String text) { phaseLabel.setText(text); }
 

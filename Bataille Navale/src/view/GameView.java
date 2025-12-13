@@ -497,6 +497,15 @@ public class GameView extends JFrame implements Observer {
             for(Map.Entry<TrapType, List<Position>> entry : placementTraps.entrySet()){
                 for(Position pos  : entry.getValue()){
                     playerGridButtons[pos.getY()][pos.getX()].setBackground(TRAP_COLOR);
+
+                    String text;
+                    if(entry.getKey() == TrapType.BLACKHOLE){
+                        text = "TN";
+                    }
+                    else{
+                        text = "TO";
+                    }
+                    playerGridButtons[pos.getY()][pos.getX()].setText(text);
                 }
             }
 
@@ -505,6 +514,15 @@ public class GameView extends JFrame implements Observer {
             for(Map.Entry<WeaponType, List<Position>> entry : placementWeapons.entrySet()){
                 for(Position pos  : entry.getValue()){
                     playerGridButtons[pos.getY()][pos.getX()].setBackground(WEAPON_COLOR);
+
+                    String text;
+                    if(entry.getKey() == WeaponType.BOMB){
+                        text = "B";
+                    }
+                    else{
+                        text = "S";
+                    }
+                    playerGridButtons[pos.getY()][pos.getX()].setText(text);
                 }
             }
 
@@ -607,20 +625,52 @@ public class GameView extends JFrame implements Observer {
     }
 
     private void showLegend() {
-        JPanel legendPanel = new JPanel(new GridLayout(0, 2, 10, 5));
+        JPanel legendPanel = new JPanel();
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
         legendPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        addLegendItem(legendPanel, "Eau", WATER_COLOR);
-        addLegendItem(legendPanel, "Bateau", BOAT_COLOR);
-        addLegendItem(legendPanel, "Touché", HIT_COLOR);
-        addLegendItem(legendPanel, "Coulé", SUNK_COLOR);
-        addLegendItem(legendPanel, "Manqué", MISS_COLOR);
-        addLegendItem(legendPanel, "Île", ISLAND_COLOR);
-        addLegendItem(legendPanel, "Île fouillée (vide)", ISLAND_SEARCHED_EMPTY);
-        addLegendItem(legendPanel, "Île fouillée (trouvé)", ISLAND_SEARCHED_FOUND);
-        addLegendItem(legendPanel, "Piège", TRAP_COLOR);
+        //Colors
+        JLabel titleColors = new JLabel("Couleurs");
+        titleColors.setFont(new Font("Arial", Font.BOLD, 18));
+        titleColors.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JOptionPane.showMessageDialog(this, legendPanel, "Légende des couleurs", JOptionPane.INFORMATION_MESSAGE);
+        legendPanel.add(titleColors);
+        legendPanel.add(Box.createVerticalStrut(10));
+
+        JPanel colorsPanel = new JPanel(new GridLayout(0, 2, 10, 5));
+
+        addLegendItem(colorsPanel, "Eau", WATER_COLOR);
+        addLegendItem(colorsPanel, "Bateau", BOAT_COLOR);
+        addLegendItem(colorsPanel, "Touché", HIT_COLOR);
+        addLegendItem(colorsPanel, "Coulé", SUNK_COLOR);
+        addLegendItem(colorsPanel, "Manqué", MISS_COLOR);
+        addLegendItem(colorsPanel, "Île", ISLAND_COLOR);
+        addLegendItem(colorsPanel, "Île fouillée (vide)", ISLAND_SEARCHED_EMPTY);
+        addLegendItem(colorsPanel, "Île fouillée (trouvé)", ISLAND_SEARCHED_FOUND);
+        addLegendItem(colorsPanel, "Piège", TRAP_COLOR);
+
+        legendPanel.add(colorsPanel);
+
+        //Words
+        legendPanel.add(Box.createVerticalStrut(20));
+
+        JLabel titleWords = new JLabel("Abréviations");
+        titleWords.setFont(new Font("Arial", Font.BOLD, 18));
+        titleWords.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        legendPanel.add(titleWords);
+        legendPanel.add(Box.createVerticalStrut(10));
+
+        JPanel wordsPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        wordsPanel.add(new JLabel("TO = Tornade"));
+        wordsPanel.add(new JLabel("TN = Trou noir"));
+        wordsPanel.add(new JLabel("B = Bombe"));
+        wordsPanel.add(new JLabel("S = Sonar"));
+
+        legendPanel.add(wordsPanel);
+
+
+        JOptionPane.showMessageDialog(this, legendPanel, "Légende des couleurs/abréviations", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void addLegendItem(JPanel panel, String text, Color color) {
