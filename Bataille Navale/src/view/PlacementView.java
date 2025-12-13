@@ -24,18 +24,19 @@ public class PlacementView extends JFrame {
     private boolean isHorizontal = true;
     private int hoverX = -1, hoverY = -1;
 
-    // Callback pour notifier le Controller d'un clic sur la grille
-    private BiConsumer<Integer, Integer> gridClickCallback;
-    // Callback pour le hover
-    private BiConsumer<Integer, Integer> gridHoverCallback;
-
-    private boolean modeIsland;
-
     private PlacementController controller;
 
-    public PlacementView(int gridSize, String username, boolean modeIsland, PlacementController controller) {
+    // Couleurs
+    private static final Color WATER_COLOR = new Color(100, 150, 200);
+    private static final Color BOAT_COLOR = new Color(80, 80, 80);
+    private static final Color ISLAND_COLOR = new Color(210, 180, 140);
+    private static final Color TRAP_COLOR = new Color(243, 88, 48);
+    private static final Color WEAPON_COLOR = new Color(218, 14, 232);
+    private static final Color PREVIEW_OK = new Color(100, 200, 100);
+    private static final Color PREVIEW_BAD = new Color(200, 100, 100);
+
+    public PlacementView(int gridSize, String username, PlacementController controller) {
         this.gridSize = gridSize;
-        this.modeIsland = modeIsland;
         this.controller = controller;
 
         setTitle("Placement - " + username);
@@ -105,16 +106,11 @@ public class PlacementView extends JFrame {
                 btn.setPreferredSize(new Dimension(45, 45));
 
                 //Color for island or water
-                if(this.modeIsland){
-                    int xIsland = this.gridSize/2 -2;
-                    int yIsland = this.gridSize/2 -2;
-
-                    if((y >= yIsland && y < yIsland + 4) && (x >= xIsland && x < xIsland + 4)){
-                        btn.setBackground(new Color(248, 193, 59));
-                    }
+                if(controller.squareInIsland(x, y)){
+                    btn.setBackground(ISLAND_COLOR);
                 }
                 else {
-                    btn.setBackground(new Color(100, 150, 200));
+                    btn.setBackground(WATER_COLOR);
                 }
 
                 btn.setFocusPainted(false);
@@ -122,22 +118,18 @@ public class PlacementView extends JFrame {
 
                 final int fx = x, fy = y;
 
-                btn.addActionListener(e -> {
-                    if (gridClickCallback != null) {
-                        gridClickCallback.accept(fx, fy);
-                    }
-                });
+                btn.addActionListener(e -> controller.onGridClick(fx, fy));
 
                 btn.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseEntered(MouseEvent e) {
                         hoverX = fx; hoverY = fy;
-                        if (gridHoverCallback != null) gridHoverCallback.accept(fx, fy);
+                        controller.updateGrid();
                     }
                     @Override
                     public void mouseExited(MouseEvent e) {
                         hoverX = -1; hoverY = -1;
-                        if (gridHoverCallback != null) gridHoverCallback.accept(-1, -1);
+                        controller.updateGrid();
                     }
                 });
 
@@ -166,8 +158,11 @@ public class PlacementView extends JFrame {
 
         ButtonGroup modeGroup = new ButtonGroup();
         fixedRadio = new JRadioButton("Fixe");
+        fixedRadio.addActionListener(e -> controller.applyFixedPlacement());
         randomRadio = new JRadioButton("Aléatoire");
+        randomRadio.addActionListener(e -> controller.applyRandomPlacement());
         manualRadio = new JRadioButton("Manuel", true);
+        manualRadio.addActionListener(e -> controller.enableManualPlacement());
         modeGroup.add(fixedRadio);
         modeGroup.add(randomRadio);
         modeGroup.add(manualRadio);
@@ -249,19 +244,8 @@ public class PlacementView extends JFrame {
 
     public void addBackListener(ActionListener l) { backButton.addActionListener(l); }
     public void addValidateListener(ActionListener l) { validateButton.addActionListener(l); }
-    public void addFixedModeListener(ActionListener l) { fixedRadio.addActionListener(l); }
-    public void addRandomModeListener(ActionListener l) { randomRadio.addActionListener(l); }
-    public void addManualModeListener(ActionListener l) { manualRadio.addActionListener(l); }
     public void addBoatSelectorListener(ActionListener l) { boatSelector.addActionListener(l); }
     public void addTrapWeaponSelectorListener(ActionListener l) { trapWeaponSelector.addActionListener(l); }
-
-    public void setGridClickCallback(BiConsumer<Integer, Integer> callback) {
-        this.gridClickCallback = callback;
-    }
-
-    public void setGridHoverCallback(BiConsumer<Integer, Integer> callback) {
-        this.gridHoverCallback = callback;
-    }
 
 
     public boolean isHorizontal() { return isHorizontal; }
@@ -299,9 +283,30 @@ public class PlacementView extends JFrame {
         trapWeaponSelector.setEnabled(enable);
     }
 
-    public void setCellColor(int x, int y, Color color) {
+    public void setCellColor(int x, int y, String color) {
         if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-            gridButtons[y][x].setBackground(color);
+            switch(color){
+                case "island":
+                    gridButtons[y][x].setBackground(ISLAND_COLOR);
+                    break;
+                case "boat":
+                    gridButtons[y][x].setBackground(BOAT_COLOR);
+                    break;
+                case "trap":
+                    gridButtons[y][x].setBackground(TRAP_COLOR);
+                    break;
+                case "weapon":
+                    gridButtons[y][x].setBackground(WEAPON_COLOR);
+                    break;
+                case "previewOk":
+                    gridButtons[y][x].setBackground(PREVIEW_OK);
+                    break;
+                case "previewBad":
+                    gridButtons[y][x].setBackground(PREVIEW_BAD);
+                    break;
+                default:
+                    gridButtons[y][x].setBackground(WATER_COLOR);
+            }
         }
     }
 

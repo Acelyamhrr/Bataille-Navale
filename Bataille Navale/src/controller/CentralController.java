@@ -76,7 +76,7 @@ public class CentralController {
 
     private void openPlacement() {
         placementController = new PlacementController(currentConfig);
-        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), currentConfig.getModeGame() == ModeGame.ISLAND, placementController);
+        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), placementController);
         placementController.setView(placementView);
         connectPlacementView();
         placementView.setVisible(true);
@@ -87,11 +87,6 @@ public class CentralController {
     private void connectPlacementView() {
         placementView.addBackListener(e -> backToConfig());
         placementView.addValidateListener(e -> validatePlacement());
-        placementView.addFixedModeListener(e -> placementController.applyFixedPlacement());
-        placementView.addRandomModeListener(e -> placementController.applyRandomPlacement());
-        placementView.addManualModeListener(e -> placementController.enableManualPlacement());
-        placementView.setGridClickCallback((x, y) -> placementController.onGridClick(x, y));
-        placementView.setGridHoverCallback((x, y) -> placementController.updateGrid());
     }
 
     private void backToConfig() {
