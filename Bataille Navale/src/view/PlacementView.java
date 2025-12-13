@@ -1,5 +1,7 @@
 package view;
 
+import controller.PlacementController;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -29,9 +31,12 @@ public class PlacementView extends JFrame {
 
     private boolean modeIsland;
 
-    public PlacementView(int gridSize, String username, boolean modeIsland) {
+    private PlacementController controller;
+
+    public PlacementView(int gridSize, String username, boolean modeIsland, PlacementController controller) {
         this.gridSize = gridSize;
         this.modeIsland = modeIsland;
+        this.controller = controller;
 
         setTitle("Placement - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

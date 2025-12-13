@@ -15,7 +15,7 @@ import java.util.List;
  * Gère le placement pour le joueur ET le robot.
  */
 public class PlacementController {
-    private final PlacementView view;
+    private PlacementView view;
     private final GameConfig config;
 
     // Données de placement joueur
@@ -35,9 +35,12 @@ public class PlacementController {
     private Map<TrapType, List<Position>> robotTraps = new HashMap<>();
     private Map<WeaponType, List<Position>> robotWeapons = new HashMap<>();
 
-    public PlacementController(PlacementView view, GameConfig config) {
-        this.view = view;
+    public PlacementController(GameConfig config) {
         this.config = config;
+    }
+
+    public void setView(PlacementView view){
+        this.view = view;
     }
 
     /**
