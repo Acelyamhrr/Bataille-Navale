@@ -1,9 +1,10 @@
-package model.players;
+package model.game.RobotStrategy;
 
 import model.enums.WeaponType;
 import model.game.RobotStrategy.RobotStrategy;
 import model.grid.Position;
 import model.grid.Square;
+import model.players.Player;
 
 import java.util.*;
 
@@ -21,6 +22,22 @@ public class SmartRobotStrategy implements RobotStrategy {
         this.random = new Random();
         this.targetQueue = new LinkedList<>();
         this.lastHit = null;
+    }
+
+    @Override
+    public WeaponType chooseWeapon(Player robot, Position target) {
+        Map<WeaponType, Integer> weapons = robot.getWeapons();
+
+        List<WeaponType> available = new ArrayList<>();
+        for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
+            if (entry.getValue() > 0) {
+                available.add(entry.getKey());
+            }
+        }
+
+        // Choisir aléatoirement
+        return available.get(random.nextInt(available.size()));
+
     }
 
     @Override
@@ -52,22 +69,6 @@ public class SmartRobotStrategy implements RobotStrategy {
         } while (square.wasAttacked());
 
         return target;
-    }
-
-    @Override
-    public WeaponType chooseWeapon(Player robot, Position target) {
-        Map<WeaponType, Integer> weapons = robot.getWeapons();
-
-        List<WeaponType> available = new ArrayList<>();
-        for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
-            if (entry.getValue() > 0) {
-                available.add(entry.getKey());
-            }
-        }
-        
-        // Choisir aléatoirement
-        return available.get(random.nextInt(available.size()));
-
     }
 
     @Override

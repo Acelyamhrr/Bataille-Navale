@@ -1,6 +1,8 @@
 package model;
 
 import model.enums.State;
+import model.enums.TrapType;
+import model.enums.WeaponType;
 import model.grid.Position;
 
 /**
@@ -24,4 +26,5 @@ public interface Observer {
 
      //Notifie qu'une case de l'île a été explorée
      void squareIsland(Position position, State state, boolean robot);
+
 }

@@ -3,8 +3,12 @@ package model.grid;
 import model.Observer;
 import model.contents.Content;
 import model.contents.fleet.Boat;
+import model.contents.traps.Trap;
+import model.contents.weapons.Weapon;
 import model.enums.ContentType;
 import model.enums.State;
+import model.enums.TrapType;
+import model.enums.WeaponType;
 
 import java.util.ArrayList;
 
@@ -85,6 +89,8 @@ public class Square {
         if(this.islandState == State.INTACT) {
             if(!this.isEmpty()){
                 this.islandState = State.SEARCHED;
+
+
                 notifyObserversIsland();
                 return this.content;
             }
@@ -110,6 +116,8 @@ public class Square {
             o.squareIsland(this.position,  this.islandState, this.robot);
         }
     }
+
+
 
     public ContentType getContentType() {
         if (this.content == null) {
