@@ -5,6 +5,7 @@ import model.Observer;
 import model.enums.*;
 import model.game.GamePlacement;
 import model.grid.Position;
+import model.players.Player;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -15,6 +16,13 @@ import java.util.Map;
 public class GameView extends JFrame implements Observer {
     private final int gridSize;
     private final String username;
+
+    private JPanel inventoryPanel;
+    private JLabel blackholeInventoryLabel;
+    private JLabel tornadoInventoryLabel;
+    private JButton placeBlackholeButton;
+    private JButton placeTornadoButton;
+    private JButton cancelPlacementButton;
 
     // Composants principaux
     private JLabel turnLabel;
@@ -253,10 +261,156 @@ public class GameView extends JFrame implements Observer {
             panel.add(createStatsLabel(playerIslandLabel));
         }
 
+        if (!title.contains("Robot")) {
+            panel.add(Box.createVerticalStrut(20));
+            inventoryPanel = createInventoryPanel();
+            panel.add(inventoryPanel);
+        }
+
         panel.add(Box.createVerticalGlue());
 
         return panel;
     }
+
+
+    private JPanel createInventoryPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(100, 100, 100), 1),
+                "Inventaire",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 12)
+        ));
+        panel.setMaximumSize(new Dimension(250, 150));
+
+        // Labels pour afficher le nombre de pièges
+        blackholeInventoryLabel = new JLabel("Trou Noir: 0");
+        blackholeInventoryLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        blackholeInventoryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        tornadoInventoryLabel = new JLabel("Tornade: 0");
+        tornadoInventoryLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        tornadoInventoryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Boutons pour placer les pièges
+        placeBlackholeButton = new JButton("Placer");
+        placeBlackholeButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        placeBlackholeButton.setEnabled(false);
+        placeBlackholeButton.setMaximumSize(new Dimension(80, 25));
+        placeBlackholeButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        placeBlackholeButton.addActionListener(e ->
+                this.gameController.startPlacingTrapFromInventory(TrapType.BLACKHOLE)
+        );
+
+        placeTornadoButton = new JButton("Placer");
+        placeTornadoButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        placeTornadoButton.setEnabled(false);
+        placeTornadoButton.setMaximumSize(new Dimension(80, 25));
+        placeTornadoButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        placeTornadoButton.addActionListener(e ->
+                this.gameController.startPlacingTrapFromInventory(TrapType.TORNADO)
+        );
+
+        // Bouton annuler (caché par défaut)
+        cancelPlacementButton = new JButton("Annuler placement");
+        cancelPlacementButton.setFont(new Font("Arial", Font.PLAIN, 10));
+        cancelPlacementButton.setVisible(false);
+        cancelPlacementButton.setMaximumSize(new Dimension(150, 25));
+        cancelPlacementButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cancelPlacementButton.addActionListener(e ->
+                this.gameController.cancelTrapPlacement()
+        );
+
+        // Panneau pour Trou Noir
+        JPanel blackholePanel = new JPanel();
+        blackholePanel.setLayout(new BoxLayout(blackholePanel, BoxLayout.X_AXIS));
+        blackholePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        blackholePanel.add(blackholeInventoryLabel);
+        blackholePanel.add(Box.createHorizontalStrut(10));
+        blackholePanel.add(placeBlackholeButton);
+
+        // Panneau pour Tornade
+        JPanel tornadoPanel = new JPanel();
+        tornadoPanel.setLayout(new BoxLayout(tornadoPanel, BoxLayout.X_AXIS));
+        tornadoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tornadoPanel.add(tornadoInventoryLabel);
+        tornadoPanel.add(Box.createHorizontalStrut(10));
+        tornadoPanel.add(placeTornadoButton);
+
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(blackholePanel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(tornadoPanel);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(cancelPlacementButton);
+        panel.add(Box.createVerticalStrut(5));
+
+        return panel;
+    }
+
+
+    public int showTrapFoundDialog(String trapName) {
+        Object[] options = {"Placer maintenant", "Mettre en inventaire"};
+
+        return JOptionPane.showOptionDialog(
+                this,
+                "Vous avez trouvé un " + trapName + " !\n\nVoulez-vous le placer tout de suite sur votre grille\nou le mettre dans l'inventaire ?",
+                "Piège trouvé !",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+    }
+
+
+
+    public void updateInventoryDisplay(Map<TrapType, Integer> inventory) {
+        int blackholeCount = inventory.getOrDefault(TrapType.BLACKHOLE, 0);
+        int tornadoCount = inventory.getOrDefault(TrapType.TORNADO, 0);
+
+        blackholeInventoryLabel.setText("Trou Noir: " + blackholeCount);
+        tornadoInventoryLabel.setText("Tornade: " + tornadoCount);
+
+        placeBlackholeButton.setEnabled(blackholeCount > 0);
+        placeTornadoButton.setEnabled(tornadoCount > 0);
+    }
+
+
+
+    public void setPlacingTrapMode(boolean placing) {
+        cancelPlacementButton.setVisible(placing);
+
+        if (placing) {
+            // Désactiver les autres boutons pendant le placement
+            placeBlackholeButton.setEnabled(false);
+            placeTornadoButton.setEnabled(false);
+        } else {
+            // Réactiver selon l'inventaire
+            Player player = this.gameController.getPlayer();
+            updateInventoryDisplay(player.getTrapInventory());
+        }
+    }
+
+    public void colorPlayerGridCell(int x, int y, Color color) {
+        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+            playerGridButtons[y][x].setBackground(color);
+        }
+    }
+
+
+    public Color getTrapColor() {
+        return TRAP_COLOR;
+    }
+
+    public Player getPlayer() {
+        return this.gameController.getPlayer();
+    }
+
+
 
     private JLabel createStatsLabel(JLabel label) {
         label.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -294,7 +448,10 @@ public class GameView extends JFrame implements Observer {
                 final int finalY = y;
 
                 if (!isPlayerGrid) {
-                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY));
+                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY, false));
+                }
+                else {
+                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY, true));
                 }
 
                 buttons[y][x] = btn;

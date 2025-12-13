@@ -4,6 +4,7 @@ import model.contents.Content;
 import model.contents.fleet.Boat;
 import model.contents.traps.Tornado;
 import model.contents.traps.Trap;
+import model.contents.traps.TrapFactory;
 import model.contents.weapons.Weapon;
 import model.contents.weapons.WeaponFactory;
 import model.enums.ContentType;
@@ -13,15 +14,18 @@ import model.game.GameConfig;
 import model.game.GamePlacement;
 import model.game.RobotStrategy.RandomRobotStrategy;
 import model.game.RobotStrategy.RobotStrategy;
+import model.game.RobotStrategy.SmartRobotStrategy;
 import model.grid.*;
 import model.grid.Position;
 import model.players.Player;
-import model.players.SmartRobotStrategy;
+import model.players.*;
 import view.EndView;
 import view.GameView;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Random;
+
 
 public class GameController {
     private Game game;
@@ -30,6 +34,9 @@ public class GameController {
 
     private int turnNumber = 1;
     private boolean playerTurn = true;
+
+    private boolean placingTrapMode = false;
+    private TrapType trapToPlace = null;
 
     public GameController(GameConfig config, GamePlacement placement) {
         this.config = config;
@@ -110,13 +117,27 @@ public class GameController {
         view.setWeaponEnabled(WeaponType.SONAR, player.getWeaponCount(WeaponType.SONAR)>0);
     }
     
-    public void handleGridClick(int x, int y) {
+    public void handleGridClick(int x, int y, boolean isPlayerGrid) {
         if (!playerTurn) {
             view.showError("Ce n'est pas votre tour !");
             return;
         }
 
         Position target = new Position(x,y);
+
+        if (isPlayerGrid) {
+            if (placingTrapMode) {
+                handleTrapPlacement(target);
+            } else {
+                view.showError("Cliquez sur la grille adverse pour attaquer !");
+            }
+            return;
+        }
+
+        if (placingTrapMode) {
+            view.showError("Vous devez placer le piège sur VOTRE grille, pas celle de l'adversaire !");
+            return;
+        }
 
         boolean actionSuccessful = false;
 
@@ -144,6 +165,107 @@ public class GameController {
             updateAllDisplays();
         }
     }
+
+    private void handleTrapPlacement(Position target) {
+        Player player = game.getPlayer();
+
+        System.out.println("\n🔧 DEBUG handleTrapPlacement");
+        System.out.println("Position cliquée: " + target.getX() + "," + target.getY());
+        System.out.println("trapToPlace: " + trapToPlace);
+        System.out.println("placingTrapMode: " + placingTrapMode);
+
+
+        // Vérifier que la case est vide et sur la grille du joueur
+        Square targetSquare = player.getGrid().getSquare(target);
+
+        System.out.println("Square isEmpty: " + targetSquare.isEmpty());
+        System.out.println("Square isInIsland: " + targetSquare.isInIsland());
+        System.out.println("Square content: " + (targetSquare.isEmpty() ? "null" : targetSquare.getContent().getContentType()));
+
+
+        if (!targetSquare.isEmpty()) {
+            view.showError("Cette case est déjà occupée !");
+            return;
+        }
+
+        if (targetSquare.isInIsland()) {
+            view.showError("Vous ne pouvez pas placer de piège sur l'île !");
+            return;
+        }
+
+        // Créer le piège
+        TrapFactory factory = new TrapFactory();
+        Trap trap = trapToPlace == TrapType.TORNADO ? factory.createTornado() : factory.createBlackHole();
+
+
+        System.out.println("Piège créé: " + trap.getName());
+        System.out.println("Inventaire avant: " + player.getTrapInventoryCount(trapToPlace));
+
+
+        // Placer le piège
+        boolean placed = player.placeTrapFromInventory(trapToPlace, target, trap);
+
+        System.out.println("Placement réussi: " + placed);
+        System.out.println("Inventaire après: " + player.getTrapInventoryCount(trapToPlace));
+
+
+        if (placed) {
+            view.showSuccess("Piège placé en " + target.getX() + "," + target.getY() + " !");
+            view.setPlayerAction("Piège placé avec succès");
+            view.appendHistory("Tour " + turnNumber + " - " + player.getUsername() +
+                    ": Piège placé en " + target.getX() + "," + target.getY() + "\n");
+
+            // Désactiver le mode placement
+            placingTrapMode = false;
+            trapToPlace = null;
+            view.setPlacingTrapMode(false);
+            view.updateInventoryDisplay(player.getTrapInventory());
+
+            // Colorer la case sur la grille du joueur
+            view.colorPlayerGridCell(target.getX(), target.getY(), view.getTrapColor());
+
+            // Le tour continue normalement
+            playerTurn = false;
+            playRobotTurn();
+
+            if (game.checkGameOver()) {
+                endGame();
+            } else {
+                turnNumber++;
+                playerTurn = true;
+                updateAllDisplays();
+            }
+        } else {
+            System.out.println("❌ ECHEC DU PLACEMENT - Voir Player.placeTrapFromInventory()");
+
+            view.showError("Impossible de placer le piège ici !");
+        }
+    }
+
+    public void startPlacingTrapFromInventory(TrapType trapType) {
+        if (!playerTurn) {
+            view.showError("Ce n'est pas votre tour !");
+            return;
+        }
+
+        if (game.getPlayer().getTrapInventoryCount(trapType) <= 0) {
+            view.showError("Vous n'avez pas de " + (trapType == TrapType.TORNADO ? "Tornade" : "Trou Noir") + " en inventaire !");
+            return;
+        }
+
+        placingTrapMode = true;
+        trapToPlace = trapType;
+        view.setPlacingTrapMode(true);
+        view.setPlayerAction("Cliquez sur votre grille pour placer le piège");
+    }
+
+    public void cancelTrapPlacement() {
+        placingTrapMode = false;
+        trapToPlace = null;
+        view.setPlacingTrapMode(false);
+        view.setPlayerAction("Placement annulé");
+    }
+
 
     private boolean handleWeaponUse(WeaponType weaponType, Position target) {
         Player player = game.getPlayer();
@@ -443,19 +565,30 @@ public class GameController {
         // Fouiller
         Content found = square.search();
 
-        if (found != null && found.getContentType() == ContentType.WEAPON) {
-            // Arme trouvée : l'ajouter au joueur
-            Weapon foundWeapon = (Weapon) found;
-            WeaponType weaponType = foundWeapon.getName();
+        if (found != null) {
+            ContentType type = found.getContentType();
 
-            int currentCount = game.getPlayer().getWeaponCount(weaponType);
-            game.getPlayer().setWeaponCount(weaponType, currentCount + 1);
+            if (type == ContentType.WEAPON) {
+                Weapon foundWeapon = (Weapon) found;
+                WeaponType weaponType = foundWeapon.getName();
 
-            view.setPlayerAction("Arme trouvée sur l'île !");
-            view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
-                    ": Arme trouvée en " + target.getX() + "," + target.getY() + "\n");
-            updateWeaponsDisplay();
-        } else {
+                Player player = game.getPlayer();
+                int currentCount = player.getWeaponCount(weaponType);
+                player.setWeaponCount(weaponType, currentCount + 1);
+
+                view.setPlayerAction("Arme trouvée sur l'île : " + weaponType);
+                view.appendHistory("Tour " + turnNumber + " - " + player.getUsername() +
+                        ": Arme trouvée en " + target.getX() + "," + target.getY() + "\n");
+                updateWeaponsDisplay();
+            } else if (type == ContentType.TRAP) {
+                Trap foundTrap = (Trap) found;
+                TrapType trapType = foundTrap.getName();
+
+                handleTrapFound(trapType, target);
+                return true;
+            }
+        }
+        else {
             view.setPlayerAction("Case vide sur l'île");
             view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
                     ": Case vide en " + target.getX() + "," + target.getY() + "\n");
@@ -464,18 +597,64 @@ public class GameController {
         return true;
     }
 
+    private void handleTrapFound(TrapType trapType, Position foundAt) {
+        String trapName = trapType == TrapType.TORNADO ? "Tornade" : "Trou noir";
+
+        int choice = view.showTrapFoundDialog(trapName);
+
+        game.getPlayer().addTrapToInventory(trapType);
+
+
+        // placer tout de suite
+        if (choice == 0) {
+            view.setPlayerAction("Piège trouvé : " + trapName + " - Mode placement activé");
+            view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
+                    ": Piège trouvé en " + foundAt.getX() + "," + foundAt.getY() + " - Placement en cours\n");
+
+            placingTrapMode = true;
+            trapToPlace = trapType;
+            view.setPlacingTrapMode(true);
+
+        } else  {   // ajouter a l'inventaire
+            view.setPlayerAction("Piège trouvé : " + trapName + " - Ajouté à l'inventaire");
+            view.appendHistory("Tour " + turnNumber + " - " + game.getPlayer().getUsername() +
+                    ": Piège trouvé en " + foundAt.getX() + "," + foundAt.getY() + " - Ajouté à l'inventaire\n");
+            view.updateInventoryDisplay(game.getPlayer().getTrapInventory());
+
+        }
+    }
+
     private void playRobotTurn() {
         System.out.println("\n*** TOUR DU ROBOT ***");
 
 
         Player robot = game.getRobot();
         Player player = game.getPlayer();
+        RobotStrategy strategy = robot.getStrategy();
+
+
 
         System.out.println("Player has tornado: " + (player.getTornado() != null));
         System.out.println("Player tornado active: " + player.hasTornadoActive());
 
+        // verif si le robot veux fouiller l'île
+        if (config.getModeGame() == ModeGame.ISLAND && strategy.shouldSearchIsland(robot, player, config.getGridSize())) {
+            System.out.println("🤖 Robot décide de fouiller l'île");
 
-        RobotStrategy strategy = robot.getStrategy();
+            Position islandTarget = strategy.chooseIslandSquareToSearch(player, config.getGridSize());
+
+            if (islandTarget != null) {
+                System.out.println("🤖 Robot fouille en: " + islandTarget.getX() + "," + islandTarget.getY());
+                executeRobotIslandSearch(islandTarget);
+                updateWeaponsDisplay();
+                System.out.println("*** FIN TOUR DU ROBOT (fouille île) ***\n");
+                return;
+            } else {
+                System.out.println("🤖 Toutes les cases de l'île sont fouillées, le robot attaque");
+            }
+        }
+
+
         Position target = strategy.chooseTarget(robot, player, config.getGridSize());
         System.out.println("Robot vise: " + target.getX() + "," + target.getY());
 
@@ -542,6 +721,97 @@ public class GameController {
         System.out.println("*** FIN TOUR DU ROBOT ***\n");
     }
 
+
+    private void executeRobotIslandSearch(Position target) {
+        Player player = game.getPlayer();
+        Player robot = game.getRobot();
+
+        Square square = player.getGrid().getSquare(target);
+
+        System.out.println("🔍 Robot fouille la case " + target.getX() + "," + target.getY());
+
+        Content found = square.search();
+
+        if (found != null) {
+            ContentType type = found.getContentType();
+            System.out.println("✨ Robot trouve: " + type);
+
+            if (type == ContentType.WEAPON) {
+                Weapon foundWeapon = (Weapon) found;
+                WeaponType weaponType = foundWeapon.getName();
+
+                int currentCount = robot.getWeaponCount(weaponType);
+                robot.setWeaponCount(weaponType, currentCount + 1);
+
+                System.out.println("🎯 Robot récupère arme: " + weaponType);
+                System.out.println("🎯 Robot a maintenant: " + robot.getWeapons());
+
+                view.setRobotAction("Arme trouvée sur l'île : " + weaponType);
+                view.appendHistory("Tour " + turnNumber + " - Robot: Arme trouvée en " +
+                        target.getX() + "," + target.getY() + "\n");
+
+            } else if (type == ContentType.TRAP) {
+                Trap foundTrap = (Trap) found;
+                TrapType trapType = foundTrap.getName();
+
+                System.out.println("🕳️ Robot trouve piège: " + trapType);
+
+                // Le robot place TOUJOURS le piège immédiatement sur sa grille
+                Position placementPos = findEmptySquareForRobotTrap(robot);
+
+                if (placementPos != null) {
+                    TrapFactory trapFactory = new TrapFactory();
+                    Trap newTrap = trapType == TrapType.TORNADO ?
+                            trapFactory.createTornado() : trapFactory.createBlackHole();
+
+                    robot.getGrid().placeTrap(newTrap, placementPos.getX(), placementPos.getY());
+
+                    if (trapType == TrapType.TORNADO) {
+                        robot.setTornado((Tornado) newTrap);
+                    }
+
+                    System.out.println("🎯 Robot place piège en: " + placementPos.getX() + "," + placementPos.getY());
+
+                    view.setRobotAction("Piège trouvé et placé : " + trapType);
+                    view.appendHistory("Tour " + turnNumber + " - Robot: Piège trouvé et placé en " +
+                            placementPos.getX() + "," + placementPos.getY() + "\n");
+
+                    // Colorer la case sur la grille robot (optionnel, le joueur ne la voit pas)
+                } else {
+                    System.out.println("❌ Robot ne peut pas placer le piège (grille pleine)");
+                    view.setRobotAction("Piège trouvé mais pas d'espace pour le placer");
+                }
+            }
+        } else {
+            System.out.println("💧 Case vide");
+            view.setRobotAction("Case vide sur l'île");
+            view.appendHistory("Tour " + turnNumber + " - Robot: Case vide en " +
+                    target.getX() + "," + target.getY() + "\n");
+        }
+    }
+
+    // Trouve une case vide sur la grille du robot pour placer un piège
+    private Position findEmptySquareForRobotTrap(Player robot) {
+        Random rand = new Random();
+        int gridSize = config.getGridSize();
+
+        for (int attempt = 0; attempt < 100; attempt++) {
+            int x = rand.nextInt(gridSize);
+            int y = rand.nextInt(gridSize);
+            Position pos = new Position(x, y);
+
+            Square square = robot.getGrid().getSquare(pos);
+
+            // Case vide ET pas dans l'île
+            if (square.isEmpty() && !square.isInIsland()) {
+                return pos;
+            }
+        }
+
+        return null; // Pas de place trouvée
+    }
+
+
     private void endGame() {
         String winner;
         if (game.getPlayer().allBoatSunk()) {
@@ -597,5 +867,14 @@ public class GameController {
     public int getNumberBoatSquares(){
         return this.config.getTotalBoatSquares();
     }
+
+    public Player getPlayer() {
+        return game.getPlayer();
+    }
+
+
+
+
+
 
 }

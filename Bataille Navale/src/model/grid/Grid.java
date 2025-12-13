@@ -2,6 +2,7 @@ package model.grid;
 
 import model.contents.fleet.Boat;
 import model.contents.traps.Trap;
+import model.contents.weapons.Weapon;
 import model.enums.ContentType;
 import model.enums.ModeGame;
 import model.enums.Orientation;
@@ -68,6 +69,12 @@ public  class Grid {
         Position pos = new Position(x, y);
         trap.setPosition(x, y, null);
         this.squares.get(pos).setContent(trap);
+    }
+
+    public void placeWeapon(Weapon weapon, int x, int y) {
+        Position pos = new Position(x, y);
+        weapon.setPosition(x, y, null);
+        this.squares.get(pos).setContent(weapon);
     }
 
     public void attack(Position position){

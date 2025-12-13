@@ -1,9 +1,10 @@
-package model.players;
+package model.game.RobotStrategy;
 
 import model.enums.WeaponType;
 import model.game.RobotStrategy.RobotStrategy;
 import model.grid.Position;
 import model.grid.Square;
+import model.players.Player;
 
 import java.util.*;
 
@@ -21,6 +22,22 @@ public class SmartRobotStrategy implements RobotStrategy {
         this.random = new Random();
         this.targetQueue = new LinkedList<>();
         this.lastHit = null;
+    }
+
+    @Override
+    public WeaponType chooseWeapon(Player robot, Position target) {
+        Map<WeaponType, Integer> weapons = robot.getWeapons();
+
+        List<WeaponType> available = new ArrayList<>();
+        for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
+            if (entry.getValue() > 0) {
+                available.add(entry.getKey());
+            }
+        }
+
+        // Choisir aléatoirement
+        return available.get(random.nextInt(available.size()));
+
     }
 
     @Override
@@ -52,22 +69,6 @@ public class SmartRobotStrategy implements RobotStrategy {
         } while (square.wasAttacked());
 
         return target;
-    }
-
-    @Override
-    public WeaponType chooseWeapon(Player robot, Position target) {
-        Map<WeaponType, Integer> weapons = robot.getWeapons();
-
-        List<WeaponType> available = new ArrayList<>();
-        for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
-            if (entry.getValue() > 0) {
-                available.add(entry.getKey());
-            }
-        }
-        
-        // Choisir aléatoirement
-        return available.get(random.nextInt(available.size()));
-
     }
 
     @Override
@@ -118,5 +119,34 @@ public class SmartRobotStrategy implements RobotStrategy {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean shouldSearchIsland(Player robot, Player player, int gridSize) {
+        // Plus intelligent : fouille si peu d'armes
+        int bombCount = robot.getWeaponCount(WeaponType.BOMB);
+        int sonarCount = robot.getWeaponCount(WeaponType.SONAR);
+
+        // Fouille si on a moins de 2 armes spéciales
+        return (bombCount + sonarCount) < 2;
+    }
+
+    @Override
+    public Position chooseIslandSquareToSearch(Player player, int gridSize) {
+        // Même implémentation que Random
+        Random rand = new Random();
+        int ix = gridSize / 2 - 2;
+        int iy = gridSize / 2 - 2;
+
+        for (int attempt = 0; attempt < 50; attempt++) {
+            int x = rand.nextInt(ix, ix + 4);
+            int y = rand.nextInt(iy, iy + 4);
+            Position pos = new Position(x, y);
+
+            if (player.getGrid().getSquare(pos).isNotSearched()) {
+                return pos;
+            }
+        }
+        return null;
     }
 }

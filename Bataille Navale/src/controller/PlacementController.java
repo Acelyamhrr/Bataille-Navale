@@ -15,7 +15,7 @@ import java.util.List;
  * Gère le placement pour le joueur ET le robot.
  */
 public class PlacementController {
-    private final PlacementView view;
+    private PlacementView view;
     private final GameConfig config;
 
     // Données de placement joueur
@@ -35,9 +35,12 @@ public class PlacementController {
     private Map<TrapType, List<Position>> robotTraps = new HashMap<>();
     private Map<WeaponType, List<Position>> robotWeapons = new HashMap<>();
 
-    public PlacementController(PlacementView view, GameConfig config) {
-        this.view = view;
+    public PlacementController(GameConfig config) {
         this.config = config;
+    }
+
+    public void setView(PlacementView view){
+        this.view = view;
     }
 
     /**
@@ -116,6 +119,7 @@ public class PlacementController {
                     if (config.getTrapMode() == TrapPlacement.RANDOM) {
                         applyRandomPlacementTraps();
                     } else if (config.getTrapMode() == TrapPlacement.MANUAL) {
+                        view.setPhaseText("Phase: Placement des pièges");
                         view.showSuccess("Placez les pièges.");
                         updateTrapWeaponSelector();
                     }
@@ -128,6 +132,7 @@ public class PlacementController {
                         currentWeaponIndex = 0;
                         playerTraps.clear();
                         currentTrapIndex = 0;
+                        view.setPhaseText("Phase: Placement des pièges et des armes");
                         view.showSuccess("Placez les armes/pièges.");
                         updateTrapWeaponSelector();
                     }
@@ -209,6 +214,7 @@ public class PlacementController {
     // modes
 
     public void applyFixedPlacement() {
+        view.setPhaseText("Phase: Placement des bateaux");
         if (config.getTrapMode() == TrapPlacement.MANUAL || config.getTrapMode() == TrapPlacement.RANDOM) {
             playerTraps.clear();
             currentTrapIndex = 0;
@@ -231,9 +237,11 @@ public class PlacementController {
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
             currentPlacementBoat = false;
             if(config.getModeGame() == ModeGame.STANDARD) {
+                view.setPhaseText("Phase: Placement des pièges");
                 view.showSuccess("Placez les pièges.");
             }
             else{
+                view.setPhaseText("Phase: Placement des pièges et des armes");
                 view.showSuccess("Placez les pièges/armes sur l'île.");
             }
         }
@@ -244,6 +252,7 @@ public class PlacementController {
     }
 
     public void applyRandomPlacement() {
+        view.setPhaseText("Phase: Placement des bateaux");
         if (config.getTrapMode() == TrapPlacement.MANUAL || config.getTrapMode() == TrapPlacement.RANDOM) {
             playerTraps.clear();
             currentTrapIndex = 0;
@@ -280,8 +289,10 @@ public class PlacementController {
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
             currentPlacementBoat = false;
             if (config.getModeGame() == ModeGame.STANDARD) {
+                view.setPhaseText("Phase: Placement des pièges");
                 view.showSuccess("Placez les pièges.");
             } else {
+                view.setPhaseText("Phase: Placement des pièges et des armes");
                 view.showSuccess("Placez les pièges/armes sur l'île.");
             }
         }
@@ -625,18 +636,11 @@ public class PlacementController {
 
     public void updateGrid() {
         int size = config.getGridSize();
-        Color water = new Color(100, 150, 200);
-        Color boat = new Color(80, 80, 80);
-        Color trap = new Color(243, 88, 48);
-        Color previewOk = new Color(100, 200, 100);
-        Color previewBad = new Color(200, 100, 100);
-        Color island = new Color(210, 180, 140);
-        Color weapon = new Color(218, 14, 232);
 
         // Reset
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
-                view.setCellColor(x, y, water);
+                view.setCellColor(x, y, "water");
             }
         }
 
@@ -646,7 +650,7 @@ public class PlacementController {
             int iy = this.config.getGridSize() / 2 - 2;
             for (int i = ix; i < ix + 4; i++) {
                 for (int j = iy; j < iy + 4; j++) {
-                    view.setCellColor(i, j, island);
+                    view.setCellColor(i, j, "island");
                 }
             }
         }
@@ -658,7 +662,7 @@ public class PlacementController {
                 for (int i = 0; i < boatSize; i++) {
                     int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
                     int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
-                    view.setCellColor(bx, by, boat);
+                    view.setCellColor(bx, by, "boat");
                 }
             }
         }
@@ -666,26 +670,26 @@ public class PlacementController {
         // Pièges placés
         for (Map.Entry<TrapType, List<Position>> entry : playerTraps.entrySet()) {
             for(Position pos : entry.getValue()) {
-                view.setCellColor(pos.getX(), pos.getY(), trap);
+                view.setCellColor(pos.getX(), pos.getY(), "trap");
             }
         }
 
         //Armes placées
         for (Map.Entry<WeaponType, List<Position>> entry : playerWeapons.entrySet()) {
             for(Position pos : entry.getValue()) {
-                view.setCellColor(pos.getX(), pos.getY(), weapon);
+                view.setCellColor(pos.getX(), pos.getY(), "weapon");
             }
         }
 
         // Preview hover
         if (currentPlacementBoat) {
-            previewBoatHover(size, previewOk, previewBad);
+            previewBoatHover(size);
         } else {
             if(currentTrapIndex < trapsToPlace.size()) {
-                previewTrapHover(previewOk, previewBad, config.getModeGame() == ModeGame.ISLAND);
+                previewTrapHover(config.getModeGame() == ModeGame.ISLAND);
             }
             else{
-                previewWeaponHover(previewOk, previewBad);
+                previewWeaponHover();
             }
         }
 
@@ -699,7 +703,7 @@ public class PlacementController {
         }
     }
 
-    private void previewBoatHover(int size, Color previewOk, Color previewBad) {
+    private void previewBoatHover(int size) {
         int hx = view.getHoverX();
         int hy = view.getHoverY();
         if (hx >= 0 && hy >= 0 && currentBoatIndex < boatsToPlace.size()) {
@@ -712,13 +716,13 @@ public class PlacementController {
                 int px = orient == Orientation.HORIZONTAL ? hx + i : hx;
                 int py = orient == Orientation.VERTICAL ? hy + i : hy;
                 if (px < size && py < size && !isCellOccupied(px, py, playerBoats, playerTraps, playerWeapons)) {
-                    view.setCellColor(px, py, canPlace ? previewOk : previewBad);
+                    view.setCellColor(px, py, canPlace ? "previewOk" : "previewBad");
                 }
             }
         }
     }
 
-    private void previewTrapHover(Color previewOk, Color previewBad, boolean island) {
+    private void previewTrapHover(boolean island) {
         int hx = view.getHoverX();
         int hy = view.getHoverY();
         if (hx >= 0 && hy >= 0 && currentTrapIndex < trapsToPlace.size()) {
@@ -730,11 +734,11 @@ public class PlacementController {
             else {
                 canPlace = canPlaceTrap(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
             }
-            view.setCellColor(hx, hy, canPlace ? previewOk : previewBad);
+            view.setCellColor(hx, hy, canPlace ? "previewOk" : "previewBad");
         }
     }
 
-    private void previewWeaponHover(Color previewOk,  Color previewBad) {
+    private void previewWeaponHover() {
         int hx = view.getHoverX();
         int hy = view.getHoverY();
 
@@ -742,7 +746,7 @@ public class PlacementController {
             WeaponType currentWeapon = weaponsToPlace.get(currentWeaponIndex);
             boolean canPlace = canPlaceWeaponIsland(currentWeapon, hx, hy, playerBoats, playerTraps, playerWeapons);
 
-            view.setCellColor(hx, hy, canPlace ? previewOk : previewBad);
+            view.setCellColor(hx, hy, canPlace ? "previewOk" : "previewBad");
         }
     }
 
@@ -862,7 +866,7 @@ public class PlacementController {
         return true;
     }
 
-    private boolean squareInIsland(int cx, int cy) {
+    public boolean squareInIsland(int cx, int cy) {
         if(this.config.getModeGame() == ModeGame.ISLAND) {
             int ix = this.config.getGridSize() / 2 - 2;
             int iy = this.config.getGridSize() / 2 - 2;

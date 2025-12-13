@@ -4,6 +4,8 @@ import model.contents.fleet.*;
 import model.contents.traps.Tornado;
 import model.contents.traps.Trap;
 import model.contents.traps.TrapFactory;
+import model.contents.weapons.Weapon;
+import model.contents.weapons.WeaponFactory;
 import model.enums.BoatName;
 import model.enums.ModeGame;
 import model.enums.TrapType;
@@ -43,6 +45,8 @@ public class Game {
         initializeTrapsPlayer();
         initializeTrapsRobot();
         initializeWeaponsPlayers();
+        initializeWeaponsIslandPlayer();
+        initializeWeaponsIslandRobot();
     }
 
     private void initializeBoatsPlayer() {
@@ -161,6 +165,47 @@ public class Game {
             this.player.setWeaponCount(WeaponType.SONAR, 1);
             this.robot.setWeaponCount(WeaponType.BOMB, 1);
             this.robot.setWeaponCount(WeaponType.SONAR, 1);
+        }
+    }
+
+    private void initializeWeaponsIslandPlayer(){
+        WeaponFactory factory = new WeaponFactory();
+
+        Map<WeaponType, List<Position>> weaponPlacementPlayer = gamePlacement.getWeaponPlacementPlayer();
+        for(Map.Entry<WeaponType, List<Position>> entry : weaponPlacementPlayer.entrySet()) {
+            for(Position pos : entry.getValue()){
+                Weapon weapon;
+                switch(entry.getKey()) {
+                    case BOMB:
+                        weapon = factory.createBomb();
+                        break;
+                    default:
+                        weapon = factory.createSonar();
+                }
+
+                this.player.getGrid().placeWeapon(weapon, pos.getX(), pos.getY());
+            }
+        }
+
+    }
+
+    private void initializeWeaponsIslandRobot(){
+        WeaponFactory factory = new WeaponFactory();
+
+        Map<WeaponType, List<Position>> weaponPlacementRobot = gamePlacement.getWeaponPlacementRobot();
+        for(Map.Entry<WeaponType, List<Position>> entry : weaponPlacementRobot.entrySet()) {
+            for(Position pos : entry.getValue()){
+                Weapon weapon;
+                switch(entry.getKey()) {
+                    case BOMB:
+                        weapon = factory.createBomb();
+                        break;
+                    default:
+                        weapon = factory.createSonar();
+                }
+
+                this.robot.getGrid().placeWeapon(weapon, pos.getX(), pos.getY());
+            }
         }
     }
 

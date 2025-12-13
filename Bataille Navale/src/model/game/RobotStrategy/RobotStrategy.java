@@ -14,4 +14,9 @@ public interface RobotStrategy {
 
     void notifyResult(Position position, boolean hit, boolean sunk);
 
+    // Décide si le robot doit fouiller l'île ce tour-ci
+    public boolean shouldSearchIsland(Player robot, Player player, int gridSize);
+
+    // Choisit quelle case de l'île fouiller
+    public Position chooseIslandSquareToSearch(Player player, int gridSize);
 }
