@@ -651,6 +651,7 @@ public class PlacementController {
             for (int i = ix; i < ix + 4; i++) {
                 for (int j = iy; j < iy + 4; j++) {
                     view.setCellColor(i, j, "island");
+                    view.setCellText(i, j, "");
                 }
             }
         }
@@ -671,6 +672,15 @@ public class PlacementController {
         for (Map.Entry<TrapType, List<Position>> entry : playerTraps.entrySet()) {
             for(Position pos : entry.getValue()) {
                 view.setCellColor(pos.getX(), pos.getY(), "trap");
+
+                String text;
+                if(entry.getKey() == TrapType.BLACKHOLE){
+                    text = "Trou noir";
+                }
+                else{
+                    text = "Tornade";
+                }
+                view.setCellText(pos.getX(), pos.getY(), text);
             }
         }
 
@@ -678,6 +688,15 @@ public class PlacementController {
         for (Map.Entry<WeaponType, List<Position>> entry : playerWeapons.entrySet()) {
             for(Position pos : entry.getValue()) {
                 view.setCellColor(pos.getX(), pos.getY(), "weapon");
+
+                String text;
+                if(entry.getKey() == WeaponType.BOMB){
+                    text = "Bombe";
+                }
+                else{
+                    text = "Sonar";
+                }
+                view.setCellText(pos.getX(), pos.getY(), text);
             }
         }
 
