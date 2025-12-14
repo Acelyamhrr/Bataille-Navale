@@ -12,8 +12,8 @@ import java.util.List;
 
 /**
  * Contrôleur principal.
- * CONNAÎT les Vues et le Modèle.
- * Fait le lien entre les deux.
+ * Fait l'entre deux entre la vue et le modèle
+ * Ne contient aucune logique métier, tout est dans model
  */
 public class CentralController {
     private MenuView menuView;
