@@ -212,7 +212,166 @@ public class PlacementController {
     }
 
     // modes
+    public void applyFixedPlacement() {
+        view.setPhaseText("Phase: Placement des bateaux");
 
+        // Réinitialisation pièges / armes
+        if (config.getTrapMode() == TrapPlacement.MANUAL || config.getTrapMode() == TrapPlacement.RANDOM) {
+            playerTraps.clear();
+            currentTrapIndex = 0;
+            playerWeapons.clear();
+            currentWeaponIndex = 0;
+            currentPlacementBoat = true;
+        }
+
+        // Placement des bateaux selon présence d'île
+        if (config.getModeGame() == ModeGame.ISLAND) {
+            applyFixedPlacementWithIsland();
+        } else {
+            applyFixedPlacementWithoutIsland();
+        }
+
+        currentBoatIndex = boatsToPlace.size();
+
+        view.enableBoatSelector(false);
+        view.enableTrapWeaponSelector(true);
+
+        // Phase pièges / armes
+        if (config.getTrapMode() == TrapPlacement.MANUAL) {
+            currentPlacementBoat = false;
+            if (config.getModeGame() == ModeGame.STANDARD) {
+                view.setPhaseText("Phase: Placement des pièges");
+                view.showSuccess("Placez les pièges.");
+            } else {
+                view.setPhaseText("Phase: Placement des pièges et des armes");
+                view.showSuccess("Placez les pièges/armes sur l'île.");
+            }
+        }
+
+        updateBoatSelector();
+        updateTrapWeaponSelector();
+        updateGrid();
+    }
+
+    private void applyFixedPlacementWithIsland() {
+        playerBoats.clear();
+
+        int gridSize = config.getGridSize();
+        int islandSize = 4;
+        int margin = (gridSize - islandSize) / 2;
+
+        for (BoatName boat : boatsToPlace) {
+            boolean placed = false;
+
+            // Lignes du haut (horizontal)
+            for (int y = 0; y < margin && !placed; y++) {
+                for (int x = 0; x < gridSize && !placed; x++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, playerBoats, playerTraps, playerWeapons)) {
+                        if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                        playerBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Lignes du bas (horizontal)
+            for (int y = gridSize - margin; y < gridSize && !placed; y++) {
+                for (int x = 0; x < gridSize && !placed; x++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, playerBoats, playerTraps, playerWeapons)) {
+                        if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                        playerBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Colonnes de gauche (vertical)
+            for (int x = 0; x < margin && !placed; x++) {
+                for (int y = 0; y < gridSize && !placed; y++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, playerBoats, playerTraps, playerWeapons)) {
+                        if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                        playerBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Colonnes de droite (vertical)
+            for (int x = gridSize - margin; x < gridSize && !placed; x++) {
+                for (int y = 0; y < gridSize && !placed; y++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, playerBoats, playerTraps, playerWeapons)) {
+                        if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                        playerBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            if (!placed) {
+                view.showError("Impossible de placer le bateau : " + boat);
+            }
+        }
+    }
+
+    private void applyFixedPlacementWithoutIsland() {
+        playerBoats.clear();
+
+        int gridSize = config.getGridSize();
+        List<Position> startPositions = getBalancedStartPositions(gridSize); // même que pour le robot
+        int startIndex = 0;
+
+        for (BoatName boat : boatsToPlace) {
+            boolean placed = false;
+            int boatSize = getBoatSize(boat);
+
+            // Nouvelle zone pour chaque bateau
+            Position start = startPositions.get(startIndex % startPositions.size());
+            startIndex++;
+
+            // HORIZONTAL
+            int maxX = gridSize - boatSize;
+            int maxY = gridSize - 1;
+            for (int dy = 0; dy <= maxY && !placed; dy++) {
+                for (int dx = 0; dx <= maxX && !placed; dx++) {
+                    int x = (start.getX() + dx) % gridSize;
+                    int y = (start.getY() + dy) % gridSize;
+
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, playerBoats, playerTraps, playerWeapons)) {
+                        if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                        playerBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+
+            // VERTICAL
+            if (!placed) {
+                maxX = gridSize - 1;
+                maxY = gridSize - boatSize;
+                for (int dy = 0; dy <= maxY && !placed; dy++) {
+                    for (int dx = 0; dx <= maxX && !placed; dx++) {
+                        int x = (start.getX() + dx) % gridSize;
+                        int y = (start.getY() + dy) % gridSize;
+
+                        if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, playerBoats, playerTraps, playerWeapons)) {
+                            if (!playerBoats.containsKey(boat)) playerBoats.put(boat, new ArrayList<>());
+                            playerBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!placed) {
+                view.showError("Impossible de placer le bateau : " + boat);
+            }
+        }
+    }
+
+
+    /*
     public void applyFixedPlacement() {
         view.setPhaseText("Phase: Placement des bateaux");
         if (config.getTrapMode() == TrapPlacement.MANUAL || config.getTrapMode() == TrapPlacement.RANDOM) {
@@ -250,6 +409,7 @@ public class PlacementController {
         updateTrapWeaponSelector();
         updateGrid();
     }
+    */
 
     public void applyRandomPlacement() {
         view.setPhaseText("Phase: Placement des bateaux");
@@ -423,19 +583,150 @@ public class PlacementController {
     }
 
     // placements robot.
+    private List<Position> getBalancedStartPositions(int gridSize) {
+        int mid = gridSize / 2;
+
+        List<Position> starts = new ArrayList<>();
+
+        starts.add(new Position(0, 0, Orientation.HORIZONTAL));                // haut-gauche
+        starts.add(new Position(gridSize - 1, gridSize - 1, Orientation.VERTICAL)); // bas-droite
+        starts.add(new Position(gridSize - 1, 0, Orientation.VERTICAL));       // haut-droite
+        starts.add(new Position(0, gridSize - 1, Orientation.HORIZONTAL));     // bas-gauche
+        starts.add(new Position(mid, mid, Orientation.HORIZONTAL));             // centre
+
+        return starts;
+    }
+
 
     private void applyFixedBoatsRobot() {
+        if (config.getModeGame() == ModeGame.ISLAND) {
+            applyFixedBoatsWithIsland();
+        } else {
+            applyFixedBoatsWithoutIsland();
+        }
+    }
+
+    private void applyFixedBoatsWithoutIsland() {
         robotBoats.clear();
-        int y = 0;
+
+        int gridSize = config.getGridSize();
+        List<Position> startPositions = getBalancedStartPositions(gridSize);
+        int startIndex = 0;
+
         for (BoatName boat : boatsToPlace) {
-            if (canPlaceBoat(boat, 0, y + 1, Orientation.HORIZONTAL, robotBoats, robotTraps, playerWeapons)) {
-                if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
-                robotBoats.get(boat).add(new Position(0, y++, Orientation.HORIZONTAL));
-            } else {
-                view.showError("Le bateau ne peut pas être placé là.");
+            boolean placed = false;
+            int boatSize = getBoatSize(boat);
+
+            // On change de zone à chaque bateau
+            Position start = startPositions.get(startIndex % startPositions.size());
+            startIndex++;
+
+            // Balayage à partir du point de départ choisi
+            // Test horizontal et vertical séparément pour gérer maxX/maxY
+            // HORIZONTAL
+            int maxX = gridSize - boatSize;
+            int maxY = gridSize - 1;
+            for (int dy = 0; dy <= maxY && !placed; dy++) {
+                for (int dx = 0; dx <= maxX && !placed; dx++) {
+                    int x = (start.getX() + dx) % gridSize;
+                    int y = (start.getY() + dy) % gridSize;
+
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, robotBoats, robotTraps, playerWeapons)) {
+                        if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                        robotBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+
+            // VERTICAL
+            if (!placed) {
+                maxX = gridSize - 1;
+                maxY = gridSize - boatSize;
+                for (int dy = 0; dy <= maxY && !placed; dy++) {
+                    for (int dx = 0; dx <= maxX && !placed; dx++) {
+                        int x = (start.getX() + dx) % gridSize;
+                        int y = (start.getY() + dy) % gridSize;
+
+                        if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, robotBoats, robotTraps, playerWeapons)) {
+                            if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                            robotBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                            placed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!placed) {
+                view.showError("Impossible de placer le bateau : " + boat);
             }
         }
     }
+
+
+
+    private void applyFixedBoatsWithIsland() {
+        robotBoats.clear();
+
+        int gridSize = config.getGridSize();
+        int islandSize = 4;
+        int margin = (gridSize - islandSize) / 2;
+
+        for (BoatName boat : boatsToPlace) {
+            boolean placed = false;
+
+            // Lignes du haut (horizontal)
+            for (int y = 0; y < margin && !placed; y++) {
+                for (int x = 0; x < gridSize && !placed; x++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, robotBoats, robotTraps, playerWeapons)) {
+                        if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                        robotBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Lignes du bas (horizontal)
+            for (int y = gridSize - margin; y < gridSize && !placed; y++) {
+                for (int x = 0; x < gridSize && !placed; x++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.HORIZONTAL, robotBoats, robotTraps, playerWeapons)) {
+                        if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                        robotBoats.get(boat).add(new Position(x, y, Orientation.HORIZONTAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Colonnes de gauche (vertical)
+            for (int x = 0; x < margin && !placed; x++) {
+                for (int y = 0; y < gridSize && !placed; y++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, robotBoats, robotTraps, playerWeapons)) {
+                        if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                        robotBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            // Colonnes de droite (vertical)
+            for (int x = gridSize - margin; x < gridSize && !placed; x++) {
+                for (int y = 0; y < gridSize && !placed; y++) {
+                    if (canPlaceBoat(boat, x, y, Orientation.VERTICAL, robotBoats, robotTraps, playerWeapons)) {
+                        if (!robotBoats.containsKey(boat)) robotBoats.put(boat, new ArrayList<>());
+                        robotBoats.get(boat).add(new Position(x, y, Orientation.VERTICAL));
+                        placed = true;
+                    }
+                }
+            }
+
+            if (!placed) {
+                view.showError("Impossible de placer le bateau : " + boat);
+            }
+        }
+    }
+
 
     private void applyRandomBoatsRobot() {
         robotBoats.clear();

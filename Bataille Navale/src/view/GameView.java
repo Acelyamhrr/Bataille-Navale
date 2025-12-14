@@ -500,10 +500,10 @@ public class GameView extends JFrame implements Observer {
 
                     String text;
                     if(entry.getKey() == TrapType.BLACKHOLE){
-                        text = "TN";
+                        text = "N";
                     }
                     else{
-                        text = "TO";
+                        text = "O";
                     }
                     playerGridButtons[pos.getY()][pos.getX()].setText(text);
                 }
@@ -662,8 +662,8 @@ public class GameView extends JFrame implements Observer {
         legendPanel.add(Box.createVerticalStrut(10));
 
         JPanel wordsPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        wordsPanel.add(new JLabel("TO = Tornade"));
-        wordsPanel.add(new JLabel("TN = Trou noir"));
+        wordsPanel.add(new JLabel("O = Tornade"));
+        wordsPanel.add(new JLabel("N = Trou noir"));
         wordsPanel.add(new JLabel("B = Bombe"));
         wordsPanel.add(new JLabel("S = Sonar"));
 
