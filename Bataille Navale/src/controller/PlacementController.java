@@ -164,7 +164,7 @@ public class PlacementController {
         if (currentTrapIndex >= trapsToPlace.size()) return;
         TrapType type = trapsToPlace.get(currentTrapIndex);
 
-        if(canPlaceTrapIsland(type, x, y, playerBoats, playerTraps, playerWeapons)) {
+        if(canPlaceOnIsland(x, y, playerBoats, playerTraps, playerWeapons)) {
             if(!playerTraps.containsKey(type)) {
                 playerTraps.put(type, new ArrayList<>());
             }
@@ -187,7 +187,7 @@ public class PlacementController {
         if(currentWeaponIndex >=  weaponsToPlace.size()) return;
         WeaponType type = weaponsToPlace.get(currentWeaponIndex);
 
-        if(canPlaceWeaponIsland(type, x, y, playerBoats, playerTraps, playerWeapons)) {
+        if(canPlaceOnIsland(x, y, playerBoats, playerTraps, playerWeapons)) {
             if(!playerWeapons.containsKey(type)) {
                 playerWeapons.put(type, new ArrayList<>());
             }
@@ -223,6 +223,28 @@ public class PlacementController {
                 traps.put(trap, new ArrayList<>());
             }
             traps.get(trap).add(new Position(x, y));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean placeTrapOnIsland(TrapType trap, int x, int y, Map<BoatName, List<Position>> boats,  Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons){
+        if(canPlaceOnIsland(x, y, boats, traps, weapons)){
+            if(!traps.containsKey(trap)) {
+                traps.put(trap, new ArrayList<>());
+            }
+            traps.get(trap).add(new Position(x, y));
+            return true;
+        }
+        return false;
+    }
+
+    private boolean placeWeaponOnIsland(WeaponType weapon, int x, int y, Map<BoatName, List<Position>> boats,  Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons){
+        if(canPlaceOnIsland(x, y, boats, traps, weapons)){
+            if(!weapons.containsKey(weapon)){
+                weapons.put(weapon, new  ArrayList<>());
+            }
+            weapons.get(weapon).add(new Position(x, y));
             return true;
         }
         return false;
@@ -513,11 +535,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(ix, ix+4);
                 int y = rand.nextInt(iy, iy+4);
-                if(canPlaceTrapIsland(trap, x, y, playerBoats, playerTraps, playerWeapons)){
-                    if(!playerTraps.containsKey(trap)) {
-                        playerTraps.put(trap, new ArrayList<>());
-                    }
-                    playerTraps.get(trap).add(new Position(x, y));
+
+                if(placeTrapOnIsland(trap, x, y, playerBoats, playerTraps, playerWeapons)) {
                     placed = true;
                 }
                 attempts++;
@@ -532,11 +551,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(ix, ix+4);
                 int y = rand.nextInt(iy, iy+4);
-                if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, playerWeapons)){
-                    if(!playerWeapons.containsKey(weapon)){
-                        playerWeapons.put(weapon, new  ArrayList<>());
-                    }
-                    playerWeapons.get(weapon).add(new Position(x, y));
+
+                if(placeWeaponOnIsland(weapon,  x, y, playerBoats, playerTraps, playerWeapons)) {
                     placed = true;
                 }
                 attempts++;
@@ -752,11 +768,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(ix, ix+4);
                 int y = rand.nextInt(iy, iy+4);
-                if(canPlaceTrapIsland(trap, x, y, robotBoats, robotTraps, robotWeapons)){
-                    if(!robotTraps.containsKey(trap)) {
-                        robotTraps.put(trap, new ArrayList<>());
-                    }
-                    robotTraps.get(trap).add(new Position(x, y));
+
+                if(placeTrapOnIsland(trap, x, y, robotBoats,  robotTraps, robotWeapons)){
                     placed = true;
                 }
                 attempts++;
@@ -770,11 +783,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(ix, ix+4);
                 int y = rand.nextInt(iy, iy+4);
-                if(canPlaceWeaponIsland(weapon, x, y, playerBoats, playerTraps, robotWeapons)){
-                    if(!robotWeapons.containsKey(weapon)){
-                        robotWeapons.put(weapon, new  ArrayList<>());
-                    }
-                    robotWeapons.get(weapon).add(new Position(x, y));
+
+                if(placeWeaponOnIsland(weapon,  x, y, robotBoats, robotTraps, robotWeapons)) {
                     placed = true;
                 }
                 attempts++;
@@ -984,7 +994,7 @@ public class PlacementController {
             TrapType currentTrap = trapsToPlace.get(currentTrapIndex);
             boolean canPlace;
             if(island) {
-                canPlace = canPlaceTrapIsland(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
+                canPlace = canPlaceOnIsland(hx, hy, playerBoats, playerTraps, playerWeapons);
             }
             else {
                 canPlace = canPlaceTrap(currentTrap, hx, hy, playerBoats, playerTraps, playerWeapons);
@@ -999,7 +1009,7 @@ public class PlacementController {
 
         if (hx >= 0 && hy >= 0 && currentWeaponIndex < weaponsToPlace.size()) {
             WeaponType currentWeapon = weaponsToPlace.get(currentWeaponIndex);
-            boolean canPlace = canPlaceWeaponIsland(currentWeapon, hx, hy, playerBoats, playerTraps, playerWeapons);
+            boolean canPlace = canPlaceOnIsland(hx, hy, playerBoats, playerTraps, playerWeapons);
 
             view.setCellColor(hx, hy, canPlace ? "previewOk" : "previewBad");
         }
@@ -1141,47 +1151,62 @@ public class PlacementController {
         return !isCellOccupied(x, y, boats, traps, weapons);
     }
 
-    private boolean canPlaceTrapIsland(TrapType type, int x, int y, Map<BoatName, List<Position>> boats, Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons){
-        if (!squareInIsland(x, y)) return false;
-
-        return !isCellOccupied(x, y, boats, traps, weapons);
+    private boolean canPlaceOnIsland(int x, int y, Map<BoatName, List<Position>> boats, Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons) {
+        return squareInIsland(x, y) && !isCellOccupied(x, y, boats, traps, weapons);
     }
 
-    private boolean canPlaceWeaponIsland(WeaponType type, int x, int y, Map<BoatName, List<Position>> boats, Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons){
-        if (!squareInIsland(x, y)) return false;
 
-        return !isCellOccupied(x, y, boats, traps, weapons);
+    private boolean isBoatOccupyingCell(BoatName boat, Position pos, int x, int y) {
+        int size = getBoatSize(boat);
+
+        for (int i = 0; i < size; i++) {
+            int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
+            int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
+
+            if (bx == x && by == y) {
+                return true;
+            }
+        }
+        return false;
     }
+
+    private boolean isSimplePositionOccupyingCell(List<Position> positions, int x, int y) {
+        for (Position pos : positions) {
+            if (pos.getX() == x && pos.getY() == y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private boolean isCellOccupied(int x, int y, Map<BoatName, List<Position>> boats, Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons) {
-        // Check boats
+        // Boats
         for (Map.Entry<BoatName, List<Position>> entry : boats.entrySet()) {
             for (Position pos : entry.getValue()) {
-                int size = getBoatSize(entry.getKey());
-                for (int i = 0; i < size; i++) {
-                    int bx = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
-                    int by = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
-                    if (bx == x && by == y) return true;
+                if (isBoatOccupyingCell(entry.getKey(), pos, x, y)) {
+                    return true;
                 }
             }
         }
 
-        // Check traps
-        for (Map.Entry<TrapType, List<Position>> entry : traps.entrySet()) {
-            for(Position pos : entry.getValue()) {
-                if (pos.getX() == x && pos.getY() == y) return true;
+        // Traps
+        for (List<Position> positions : traps.values()) {
+            if (isSimplePositionOccupyingCell(positions, x, y)) {
+                return true;
             }
         }
 
-        //Check weapons
-        for(Map.Entry<WeaponType, List<Position>> entry : weapons.entrySet()) {
-            for(Position pos : entry.getValue()) {
-                if (pos.getX() == x && pos.getY() == y) return true;
+        // Weapons
+        for (List<Position> positions : weapons.values()) {
+            if (isSimplePositionOccupyingCell(positions, x, y)) {
+                return true;
             }
         }
 
         return false;
     }
+
 
     private int getBoatSize(BoatName type) {
         switch (type) {
