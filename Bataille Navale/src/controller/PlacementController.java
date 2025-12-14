@@ -317,7 +317,7 @@ public class PlacementController {
         playerBoats.clear();
 
         int gridSize = config.getGridSize();
-        List<Position> startPositions = getBalancedStartPositions(gridSize); // même que pour le robot
+        List<Position> startPositions = getBalancedStartPositionsPlayer(gridSize); // même que pour le robot
         int startIndex = 0;
 
         for (BoatName boat : boatsToPlace) {
@@ -368,6 +368,17 @@ public class PlacementController {
                 view.showError("Impossible de placer le bateau : " + boat);
             }
         }
+    }
+
+    private List<Position> getBalancedStartPositionsPlayer(int gridSize) {
+        int mid = gridSize / 2;
+        List<Position> starts = new ArrayList<>();
+        starts.add(new Position(gridSize - 1, gridSize - 1, Orientation.VERTICAL)); // bas-droite en premier
+        starts.add(new Position(0, 0, Orientation.HORIZONTAL));                     // haut-gauche ensuite
+        starts.add(new Position(0, gridSize - 1, Orientation.HORIZONTAL));          // bas-gauche
+        starts.add(new Position(gridSize - 1, 0, Orientation.VERTICAL));            // haut-droite
+        starts.add(new Position(mid, mid, Orientation.HORIZONTAL));                 // centre
+        return starts;
     }
 
 
@@ -583,19 +594,17 @@ public class PlacementController {
     }
 
     // placements robot.
-    private List<Position> getBalancedStartPositions(int gridSize) {
+    private List<Position> getBalancedStartPositionsRobot(int gridSize) {
         int mid = gridSize / 2;
-
         List<Position> starts = new ArrayList<>();
-
-        starts.add(new Position(0, 0, Orientation.HORIZONTAL));                // haut-gauche
-        starts.add(new Position(gridSize - 1, gridSize - 1, Orientation.VERTICAL)); // bas-droite
-        starts.add(new Position(gridSize - 1, 0, Orientation.VERTICAL));       // haut-droite
-        starts.add(new Position(0, gridSize - 1, Orientation.HORIZONTAL));     // bas-gauche
-        starts.add(new Position(mid, mid, Orientation.HORIZONTAL));             // centre
-
+        starts.add(new Position(0, 0, Orientation.HORIZONTAL));
+        starts.add(new Position(gridSize - 1, gridSize - 1, Orientation.VERTICAL));
+        starts.add(new Position(gridSize - 1, 0, Orientation.VERTICAL));
+        starts.add(new Position(0, gridSize - 1, Orientation.HORIZONTAL));
+        starts.add(new Position(mid, mid, Orientation.HORIZONTAL));
         return starts;
     }
+
 
 
     private void applyFixedBoatsRobot() {
@@ -610,7 +619,7 @@ public class PlacementController {
         robotBoats.clear();
 
         int gridSize = config.getGridSize();
-        List<Position> startPositions = getBalancedStartPositions(gridSize);
+        List<Position> startPositions = getBalancedStartPositionsRobot(gridSize);
         int startIndex = 0;
 
         for (BoatName boat : boatsToPlace) {
