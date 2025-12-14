@@ -28,6 +28,23 @@ public class Boat extends Content {
         this.alreadyTouched = false;
     }
 
+    public Boat(){}
+
+    public static int getBoatSize(BoatName boat){
+        switch (boat){
+            case AIRCRAFT_CARRIER:
+                return 5;
+            case CRUISER:
+                return 4;
+            case DESTROYER:
+                return 3;
+            case SUBMARINE:
+                return 3;
+            default:
+                return 2;
+        }
+    }
+
     public void belongsTo(boolean robot){
         this.robot = robot;
     }

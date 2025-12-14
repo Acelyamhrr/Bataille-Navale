@@ -47,48 +47,28 @@ public class GamePlacement {
     public Map<WeaponType, List<Position>> getWeaponPlacementRobot() { return new HashMap<>(weaponPlacementRobot); }
 
     // Setters
-    public void setBoatPlacementPlayer(BoatName type, Position pos) {
-        if (!boatPlacementPlayer.containsKey(type)) {
-            boatPlacementPlayer.put(type, new ArrayList<>());
-        }
-        boatPlacementPlayer.get(type).add(pos);
+    public void setBoatsPlacementPlayer(Map<BoatName, List<Position>> boatPlacementPlayer) {
+        this.boatPlacementPlayer = boatPlacementPlayer;
     }
 
-    public void setBoatPlacementRobot(BoatName type, Position pos) {
-        if (!boatPlacementRobot.containsKey(type)) {
-            boatPlacementRobot.put(type, new ArrayList<>());
-        }
-        boatPlacementRobot.get(type).add(pos);
+    public void setBoatsPlacementRobot(Map<BoatName, List<Position>> boatPlacementRobot) {
+        this.boatPlacementRobot = boatPlacementRobot;
     }
 
-    public void setTrapPlacementPlayer(TrapType type, Position pos) {
-        if(!trapPlacementPlayer.containsKey(type)){
-            trapPlacementPlayer.put(type, new ArrayList<>());
-        }
-        trapPlacementPlayer.get(type).add(pos);
+    public void setTrapsPlacementsPlayer(Map<TrapType, List<Position>> trapPlacementPlayer) {
+        this.trapPlacementPlayer = trapPlacementPlayer;
     }
 
-    public void setTrapPlacementRobot(TrapType type, Position pos) {
-        if(!trapPlacementRobot.containsKey(type)){
-            trapPlacementRobot.put(type, new ArrayList<>());
-        }
-        trapPlacementRobot.get(type).add(pos);
+    public void setTrapsPlacementRobot(Map<TrapType, List<Position>> trapPlacementRobot) {
+        this.trapPlacementRobot = trapPlacementRobot;
     }
 
-    public void setWeaponPlacementPlayer(WeaponType type, Position pos){
-        if(!weaponPlacementPlayer.containsKey(type)){
-            weaponPlacementPlayer.put(type, new ArrayList<>());
-        }
-
-        weaponPlacementPlayer.get(type).add(pos);
+    public void setWeaponsPlacementPlayer(Map<WeaponType, List<Position>> weaponPlacementPlayer){
+        this.weaponPlacementPlayer = weaponPlacementPlayer;
     }
 
-    public void setWeaponPlacementRobot(WeaponType type, Position pos){
-        if(!weaponPlacementRobot.containsKey(type)){
-            weaponPlacementRobot.put(type, new ArrayList<>());
-        }
-
-        weaponPlacementRobot.get(type).add(pos);
+    public void setWeaponsPlacementRobot(Map<WeaponType, List<Position>> weaponPlacementRobot){
+        this.weaponPlacementRobot = weaponPlacementRobot;
     }
 
 }
