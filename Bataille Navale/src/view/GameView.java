@@ -606,13 +606,10 @@ public class GameView extends JFrame implements Observer {
     private void createMenuPopup() {
         menuPopup = new JPopupMenu();
 
-        restartItem = new JMenuItem("Recommencer");
-        restartItem.addActionListener(e-> this.gameController.restart());
         legendItem = new JMenuItem("Légendes");
         quitItem = new JMenuItem("Quitter");
         quitItem.addActionListener(e -> this.gameController.quit());
 
-        menuPopup.add(restartItem);
         menuPopup.add(legendItem);
         menuPopup.addSeparator();
         menuPopup.add(quitItem);
@@ -689,21 +686,23 @@ public class GameView extends JFrame implements Observer {
         turnLabel.setText("Tour " + turn);
     }
 
-    private void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells) {
+    public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
         playerBoatsIntactLabel.setText("Bateaux intacts : " + intact);
         playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         playerBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
         playerMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        playerHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + this.gameController.getNumberBoatSquares());
+        playerHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + totalBoatCells);
     }
 
-    private void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells) {
+
+    public void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
         robotBoatsIntactLabel.setText("Bateaux intacts : " + intact);
         robotBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
         robotBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
         robotMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        robotHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + this.gameController.getNumberBoatSquares());
+        robotHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + totalBoatCells);
     }
+
 
     public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
         String text = "<html>Armes:<br/>";
@@ -787,43 +786,29 @@ public class GameView extends JFrame implements Observer {
 
     @Override
     public void boatAttacked(Position position, boolean robot) {
-        int intact, touched, sunk, missed, hitCells;
-
         if(robot){
+            // Mise à jour visuelle
             if(this.robotGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
                 this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
             }
 
-            //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18));
-            sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28)) +1;
-
-            updateRobotStats(intact, touched, sunk, missed, hitCells);
+            // Demander au Contrôleur de recalculer et afficher les stats
+            //gameController.updateRobotStatsDisplay();
         }
         else{
+            // Pareil pour le joueur
             if(this.playerGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
                 this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
             }
-
-            //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18));
-            sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28)) +1;
-
-            updatePlayerStats(intact, touched, sunk, missed, hitCells);
+            //gameController.updatePlayerStatsDisplay();
         }
     }
 
+
     @Override
     public void boatSunk(Position position, int size, boolean robot) {
-        int intact, touched, sunk, missed, hitCells;
-
         if(robot){
+            // Colorier toutes les cases du bateau coulé
             switch (position.getOrientation()){
                 case VERTICAL:
                     for(int i=0; i<size; i++){
@@ -839,16 +824,11 @@ public class GameView extends JFrame implements Observer {
                     this.robotGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
             }
 
-            //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) -1;
-            sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17)) +1;
-            missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updateRobotStats(intact, touched, sunk, missed, hitCells);
+            // Demander la mise à jour des stats
+            //gameController.updateRobotStatsDisplay();
         }
         else{
+            // Pareil pour le joueur
             switch (position.getOrientation()){
                 case VERTICAL:
                     for(int i=0; i<size; i++){
@@ -863,74 +843,39 @@ public class GameView extends JFrame implements Observer {
                 default:
                     this.playerGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
             }
-
-            //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18))-1;
-            sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17)) +1;
-            missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updatePlayerStats(intact, touched, sunk, missed, hitCells);
+            //gameController.updatePlayerStatsDisplay();
         }
     }
 
     @Override
     public void boatTouched(boolean robot) {
-        int intact, touched, sunk, missed, hitCells;
         if(robot){
-            //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18)) -1;
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18)) +1;
-            sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updateRobotStats(intact, touched, sunk, missed, hitCells);
+            //gameController.updateRobotStatsDisplay();
         }
         else{
-            //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18)) -1;
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18)) +1;
-            sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18));
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updatePlayerStats(intact, touched, sunk, missed, hitCells);
+            //gameController.updatePlayerStatsDisplay();
         }
     }
 
     @Override
     public void squareAttacked(Position position, boolean robot) {
-        int intact, touched, sunk, missed, hitCells;
-
         if(robot){
-            if(!(this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) || this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
+            // 1. Colorier en gris (raté)
+            if(!(this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) ||
+                    this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
                 this.robotGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
             }
 
-            //Mise à jour des stats
-            intact = Integer.parseInt(robotBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(robotBoatsTouchedLabel.getText().substring(18));
-            sunk = Integer.parseInt(robotBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(robotMissedShotsLabel.getText().substring(18)) +1;
-            hitCells = Integer.parseInt((robotHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updateRobotStats(intact, touched, sunk, missed, hitCells);
+            // 2. Mettre à jour les stats
+            //gameController.updateRobotStatsDisplay();
         }
         else{
-            if(!(this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) || this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
+            // Pareil pour le joueur
+            if(!(this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) ||
+                    this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
                 this.playerGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
             }
-
-            //Mise à jour des stats
-            intact = Integer.parseInt(playerBoatsIntactLabel.getText().substring(18));
-            touched = Integer.parseInt(playerBoatsTouchedLabel.getText().substring(18));
-            sunk = Integer.parseInt(playerBoatsSunkLabel.getText().substring(17));
-            missed = Integer.parseInt(playerMissedShotsLabel.getText().substring(18)) +1;
-            hitCells = Integer.parseInt((playerHitRatioLabel.getText().split("/")[0]).substring(28));
-
-            updatePlayerStats(intact, touched, sunk, missed, hitCells);
+            //gameController.updatePlayerStatsDisplay();
         }
     }
 

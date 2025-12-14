@@ -41,20 +41,8 @@ public class Game {
         player = new Player(config.getUsername(), false);
         robot = new Player("Robot", true);
 
-        //Grid gridPlayer = new Grid(config.getGridSize(), config.getModeGame(), false);
-        //Grid gridRobot = new Grid(config.getGridSize(), config.getModeGame(), true);
         player.createGrid(config.getGridSize(), config.getModeGame());
         robot.createGrid(config.getGridSize(), config.getModeGame());
-        //player.setGrid(gridPlayer);
-        //robot.setGrid(gridRobot);
-
-        /*initializeBoatsPlayer();
-        initializeBoatsRobot();
-        initializeTrapsPlayer();
-        initializeTrapsRobot();
-        initializeWeaponsPlayers();
-        initializeWeaponsIslandPlayer();
-        initializeWeaponsIslandRobot();*/
 
         initializeBoats(player, placement.getBoatPlacementsPlayer());
         initializeBoats(robot, placement.getBoatPlacementsRobot());
@@ -71,73 +59,6 @@ public class Game {
     }
 
     // INITIALISATIONS
-
-    /*
-    private void initializeBoatsPlayer() {
-        BoatFactory boatFactory = new BoatFactory();
-
-        Map<BoatName, List<Position>> boatPlacementsPlayer = gamePlacement.getBoatPlacementsPlayer();
-        for(Map.Entry<BoatName, List<Position>> entry : boatPlacementsPlayer.entrySet()) {
-            for(Position position : entry.getValue()) {
-                Boat boat;
-
-                switch(entry.getKey()) {
-                    case CRUISER:
-                        boat = boatFactory.createCruiser();
-                        break;
-                    case DESTROYER:
-                        boat = boatFactory.createDestroyer();
-                        break;
-                    case SUBMARINE:
-                        boat = boatFactory.createSubmarine();
-                        break;
-                    case TORPEDO_BOAT:
-                        boat = boatFactory.createTorpedoBoat();
-                        break;
-                    default:
-                        boat = boatFactory.createAircraftCarrier();
-                }
-
-                boat.belongsTo(false);
-
-                this.player.getGrid().placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
-                this.player.addBoat(boat);
-            }
-        }
-    }
-
-    private void initializeBoatsRobot() {
-        BoatFactory boatFactory = new BoatFactory();
-
-        Map<BoatName, List<Position>> boatPlacementsRobot = gamePlacement.getBoatPlacementsRobot();
-        for(Map.Entry<BoatName, List<Position>> entry : boatPlacementsRobot.entrySet()) {
-            for(Position position : entry.getValue()) {
-                Boat boat;
-
-                switch(entry.getKey()) {
-                    case CRUISER:
-                        boat = boatFactory.createCruiser();
-                        break;
-                    case DESTROYER:
-                        boat = boatFactory.createDestroyer();
-                        break;
-                    case SUBMARINE:
-                        boat = boatFactory.createSubmarine();
-                        break;
-                    case TORPEDO_BOAT:
-                        boat = boatFactory.createTorpedoBoat();
-                        break;
-                    default:
-                        boat = boatFactory.createAircraftCarrier();
-                }
-                boat.belongsTo(true);
-
-                this.robot.getGrid().placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
-                this.robot.addBoat(boat);
-            }
-        }
-    }*/
-
 
     // une méthode pour joueur ET robot
     private void initializeBoats(Player owner, Map<BoatName, List<Position>> placements) {
@@ -163,49 +84,6 @@ public class Game {
         }
 
     }
-
-    /*
-    private void initializeTrapsPlayer() {
-        TrapFactory trapFactory = new TrapFactory();
-
-        Map<TrapType, List<Position>> trapPlacementsPlayer = gamePlacement.getTrapPlacementsPlayer();
-        for(Map.Entry<TrapType, List<Position>> entry : trapPlacementsPlayer.entrySet()) {
-            for(Position pos : entry.getValue()){
-                Trap trap;
-                switch(entry.getKey()) {
-                    case BLACKHOLE:
-                        trap = trapFactory.createBlackHole();
-                        break;
-                    default:
-                        trap = trapFactory.createTornado();
-                        this.player.setTornado((Tornado) trap);
-                }
-
-                this.player.getGrid().placeTrap(trap, pos.getX(), pos.getY());
-            }
-        }
-    }
-
-    private void initializeTrapsRobot() {
-        TrapFactory trapFactory = new TrapFactory();
-
-        Map<TrapType, List<Position>> trapPlacementsRobot = gamePlacement.getTrapPlacementsRobot();
-        for(Map.Entry<TrapType, List<Position>> entry : trapPlacementsRobot.entrySet()) {
-            for(Position pos : entry.getValue()) {
-                Trap trap;
-                switch (entry.getKey()) {
-                    case BLACKHOLE:
-                        trap = trapFactory.createBlackHole();
-                        break;
-                    default:
-                        trap = trapFactory.createTornado();
-                        this.robot.setTornado((Tornado) trap);
-                }
-
-                this.robot.getGrid().placeTrap(trap, pos.getX(), pos.getY());
-            }
-        }
-    }*/
 
     private void initializeTraps(Player owner, Map<TrapType, List<Position>> placements) {
         for (Map.Entry<TrapType, List<Position>> entry : placements.entrySet()) {
@@ -255,29 +133,6 @@ public class Game {
         }
 
     }
-
-    /*
-    private void initializeWeaponsIslandRobot(){
-        WeaponFactory factory = new WeaponFactory();
-
-        Map<WeaponType, List<Position>> weaponPlacementRobot = gamePlacement.getWeaponPlacementRobot();
-        for(Map.Entry<WeaponType, List<Position>> entry : weaponPlacementRobot.entrySet()) {
-            for(Position pos : entry.getValue()){
-                Weapon weapon;
-                switch(entry.getKey()) {
-                    case BOMB:
-                        weapon = factory.createBomb();
-                        break;
-                    default:
-                        weapon = factory.createSonar();
-                }
-
-                this.robot.getGrid().placeWeapon(weapon, pos.getX(), pos.getY());
-            }
-        }
-    }*/
-
-
 
     // ACTIONS DU JOUEUR
 
