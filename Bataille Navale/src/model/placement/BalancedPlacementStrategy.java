@@ -93,7 +93,7 @@ public class BalancedPlacementStrategy implements PlacementStrategy{
     }
 
     private boolean tryPlaceInDirection(PlacementGrid grid, BoatName boat, Position start, Orientation orient, int gridSize) {
-        int boatSize = getBoatSize(boat);
+        int boatSize = Boat.getBoatSize(boat);
         int maxX = orient == Orientation.HORIZONTAL ? gridSize - boatSize : gridSize - 1;
         int maxY = orient == Orientation.VERTICAL ? gridSize - boatSize : gridSize - 1;
 
@@ -160,10 +160,5 @@ public class BalancedPlacementStrategy implements PlacementStrategy{
             if (!placed) return false;
         }
         return true;
-    }
-
-    private int getBoatSize(BoatName boatType){
-        Boat boat = new Boat();
-        return Boat.getBoatSize(boatType);
     }
 }

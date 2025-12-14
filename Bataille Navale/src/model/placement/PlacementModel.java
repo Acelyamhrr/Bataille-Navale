@@ -368,7 +368,7 @@ public class PlacementModel {
     private PreviewInfo getBoatPreview(int x, int y, Orientation orient) {
         BoatName boat = boatsToPlace.get(state.boatIndex);
         boolean canPlace = validator.canPlaceBoat(playerGrid, boat, x, y, orient, config.getGridSize());
-        int size = getBoatSize(boat);
+        int size = Boat.getBoatSize(boat);
 
         List<Position> cells = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -456,11 +456,6 @@ public class PlacementModel {
 
     public PlacementPhase getCurrentPhase() {
         return state.getPhase();
-    }
-
-    private int getBoatSize(BoatName boatType){
-        Boat boat = new Boat();
-        return Boat.getBoatSize(boatType);
     }
 
     public boolean squareInIsland(int x, int y) {

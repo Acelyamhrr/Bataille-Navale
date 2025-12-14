@@ -13,7 +13,7 @@ public class PlacementValidator {
      * Vérifie si un bateau peut être placé à une position donnée
      */
     public boolean canPlaceBoat(PlacementGrid grid, BoatName boat, int x, int y, Orientation orient, int gridSize) {
-        int size = getBoatSize(boat);
+        int size = Boat.getBoatSize(boat);
 
         // Vérifier que le bateau ne dépasse pas de la grille
         if (orient == Orientation.HORIZONTAL && x + size > gridSize) return false;
@@ -58,10 +58,5 @@ public class PlacementValidator {
 
         // Doit être sur l'île ET la cellule ne doit pas être occupée
         return grid.isInIsland(x, y) && !grid.isCellOccupied(x, y);
-    }
-
-    private int getBoatSize(BoatName boatType){
-        Boat boat = new Boat();
-        return Boat.getBoatSize(boatType);
     }
 }

@@ -72,7 +72,7 @@ public class PlacementGrid {
     public boolean isCellOccupied(int x, int y) {
         // Vérifier bateaux
         for (Map.Entry<BoatName, List<Position>> entry : boats.entrySet()) {
-            int boatSize = getBoatSize(entry.getKey());
+            int boatSize = Boat.getBoatSize(entry.getKey());
             for (Position pos : entry.getValue()) {
                 if (isBoatAt(pos, boatSize, x, y)) {
                     return true;
@@ -162,10 +162,5 @@ public class PlacementGrid {
 
     public boolean hasIsland() {
         return hasIsland;
-    }
-
-    private int getBoatSize(BoatName boatType){
-        Boat boat = new Boat();
-        return Boat.getBoatSize(boatType);
     }
 }
