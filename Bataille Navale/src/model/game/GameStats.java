@@ -12,9 +12,12 @@ public class GameStats {
     private int boatsIntact;
     private int boatsTouched;
     private int boatsSunk;
+
     private int missedShots;
     private int hitCells;
     private int totalCells;
+
+    private int totalBoatCells;
 
     private GameStats() {}
 
@@ -35,12 +38,14 @@ public class GameStats {
         boatsIntact = 0;
         boatsTouched = 0;
         boatsSunk = 0;
+        totalBoatCells = 0;
 
         for (Boat boat : player.getBoats()) {
+            totalBoatCells += boat.getSize();
+
             if (boat.hasSunk()) {
                 boatsSunk++;
             } else if (boat.isTouched()) {
-                // Si le bateau a été touché au moins une fois mais pas coulé
                 boatsTouched++;
             } else {
                 boatsIntact++;
@@ -98,11 +103,15 @@ public class GameStats {
         return totalCells;
     }
 
+    public int getTotalBoatCells() {
+        return totalBoatCells;
+    }
+
     /**
      * Retourne le ratio de précision (pour affichage).
      */
     public String getHitRatio() {
-        return hitCells + "/" + totalCells;
+        return hitCells + "/" + totalBoatCells;
     }
 
     @Override
