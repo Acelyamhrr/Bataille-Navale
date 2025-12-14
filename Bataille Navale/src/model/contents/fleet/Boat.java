@@ -106,4 +106,9 @@ public class Boat extends Content {
     public int getSize(){
         return this.numberSquares;
     }
+
+
+    public boolean isTouched() {
+        return this.alreadyTouched;
+    }
 }
