@@ -55,7 +55,7 @@ public class PlacementController {
         }
 
         switch (config.getTrapMode()) {
-            case RANDOM:
+            case RANDOM, MANUAL:
                 currentPlacementBoat = true;
                 updateBoatSelector();
                 updateGrid();
@@ -66,11 +66,6 @@ public class PlacementController {
                 updateGrid();
                 currentPlacementBoat = true;
                 updateBoatSelector();
-                break;
-            case MANUAL:
-                currentPlacementBoat = true;
-                updateBoatSelector();
-                updateGrid();
                 break;
         }
     }
@@ -219,6 +214,17 @@ public class PlacementController {
             return true;
         }
 
+        return false;
+    }
+
+    private boolean placeTrap(TrapType trap, int x, int y, Map<BoatName, List<Position>> boats,  Map<TrapType, List<Position>> traps, Map<WeaponType, List<Position>> weapons){
+        if (canPlaceTrap(trap, x, y, boats, traps, weapons)) {
+            if(!traps.containsKey(trap)) {
+                traps.put(trap, new ArrayList<>());
+            }
+            traps.get(trap).add(new Position(x, y));
+            return true;
+        }
         return false;
     }
 
@@ -456,17 +462,13 @@ public class PlacementController {
         int y = 3;
 
         for (TrapType trap : trapsToPlace) {
-            if (canPlaceTrap(trap, x + 1, y + 1, playerBoats, playerTraps, playerWeapons)) {
-                if(!playerTraps.containsKey(trap)) {
-                    playerTraps.put(trap, new ArrayList<>());
-                }
-                playerTraps.get(trap).add(new Position(x++, y++));
-            } else {
-                if (canPlaceTrap(trap, x + 2, y + 2, playerBoats, playerTraps, playerWeapons)) {
-                    if(!playerTraps.containsKey(trap)) {
-                        playerTraps.put(trap, new ArrayList<>());
-                    }
-                    playerTraps.get(trap).add(new Position(x += 2, y += 2));
+            if(placeTrap(trap, x+1, y+1, playerBoats, playerTraps, playerWeapons)) {
+                x++;
+                y++;
+            }else {
+                if(placeTrap(trap, x+2, y+2, playerBoats, playerTraps, playerWeapons)) {
+                    x+=2;
+                    y+=2;
                 }
             }
         }
@@ -486,11 +488,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(gridSize);
                 int y = rand.nextInt(gridSize);
-                if (canPlaceTrap(trap, x, y, playerBoats, playerTraps, playerWeapons)) {
-                    if(!playerTraps.containsKey(trap)) {
-                        playerTraps.put(trap, new ArrayList<>());
-                    }
-                    playerTraps.get(trap).add(new Position(x, y));
+
+                if(placeTrap(trap, x, y, playerBoats, playerTraps, playerWeapons)) {
                     placed = true;
                 }
                 attempts++;
@@ -709,17 +708,13 @@ public class PlacementController {
         int y = 3;
 
         for (TrapType trap : trapsToPlace) {
-            if (canPlaceTrap(trap, x + 1, y + 1, robotBoats, robotTraps, playerWeapons)) {
-                if(!robotTraps.containsKey(trap)) {
-                    robotTraps.put(trap, new ArrayList<>());
-                }
-                robotTraps.get(trap).add(new Position(x++, y++));
-            } else {
-                if (canPlaceTrap(trap, x + 2, y + 2, robotBoats, robotTraps, playerWeapons)) {
-                    if(!robotTraps.containsKey(trap)) {
-                        robotTraps.put(trap, new ArrayList<>());
-                    }
-                    robotTraps.get(trap).add(new Position(x += 2, y += 2));
+            if(placeTrap(trap, x+1, y+1, robotBoats, robotTraps, robotWeapons)){
+                x++;
+                y++;
+            }else {
+                if(placeTrap(trap, x+2, y+2, robotBoats, robotTraps, robotWeapons)){
+                    x+=2;
+                    y+=2;
                 }
             }
         }
@@ -736,11 +731,8 @@ public class PlacementController {
             while (!placed && attempts < 100) {
                 int x = rand.nextInt(gridSize);
                 int y = rand.nextInt(gridSize);
-                if (canPlaceTrap(trap, x, y, robotBoats, robotTraps, playerWeapons)) {
-                    if(!robotTraps.containsKey(trap)) {
-                        robotTraps.put(trap, new ArrayList<>());
-                    }
-                    robotTraps.get(trap).add(new Position(x, y));
+
+                if(placeTrap(trap, x, y, robotBoats, robotTraps, robotWeapons)){
                     placed = true;
                 }
                 attempts++;
