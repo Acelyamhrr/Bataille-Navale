@@ -11,13 +11,16 @@ import model.players.*;
 import view.EndView;
 import view.GameView;
 
+import javax.swing.*;
 import java.awt.*;
 
 
 /**
  * Controller pour la partie de jeu.
- * Entre deux entre la vue et le modèle.
+ * intermédiaire entre la vue et le modèle.
  * Ne contient AUCUNE logique métier.
+ * demande au modèle de faire les calculs
+ * et transmet les res à la vue
  */
 public class GameController {
     private Game game;
@@ -28,9 +31,13 @@ public class GameController {
     private boolean placingTrapMode = false;
     private TrapType trapToPlace = null;
 
-    public GameController(GameConfig config, GamePlacement placement) {
+    private CentralController centralController;
+
+    public GameController(GameConfig config, GamePlacement placement, CentralController centralController) {
         this.config = config;
         this.game = new Game(config, placement);
+
+        this.centralController = centralController;
 
         game.initialize();
         setupRobotStrategy();
@@ -45,19 +52,13 @@ public class GameController {
         }
     }
 
-    /*
-    public boolean isInIsland(int x, int y){
-        Player player = this.game.getPlayer();
-        Grid grid = player.getGrid();
-        boolean inIsland = grid.squareIsInIsland(new Position(x, y));
-        return hasIsland() && inIsland;
-    }
-    */
-
     public void setView(GameView view) {
         this.view = view;
         registerObservers();        // enregistre la vue comme observer sur tous les boats et squares
         updateAllDisplays();
+
+        updatePlayerStatsDisplay();
+        updateRobotStatsDisplay();
     }
 
     // OBSERVATEURS
@@ -190,6 +191,8 @@ public class GameController {
         // Désactiver le mode placement
         exitTrapPlacementMode();
 
+        updatePlayerStatsDisplay();
+
         // Terminer le tour
         endPlayerTurn();
     }
@@ -266,6 +269,8 @@ public class GameController {
                 }
             }
         }
+
+        updateRobotStatsDisplay();
     }
 
 
@@ -287,6 +292,10 @@ public class GameController {
 
         if (result.wasTornadoActivated()) {
             view.showSuccess("🌪️ Le robot a été détourné par votre tornade !");
+        }
+
+        if (result.getAttackResult() != null) {
+            updatePlayerStatsDisplay();
         }
     }
 
@@ -319,6 +328,39 @@ public class GameController {
         view.setWeaponEnabled(WeaponType.SONAR, player.getWeaponCount(WeaponType.SONAR) > 0);
     }
 
+    public void updatePlayerStatsDisplay() {
+        GameStats stats = GameStats.calculate(game.getPlayer(), game.getRobot(), game.getConfig().getGridSize());
+
+        view.updatePlayerStats(
+                stats.getBoatsIntact(),
+                stats.getBoatsTouched(),
+                stats.getBoatsSunk(),
+                stats.getMissedShots(),
+                stats.getHitCells(),
+                stats.getTotalBoatCells()
+        );
+    }
+
+    public void updateRobotStatsDisplay() {
+        // Calculer les stats du robot
+        GameStats stats = GameStats.calculate(
+                game.getRobot(),      // Le robot (ses bateaux)
+                game.getPlayer(),     // Le joueur (pour savoir où le robot a tiré)
+                game.getConfig().getGridSize()
+        );
+
+        // Transmettre à la Vue
+        view.updateRobotStats(
+                stats.getBoatsIntact(),
+                stats.getBoatsTouched(),
+                stats.getBoatsSunk(),
+                stats.getMissedShots(),
+                stats.getHitCells(),
+                stats.getTotalBoatCells()
+        );
+    }
+
+
     // FIN DE PARTIE
 
     private void endGame() {
@@ -332,7 +374,7 @@ public class GameController {
         EndView endView = new EndView( winner, game.getTurnNumber(), playerStats, robotStats, game.getPlayer().getUsername() );
 
         endView.addQuitListener(e -> quit());
-        endView.addRestartListener(e -> restart());
+        endView.addRestartListener(e -> restart(endView));
 
         endView.setVisible(true);
         view.dispose();
@@ -360,14 +402,38 @@ public class GameController {
         return game.getPlayer();
     }
 
-    public void restart() {
-        // TODO: Implémenter le restart
-    }
 
     public void quit() {
         System.exit(0);
     }
 
 
+    private void restart(EndView endView) {
+        int choice = endView.showRestartChoiceDialog();
+
+        if (choice == -1) {
+            return; // Annulé
+        }
+
+        // Fermer EndView et GameView
+        endView.dispose();
+        if (view != null) {
+            view.dispose();
+        }
+
+        // Appeler la bonne méthode
+        switch (choice) {
+            case 0:
+                centralController.restartWithSamePlacement();
+                break;
+            case 1:
+                centralController.restartWithSameConfig();
+                break;
+            case 2:
+                centralController.restartFromBeginning();
+                break;
+        }
+
+    }
 
 }

@@ -162,4 +162,24 @@ public class EndView extends JFrame {
     public void addQuitListener(ActionListener listener) {
         quitButton.addActionListener(listener);
     }
+
+    public int showRestartChoiceDialog() {
+        Object[] options = {
+                "Rejouer la même partie",
+                "Nouveaux placements",
+                "Nouvelle configuration"
+        };
+
+        return JOptionPane.showOptionDialog(
+                this,
+                "Comment voulez-vous recommencer ?",
+                "Recommencer la partie",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                options[1]
+        );
+    }
+
 }

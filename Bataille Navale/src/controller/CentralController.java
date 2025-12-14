@@ -106,7 +106,7 @@ public class CentralController {
     }
 
     private void openGame() {
-        this.gameController = new GameController(currentConfig, currentPlacement);
+        this.gameController = new GameController(currentConfig, currentPlacement, this);
         gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername(), gameController, this.currentPlacement);
         this.gameController.setView(gameView);
 
@@ -119,5 +119,41 @@ public class CentralController {
     // quit
     private void quit() {
         System.exit(0);
+    }
+
+    /**
+     * Recommence avec exactement le même placement.
+     */
+    public void restartWithSamePlacement() {
+        if (gameView != null) {
+            gameView.dispose();
+            gameView = null;
+        }
+        openGame();
+    }
+
+    /**
+     * Recommence avec la même config mais nouveaux placements.
+     */
+    public void restartWithSameConfig() {
+        if (gameView != null) {
+            gameView.dispose();
+            gameView = null;
+        }
+        currentPlacement = null;
+        openPlacement();
+    }
+
+    /**
+     * Recommence complètement depuis la configuration.
+     */
+    public void restartFromBeginning() {
+        if (gameView != null) {
+            gameView.dispose();
+            gameView = null;
+        }
+        currentConfig = null;
+        currentPlacement = null;
+        openConfiguration();
     }
 }
