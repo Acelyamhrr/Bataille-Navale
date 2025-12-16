@@ -254,19 +254,41 @@ public class GameController {
         view.appendHistory("Tour " + game.getTurnNumber() + " - " +
                 game.getPlayer().getUsername() + ": " + action + "\n");
 
+        if (result.getAttackResult() != null && result.getAttackResult().isSonar()) {
+            view.showSonarResult(
+                    result.getRedirectedTo().getX(),
+                    result.getRedirectedTo().getY(),
+                    result.getAttackResult().getOccupiedCells(),
+                    true  // C'est le joueur
+            );
+        }
+
         if (result.wasTornadoActivated()) {
-            view.showSuccess("🌪️ Tornade activée ! Votre tir a été détourné vers " +
-                    result.getRedirectedTo().getX() + "," + result.getRedirectedTo().getY());
+            view.showTrapEffect("🌪️ TORNADE ACTIVÉE !",
+                    "Votre tir a été dévié par la tornade du ROBOT !\n" +
+                    "Destination finale : " + result.getRedirectedTo().getX() + "," + result.getRedirectedTo().getY(),
+                    false);     // pas bon pour le jouer
         }
 
         // Afficher les activations de pièges
         if (result.getAttackResult().hadTrapActivations()) {
             for (TrapActivation trap : result.getAttackResult().getTrapActivations()) {
                 if (trap.getType() == TrapType.TORNADO) {
-                    view.showSuccess("🌪️ TORNADE ACTIVÉE ! Les 3 prochains tirs seront détournés !");
+
+                    view.showTrapEffect(
+                            "🌪️ TORNADE DÉCLENCHÉE !",
+                            "Vous avez activé la TORNADE du ROBOT !\n\n" +
+                                    "⚠️ Les 3 prochains tirs du robot seront déviés vers des positions aléatoires !",
+                            false  // Rouge = mauvais pour le joueur
+                    );
+
                 } else if (trap.getType() == TrapType.BLACKHOLE) {
-                    view.showSuccess("🕳️ TROU NOIR ! L'attaque revient sur vous !");
-                }
+                    view.showTrapEffect(
+                            "🕳️ TROU NOIR ACTIVÉ !",
+                            "Vous avez activé le TROU NOIR du ROBOT !\n\n" +
+                                    "💥 Votre attaque vous revient dessus !",
+                            false  // Rouge = mauvais pour le joueur
+                    );                }
             }
         }
 
@@ -290,10 +312,47 @@ public class GameController {
         view.setRobotAction(action);
         view.appendHistory("Tour " + game.getTurnNumber() + " - Robot: " + action + "\n");
 
-        if (result.wasTornadoActivated()) {
-            view.showSuccess("🌪️ Le robot a été détourné par votre tornade !");
+
+        if (result.getAttackResult() != null && result.getAttackResult().isSonar()) {
+            view.showSonarResult(
+                    result.getRedirectedTo().getX(),
+                    result.getRedirectedTo().getY(),
+                    result.getAttackResult().getOccupiedCells(),
+                    false  // C'est le robot
+            );
         }
 
+        if (result.wasTornadoActivated()) {
+            view.showTrapEffect(
+                    "🌪️ VOTRE TORNADE FONCTIONNE !",
+                    "Votre tornade a dévié l'attaque du robot !\n" +
+                            "Il visait une position, mais a touché : " +
+                            result.getRedirectedTo().getX() + "," + result.getRedirectedTo().getY(),
+                    true  // Vert = bon pour le joueur
+            );
+        }
+
+        if (result.getAttackResult() != null && result.getAttackResult().hadTrapActivations()) {
+            for (TrapActivation trap : result.getAttackResult().getTrapActivations()) {
+                if (trap.getType() == TrapType.TORNADO) {
+                    // Le robot a activé VOTRE tornade
+                    view.showTrapEffect(
+                            "🌪️ VOTRE TORNADE DÉCLENCHÉE !",
+                            "Le robot a activé VOTRE TORNADE !\n\n" +
+                                    "✅ Ses 3 prochains tirs seront déviés !",
+                            true  // Vert = bon pour le joueur
+                    );
+                } else if (trap.getType() == TrapType.BLACKHOLE) {
+                    // Le robot a activé VOTRE trou noir
+                    view.showTrapEffect(
+                            "🕳️ VOTRE TROU NOIR ACTIVÉ !",
+                            "Le robot a activé VOTRE TROU NOIR !\n\n" +
+                                    "✅ Son attaque lui revient dessus !",
+                            true  // Vert = bon pour le joueur
+                    );
+                }
+            }
+        }
         if (result.getAttackResult() != null) {
             updatePlayerStatsDisplay();
         }
@@ -371,12 +430,8 @@ public class GameController {
         GameStats robotStats = GameStats.calculate(game.getRobot(), game.getPlayer(), config.getGridSize());
 
         // Créer la vue de fin
-        EndView endView = new EndView( winner, game.getTurnNumber(), playerStats, robotStats, game.getPlayer().getUsername() );
+        EndController endController = new EndController( centralController, winner, game.getTurnNumber(), playerStats, robotStats, game.getPlayer().getUsername() );
 
-        endView.addQuitListener(e -> quit());
-        endView.addRestartListener(e -> restart(endView));
-
-        endView.setVisible(true);
         view.dispose();
     }
 
@@ -407,33 +462,5 @@ public class GameController {
         System.exit(0);
     }
 
-
-    private void restart(EndView endView) {
-        int choice = endView.showRestartChoiceDialog();
-
-        if (choice == -1) {
-            return; // Annulé
-        }
-
-        // Fermer EndView et GameView
-        endView.dispose();
-        if (view != null) {
-            view.dispose();
-        }
-
-        // Appeler la bonne méthode
-        switch (choice) {
-            case 0:
-                centralController.restartWithSamePlacement();
-                break;
-            case 1:
-                centralController.restartWithSameConfig();
-                break;
-            case 2:
-                centralController.restartFromBeginning();
-                break;
-        }
-
-    }
 
 }
