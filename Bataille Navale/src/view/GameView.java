@@ -4,6 +4,7 @@ import controller.GameController;
 import model.Observer;
 import model.enums.*;
 import model.game.GamePlacement;
+import model.grid.Grid;
 import model.grid.Position;
 import model.players.Player;
 
@@ -461,38 +462,15 @@ public class GameView extends JFrame implements Observer {
 
         if (isPlayerGrid) {
             playerGridButtons = buttons;
+            Grid playerGrid = placement.getPlayerGrid();
 
-            Map<BoatName, List<Position>> placementsBoats = placement.getBoatPlacementsPlayer();
+            List<Position> placementsBoats = playerGrid.getPositionsBoats();
 
-            for(Map.Entry<BoatName, List<Position>> entry : placementsBoats.entrySet()){
-                int size = 2;
-                switch(entry.getKey()){
-                    case AIRCRAFT_CARRIER:
-                        size = 5;
-                        break;
-                    case CRUISER:
-                        size = 4;
-                        break;
-                    case DESTROYER, SUBMARINE:
-                        size = 3;
-                        break;
-                }
-
-                for(Position position : entry.getValue()){
-                    if(position.getOrientation() == Orientation.HORIZONTAL){
-                        for (int i = 0; i < size; i++) {
-                            playerGridButtons[position.getY()][position.getX()+i].setBackground(BOAT_COLOR);
-                        }
-                    }
-                    else {
-                        for (int i = 0; i < size; i++) {
-                            playerGridButtons[position.getY()+i][position.getX()].setBackground(BOAT_COLOR);
-                        }
-                    }
-                }
+            for(Position position : placementsBoats){
+                playerGridButtons[position.getY()][position.getX()].setBackground(BOAT_COLOR);
             }
 
-            Map<TrapType, List<Position>> placementTraps = placement.getTrapPlacementsPlayer();
+            Map<TrapType, List<Position>> placementTraps = playerGrid.getPositionsTraps();
 
             for(Map.Entry<TrapType, List<Position>> entry : placementTraps.entrySet()){
                 for(Position pos  : entry.getValue()){
@@ -500,16 +478,16 @@ public class GameView extends JFrame implements Observer {
 
                     String text;
                     if(entry.getKey() == TrapType.BLACKHOLE){
-                        text = "TN";
+                        text = "N";
                     }
                     else{
-                        text = "TO";
+                        text = "O";
                     }
                     playerGridButtons[pos.getY()][pos.getX()].setText(text);
                 }
             }
 
-            Map<WeaponType, List<Position>> placementWeapons = placement.getWeaponPlacementPlayer();
+            Map<WeaponType, List<Position>> placementWeapons = playerGrid.getPositionsWeapons();
 
             for(Map.Entry<WeaponType, List<Position>> entry : placementWeapons.entrySet()){
                 for(Position pos  : entry.getValue()){
@@ -659,8 +637,8 @@ public class GameView extends JFrame implements Observer {
         legendPanel.add(Box.createVerticalStrut(10));
 
         JPanel wordsPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        wordsPanel.add(new JLabel("TO = Tornade"));
-        wordsPanel.add(new JLabel("TN = Trou noir"));
+        wordsPanel.add(new JLabel("O = Tornade"));
+        wordsPanel.add(new JLabel("N = Trou noir"));
         wordsPanel.add(new JLabel("B = Bombe"));
         wordsPanel.add(new JLabel("S = Sonar"));
 

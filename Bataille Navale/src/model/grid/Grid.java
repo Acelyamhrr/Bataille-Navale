@@ -3,25 +3,28 @@ package model.grid;
 import model.contents.fleet.Boat;
 import model.contents.traps.Trap;
 import model.contents.weapons.Weapon;
-import model.enums.ContentType;
-import model.enums.ModeGame;
-import model.enums.Orientation;
+import model.enums.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public  class Grid {
-    private int size;
+    private int gridSize;
     private Map<Position, Square> squares;
     private ModeGame mode;
     private Island island;
     private boolean robot;
+    private Map<BoatName, Integer> boatsCount;
+    private List<Boat> allBoats = new ArrayList<>();
 
     public Grid(int size, ModeGame mode, boolean robot) {
-        this.size = size;
+        this.gridSize = size;
         this.mode = mode;
-        this.squares = new HashMap<Position, Square>();
+        this.squares = new HashMap<>();
         this.robot = robot;
+        this.boatsCount = new HashMap<>();
 
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
@@ -39,41 +42,84 @@ public  class Grid {
                 for(int j=y; j<y+4; j++){
                     Position pos = new Position(i, j);
                     this.squares.get(pos).setIsland();
-                    this.island.addSquare(pos, this.squares.get(pos));
                 }
             }
         }
     }
 
+    /**
+     * Vérifie si un bateau peut être placé à une position donnée
+     */
+    public boolean canPlaceBoat(int size, int x, int y, Orientation orientation){
+        // Vérifier que le bateau ne dépasse pas de la grille
+        if (orientation == Orientation.HORIZONTAL && x + size > gridSize) return false;
+        if (orientation == Orientation.VERTICAL && y + size > gridSize) return false;
+
+        // Vérifier chaque cellule du bateau
+        for (int i = 0; i < size; i++) {
+            int cx = orientation == Orientation.HORIZONTAL ? x + i : x;
+            int cy = orientation == Orientation.VERTICAL ? y + i : y;
+            Position pos2 = new Position(cx, cy);
+            // Un bateau ne peut pas être sur l'île
+            if(this.mode == ModeGame.ISLAND){
+                if (island.contains(pos2)) return false;
+            }
+
+            // La cellule ne doit pas être déjà occupée
+            if (!this.squares.get(pos2).isEmpty()) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Vérifie si un piège/arme peut être placé à une position donnée
+     */
+    public boolean canPlaceTrapWeapon(int x, int y){
+        // Vérifier les limites
+        if (x >= gridSize || y >= gridSize) return false;
+
+        Position pos = new Position(x, y);
+
+        // La cellule ne doit pas être occupée
+        if(!this.squares.get(pos).isEmpty()) return false;
+
+        if(mode == ModeGame.ISLAND){
+            if(island.contains(pos)) return true;
+            return false;
+        }
+
+        return true;
+    }
+
     public void placeBoat(Boat b, int x, int y, Orientation orientation) {
-        Position pos = new Position(x, y, orientation);
+        // Incrémenter le compteur
+        Integer count = (this.boatsCount.getOrDefault(b.getName(), 0)) +1;
+        this.boatsCount.put(b.getName(), count);
+        this.allBoats.add(b);
+
         b.setPosition(x, y, orientation);
+        b.belongsTo(robot);
 
         //Placement de l'instance dans les cases occupées
-        this.squares.get(pos).setContent(b);
-        if(orientation == Orientation.HORIZONTAL){
-            for(int i=1; i<b.getSize(); i++){
-                Position pos2 = new Position(pos.getX()+i, pos.getY());
-                this.squares.get(pos2).setContent(b);
-            }
-        }
-        else{
-            for(int i=1; i<b.getSize(); i++){
-                Position pos2 = new Position(pos.getX(), pos.getY()+i);
-                this.squares.get(pos2).setContent(b);
-            }
+        for (int i = 0; i < b.getSize(); i++) {
+            int cx = orientation == Orientation.HORIZONTAL ? x + i : x;
+            int cy = orientation == Orientation.VERTICAL ? y + i : y;
+            Position pos = new Position(cx, cy);
+
+            this.squares.get(pos).setContent(b);
         }
     }
 
     public void placeTrap(Trap trap, int x, int y) {
         Position pos = new Position(x, y);
-        trap.setPosition(x, y, null);
+        trap.setPosition(x, y, Orientation.NONE);
         this.squares.get(pos).setContent(trap);
     }
 
     public void placeWeapon(Weapon weapon, int x, int y) {
         Position pos = new Position(x, y);
-        weapon.setPosition(x, y, null);
+        weapon.setPosition(x, y, Orientation.NONE);
         this.squares.get(pos).setContent(weapon);
     }
 
@@ -84,8 +130,8 @@ public  class Grid {
     public void reset(){
         this.squares.clear();
 
-        for(int i=0; i<size; i++){
-            for(int j=0; j<size; j++){
+        for(int i = 0; i< gridSize; i++){
+            for(int j = 0; j< gridSize; j++){
                 Position pos = new Position(i, j);
                 this.squares.put(pos, new Square(pos, this.robot));
             }
@@ -93,7 +139,7 @@ public  class Grid {
     }
 
     public int getSize(){
-        return this.size;
+        return this.gridSize;
     }
 
     public ContentType getContentTypeSquare(Position pos){
@@ -106,6 +152,124 @@ public  class Grid {
 
     public Square getSquare(Position pos) {
         return this.squares.get(pos);
+    }
+
+    public boolean hasIsland(){
+        return this.mode == ModeGame.ISLAND;
+    }
+
+    public Position getPositionIsland(){
+        return this.island.getPosition();
+    }
+
+    public int getSizeIsland(){
+        return this.island.getSize();
+    }
+
+    /**
+     * Cherche tous les boats et les supprime de la grille
+     */
+    public void clearBoats(){
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if(entry.getValue().getContentType() == ContentType.BOAT){
+                this.squares.get(entry.getKey()).setContent(null);
+            }
+        }
+
+        allBoats.clear();
+        boatsCount.clear();
+    }
+
+    /**
+     * Cherche tous les traps et les supprime de la grille
+     */
+    public void clearTraps(){
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if(entry.getValue().getContentType() == ContentType.TRAP){
+                this.squares.get(entry.getKey()).setContent(null);
+            }
+        }
+    }
+
+    /**
+     * Cherche tous les weapons et les supprime de la grille
+     */
+    public void clearWeapons(){
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if (entry.getValue().getContentType() == ContentType.WEAPON){
+                this.squares.get(entry.getKey()).setContent(null);
+            }
+        }
+    }
+
+    /**
+     * Supprime tous les éléments de la grille
+     */
+    public void clear(){
+        clearBoats();
+        clearTraps();
+        clearWeapons();
+    }
+
+    public boolean isCellOccupied(int x, int y){
+        return !this.squares.get(new Position(x, y)).isEmpty();
+    }
+
+    public int getBoatCount(BoatName boat){
+        return this.boatsCount.getOrDefault(boat, 0);
+    }
+
+    /**
+     * Retourne la liste des positions où il y a un bateau
+     */
+    public List<Position> getPositionsBoats(){
+        List<Position> list = new ArrayList<>();
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if(entry.getValue().getContentType() == ContentType.BOAT){
+                list.add(entry.getKey());
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Retourne la liste des positions où il y a un piège
+     */
+    public Map<TrapType, List<Position>> getPositionsTraps(){
+        Map<TrapType,  List<Position>> map = new HashMap<>();
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if(entry.getValue().getContentType() == ContentType.TRAP){
+                Trap t = (Trap) entry.getValue().getContent();
+                if(!map.containsKey(t.getName())) map.put(t.getName(), new ArrayList<>());
+                map.get(t.getName()).add(entry.getKey());
+            }
+        }
+
+        return map;
+    }
+
+    /**
+     * Retourne la liste des positions où il y a une arme
+     */
+    public Map<WeaponType, List<Position>> getPositionsWeapons(){
+        Map<WeaponType,  List<Position>> map = new HashMap<>();
+        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+            if(entry.getValue().getContentType() == ContentType.WEAPON){
+                Weapon w = (Weapon) entry.getValue().getContent();
+                if(!map.containsKey(w.getName())) map.put(w.getName(), new ArrayList<>());
+                map.get(w.getName()).add(entry.getKey());
+            }
+        }
+
+        return map;
+    }
+
+    /**
+     * Retourne tous les bateaux placés
+     */
+    public List<Boat> getBoats(){
+        return this.allBoats;
     }
 
 }

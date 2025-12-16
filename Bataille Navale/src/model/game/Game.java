@@ -2,7 +2,6 @@ package model.game;
 
 import model.contents.Content;
 import model.contents.fleet.*;
-import model.contents.traps.Tornado;
 import model.contents.traps.Trap;
 import model.contents.traps.TrapFactory;
 import model.contents.weapons.Weapon;
@@ -12,12 +11,10 @@ import model.game.Results.AttackResult;
 import model.game.Results.TurnResult;
 import model.grid.Grid;
 import model.grid.Position;
-import model.history.History;
 import model.players.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Game {
     private GameConfig config;
@@ -41,56 +38,20 @@ public class Game {
         player = new Player(config.getUsername(), false);
         robot = new Player("Robot", true);
 
-        player.createGrid(config.getGridSize(), config.getModeGame());
-        robot.createGrid(config.getGridSize(), config.getModeGame());
-
-        initializeBoats(player, placement.getBoatPlacementsPlayer());
-        initializeBoats(robot, placement.getBoatPlacementsRobot());
-
-        initializeTraps(player, placement.getTrapPlacementsPlayer());
-        initializeTraps(robot, placement.getTrapPlacementsRobot());
+        player.setGrid(placement.getPlayerGrid());
+        setBoatPlayer(player);
+        robot.setGrid(placement.getRobotGrid());
+        setBoatPlayer(robot);
 
         initializeWeapons();
-
-        if (config.getModeGame() == ModeGame.ISLAND) {
-            initializeIslandWeapons(player, placement.getWeaponPlacementPlayer());
-            initializeIslandWeapons(robot, placement.getWeaponPlacementRobot());
-        }
     }
 
     // INITIALISATIONS
 
-    // une méthode pour joueur ET robot
-    private void initializeBoats(Player owner, Map<BoatName, List<Position>> placements) {
-        BoatFactory factory = new BoatFactory();
-
-        for (Map.Entry<BoatName, List<Position>> entry : placements.entrySet()) {
-            for (Position pos : entry.getValue()) {
-                Boat boat = createBoat(factory, entry.getKey());
-                boat.belongsTo(owner.isRobot());
-                owner.placeBoat(boat,pos);
-            }
-        }
-    }
-
-    private Boat createBoat(BoatFactory factory, BoatName type) {
-        switch (type) {
-            case AIRCRAFT_CARRIER: return factory.createAircraftCarrier();
-            case CRUISER: return factory.createCruiser();
-            case DESTROYER: return factory.createDestroyer();
-            case SUBMARINE: return factory.createSubmarine();
-            case TORPEDO_BOAT: return factory.createTorpedoBoat();
-            default: throw new IllegalArgumentException("Type de bateau inconnu: " + type);
-        }
-
-    }
-
-    private void initializeTraps(Player owner, Map<TrapType, List<Position>> placements) {
-        for (Map.Entry<TrapType, List<Position>> entry : placements.entrySet()) {
-            for (Position pos: entry.getValue()) {
-                Trap trap = createTrap(entry.getKey());
-                owner.placeTrap(trap, pos);
-            }
+    private void setBoatPlayer(Player player){
+        Grid grid = player.getGrid();
+        for(Boat b : grid.getBoats()){
+            player.addBoat(b);
         }
     }
 
@@ -112,16 +73,6 @@ public class Game {
             robot.setWeaponCount(WeaponType.BOMB, 1);
             robot.setWeaponCount(WeaponType.SONAR, 1);
         }
-    }
-
-    private void initializeIslandWeapons(Player owner, Map<WeaponType, List<Position>> placements) {
-        for(Map.Entry<WeaponType, List<Position>> entry : placements.entrySet()) {
-            for(Position pos : entry.getValue()){
-                Weapon weapon = createWeapon(entry.getKey());
-                owner.placeWeaponOnIsland(weapon, pos);
-            }
-        }
-
     }
 
     private Weapon createWeapon(WeaponType type) {

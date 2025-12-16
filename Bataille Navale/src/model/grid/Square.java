@@ -3,12 +3,8 @@ package model.grid;
 import model.Observer;
 import model.contents.Content;
 import model.contents.fleet.Boat;
-import model.contents.traps.Trap;
-import model.contents.weapons.Weapon;
 import model.enums.ContentType;
 import model.enums.State;
-import model.enums.TrapType;
-import model.enums.WeaponType;
 
 import java.util.ArrayList;
 

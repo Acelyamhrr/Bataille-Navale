@@ -1,15 +1,23 @@
 package view;
 
 import controller.PlacementController;
+import model.enums.*;
+import model.grid.Grid;
+import model.grid.Position;
+import model.placement.Placement;
+import model.placement.PlacementObserver;
+import model.placement.PreviewInfo;
+import model.placement.SelectionState;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.function.BiConsumer;
+import java.util.List;
+import java.util.Map;
 
-public class PlacementView extends JFrame {
+public class PlacementView extends JFrame  implements PlacementObserver {
 
     private int gridSize;
     private JButton[][] gridButtons;
@@ -25,6 +33,7 @@ public class PlacementView extends JFrame {
     private int hoverX = -1, hoverY = -1;
 
     private PlacementController controller;
+    private Placement model;
 
     // Couleurs
     private static final Color WATER_COLOR = new Color(100, 150, 200);
@@ -35,9 +44,10 @@ public class PlacementView extends JFrame {
     private static final Color PREVIEW_OK = new Color(100, 200, 100);
     private static final Color PREVIEW_BAD = new Color(200, 100, 100);
 
-    public PlacementView(int gridSize, String username, PlacementController controller) {
+    public PlacementView(int gridSize, String username, PlacementController controller, Placement model) {
         this.gridSize = gridSize;
         this.controller = controller;
+        this.model = model;
 
         setTitle("Placement - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -265,21 +275,21 @@ public class PlacementView extends JFrame {
         }
     }
 
-    public void setBoatOptions(String[] options) {
+    private void setBoatOptions(String[] options) {
         boatSelector.removeAllItems();
         for (String opt : options) boatSelector.addItem(opt);
     }
 
-    public void setTrapWeaponOptions(String[] options) {
+    private void setTrapWeaponOptions(String[] options) {
         trapWeaponSelector.removeAllItems();
         for (String opt : options) trapWeaponSelector.addItem(opt);
     }
 
-    public void enableBoatSelector(boolean enable) {
+    private void enableBoatSelector(boolean enable) {
         boatSelector.setEnabled(enable);
     }
 
-    public void enableTrapWeaponSelector(boolean enable) {
+    private void enableTrapWeaponSelector(boolean enable) {
         trapWeaponSelector.setEnabled(enable);
     }
 
@@ -313,10 +323,10 @@ public class PlacementView extends JFrame {
         gridButtons[y][x].setText(text);
     }
 
-    public void setInfoText(String text) { infoLabel.setText(text); }
-    public void setPhaseText(String text) { phaseLabel.setText(text); }
+    private void setInfoText(String text) { infoLabel.setText(text); }
+    private void setPhaseText(String text) { phaseLabel.setText(text); }
 
-    public void showError(String msg) {
+    private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
@@ -324,4 +334,125 @@ public class PlacementView extends JFrame {
         JOptionPane.showMessageDialog(this, msg, "Succès", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    // METHODES OBSERVER
+
+    @Override
+    public void onGridChanged(Grid grid) {
+        int size = grid.getSize();
+
+        // Reset
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                setCellColor(x, y, "water");
+                setCellText(x, y, "");
+            }
+        }
+
+        // Île
+        if (grid.hasIsland()) {
+            drawIsland(size);
+        }
+
+        // Éléments placés
+        drawBoats(grid);
+        drawTraps(grid);
+        drawWeapons(grid);
+
+        // Preview
+        drawPreview();
+    }
+
+    private void drawIsland(int gridSize) {
+        int ix = gridSize / 2 - 2;
+        int iy = gridSize / 2 - 2;
+        for (int i = ix; i < ix + 4; i++) {
+            for (int j = iy; j < iy + 4; j++) {
+                setCellColor(i, j, "island");
+            }
+        }
+    }
+
+    private void drawBoats(Grid grid) {
+        for(Position position : grid.getPositionsBoats()){
+            setCellColor(position.getX(), position.getY(), "boat");
+        }
+    }
+
+    private void drawTraps(Grid grid) {
+        for(Map.Entry<TrapType, java.util.List<Position>> entry : grid.getPositionsTraps().entrySet()) {
+            String text = (entry.getKey() == TrapType.BLACKHOLE ? "Trou noir" : "Tornade");
+            for(Position pos : entry.getValue()) {
+                setCellColor(pos.getX(), pos.getY(), "trap");
+                setCellText(pos.getX(), pos.getY(), text);
+            }
+        }
+    }
+
+    private void drawWeapons(Grid grid) {
+        for(Map.Entry<WeaponType, List<Position>> entry : grid.getPositionsWeapons().entrySet()) {
+            String text = (entry.getKey() == WeaponType.BOMB ? "Bombe" : "Sonar");
+            for(Position pos : entry.getValue()) {
+                setCellColor(pos.getX(), pos.getY(), "weapon");
+                setCellText(pos.getX(), pos.getY(), text);
+            }
+        }
+    }
+
+    private void drawPreview() {
+        int hx = getHoverX();
+        int hy = getHoverY();
+        if (hx < 0 || hy < 0) return;
+
+        Orientation orient = isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+        PreviewInfo preview = model.getPreviewInfo(hx, hy, orient);
+
+        if (preview != null) {
+            String color = preview.isValid() ? "previewOk" : "previewBad";
+            for(Position pos : preview.getCells()){
+                setCellColor(pos.getX(), pos.getY(), color);
+            }
+        }
+    }
+
+    @Override
+    public void onPhaseChanged(PlacementPhase phase) {
+        String phaseText;
+        switch (phase) {
+            case WEAPONS:
+                phaseText = "Phase: Placement des armes";
+                break;
+            case TRAPS:
+                phaseText = "Phase: Placement des pièges";
+                break;
+            default:
+                phaseText = "Phase: Placement des bateaux";
+        };
+        setPhaseText(phaseText);
+    }
+
+    @Override
+    public void onMessage(String message, MessageType type) {
+        switch (type) {
+            case INFO:
+                setInfoText(message);
+                break;
+            case SUCCESS:
+                setInfoText(message);
+                showSuccess(message);
+                break;
+            case ERROR:
+                setInfoText(message);
+                showError(message);
+                break;
+        }
+    }
+
+    @Override
+    public void onSelectionChanged(SelectionState state) {
+        //TODO : Essayer de suppr SelectionState (faire un par combo ?)
+        setBoatOptions(state.getBoatOptions().toArray(new String[0]));
+        setTrapWeaponOptions(state.getTrapWeaponOptions().toArray(new String[0]));
+        enableBoatSelector(state.isBoatSelectorEnabled());
+        enableTrapWeaponSelector(state.isTrapWeaponSelectorEnabled());
+    }
 }
