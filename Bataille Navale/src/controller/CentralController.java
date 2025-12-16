@@ -76,7 +76,7 @@ public class CentralController {
 
     private void openPlacement() {
         placementController = new PlacementController(currentConfig);
-        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), placementController);
+        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), placementController, placementController.getModel());
         placementController.setView(placementView);
         connectPlacementView();
         placementView.setVisible(true);
