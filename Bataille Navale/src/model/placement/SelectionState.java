@@ -10,13 +10,11 @@ public class SelectionState {
     private List<String> boatOptions;
     private List<String> trapWeaponOptions;
     private boolean onPhaseBoat;
-    private boolean onPhaseTrap;
 
-    public SelectionState(List<String> boatOptions, List<String> trapWeaponOptions, boolean onPhaseBoat, boolean onPhaseTrap) {
+    public SelectionState(List<String> boatOptions, List<String> trapWeaponOptions, boolean onPhaseBoat) {
         this.boatOptions = boatOptions;
         this.trapWeaponOptions = trapWeaponOptions;
         this.onPhaseBoat = onPhaseBoat;
-        this.onPhaseTrap = onPhaseTrap;
     }
 
     public List<String> getBoatOptions() {
@@ -32,6 +30,6 @@ public class SelectionState {
     }
 
     public boolean isTrapWeaponSelectorEnabled() {
-        return onPhaseTrap;
+        return !onPhaseBoat;
     }
 }

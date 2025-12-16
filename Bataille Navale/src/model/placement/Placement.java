@@ -1,9 +1,15 @@
 package model.placement;
 
 import model.contents.fleet.Boat;
+import model.contents.fleet.BoatFactory;
+import model.contents.traps.Trap;
+import model.contents.traps.TrapFactory;
+import model.contents.weapons.Weapon;
+import model.contents.weapons.WeaponFactory;
 import model.enums.*;
 import model.game.GameConfig;
 import model.game.GamePlacement;
+import model.grid.Grid;
 import model.grid.Position;
 
 import java.util.*;
@@ -12,30 +18,28 @@ import java.util.*;
  * MODÈLE de placement (logique métier pure)
  * Ne connaît PAS la vue, notifie via Observer pattern
  */
-public class PlacementModel {
+public class Placement {
     private final GameConfig config;
-    private final PlacementGrid playerGrid;
-    private final PlacementGrid robotGrid;
-    private final PlacementValidator validator;
-    private final PlacementStrategy randomStrategy;
-    private final PlacementStrategy balancedStrategy;
+    private Grid playerGrid;
+    private Grid robotGrid;
+    private PlacementStrategy strategy;
 
     private List<BoatName> boatsToPlace = new ArrayList<>();
     private List<TrapType> trapsToPlace = new ArrayList<>();
     private List<WeaponType> weaponsToPlace = new ArrayList<>();
 
-    private PlacementState state = new PlacementState();
+    private int boatIndex = 0;
+    private int trapIndex = 0;
+    private int weaponIndex = 0;
+    private PlacementPhase phase = PlacementPhase.BOATS;
     private List<PlacementObserver> observers = new ArrayList<>();
 
-    public PlacementModel(GameConfig config) {
+    public Placement(GameConfig config) {
         this.config = config;
-        boolean hasIsland = config.getModeGame() == ModeGame.ISLAND;
 
-        this.playerGrid = new PlacementGrid(config.getGridSize(), hasIsland);
-        this.robotGrid = new PlacementGrid(config.getGridSize(), hasIsland);
-        this.validator = new PlacementValidator();
-        this.randomStrategy = new RandomPlacementStrategy(validator, hasIsland);
-        this.balancedStrategy = new BalancedPlacementStrategy(validator, hasIsland);
+        this.playerGrid = new Grid(config.getGridSize(), config.getModeGame(), false);
+        this.robotGrid = new Grid(config.getGridSize(), config.getModeGame(), true);
+        this.strategy = new RandomPlacementStrategy();
     }
 
     // OBSERVER
@@ -52,7 +56,7 @@ public class PlacementModel {
 
     private void notifyPhaseChanged() {
         for(PlacementObserver observer : observers){
-            observer.onPhaseChanged(state.getPhase());
+            observer.onPhaseChanged(this.phase);
         }
     }
 
@@ -75,11 +79,11 @@ public class PlacementModel {
 
         switch (config.getTrapMode()) {
             case RANDOM, MANUAL:
-                state.setPhase(PlacementPhase.BOATS);
+                this.phase = PlacementPhase.BOATS;
                 break;
             case FIXED:
                 placeTrapsFixed();
-                state.setPhase(PlacementPhase.BOATS);
+                this.phase = PlacementPhase.BOATS;
                 break;
         }
 
@@ -116,15 +120,16 @@ public class PlacementModel {
     // ACTIONS DE PLACEMENT
 
     public boolean tryPlaceBoat(int x, int y, Orientation orient) {
-        if (state.boatIndex >= boatsToPlace.size()) return false;
+        if (this.boatIndex >= boatsToPlace.size()) return false;
 
-        BoatName boat = boatsToPlace.get(state.boatIndex);
+        BoatName boatName = boatsToPlace.get(this.boatIndex);
 
-        if (validator.canPlaceBoat(playerGrid, boat, x, y, orient, config.getGridSize())) {
-            playerGrid.addBoat(boat, new Position(x, y, orient));
-            state.boatIndex++;
+        if (playerGrid.canPlaceBoat(Boat.getBoatSize(boatName), x, y, orient)) {
+            Boat boat = createBoat(boatName);
+            playerGrid.placeBoat(boat, x, y, orient);
+            this.boatIndex++;
 
-            if (state.boatIndex >= boatsToPlace.size()) {
+            if (this.boatIndex >= boatsToPlace.size()) {
                 onBoatsComplete();
             }
 
@@ -137,19 +142,55 @@ public class PlacementModel {
         }
     }
 
-    public boolean tryPlaceTrap(int x, int y) {
-        if (state.trapIndex >= trapsToPlace.size()) return false;
+    static Boat createBoat(BoatName boatName){
+        BoatFactory boatFactory = new BoatFactory();
+        switch (boatName) {
+            case AIRCRAFT_CARRIER:
+                return boatFactory.createAircraftCarrier();
+            case CRUISER:
+                return boatFactory.createCruiser();
+            case DESTROYER:
+                return boatFactory.createDestroyer();
+            case SUBMARINE:
+                return boatFactory.createSubmarine();
+            case TORPEDO_BOAT:
+                return boatFactory.createTorpedoBoat();
+            default:
+                throw new IllegalArgumentException("Type de bateau inconnu: " + boatName);
+        }
+    }
 
-        TrapType trap = trapsToPlace.get(state.trapIndex);
-        boolean canPlace = config.getModeGame() == ModeGame.ISLAND
-                ? validator.canPlaceOnIsland(playerGrid, x, y, config.getGridSize())
-                : validator.canPlaceTrap(playerGrid, x, y, config.getGridSize());
+    static Trap createTrap(TrapType trapType){
+        TrapFactory trapFactory = new TrapFactory();
+        switch (trapType) {
+            case TORNADO: return trapFactory.createTornado();
+            case BLACKHOLE: return trapFactory.createBlackHole();
+            default: throw new IllegalArgumentException("Type de piège inconnu: " + trapType);
+        }
+    }
+
+    static Weapon createWeapon(WeaponType weaponType){
+        WeaponFactory weaponFactory = new WeaponFactory();
+        switch (weaponType) {
+            case MISSILE: return weaponFactory.createMissile();
+            case BOMB: return weaponFactory.createBomb();
+            case SONAR: return weaponFactory.createSonar();
+            default: throw new IllegalArgumentException("Type d'arme inconnu: " + weaponType);
+        }
+    }
+
+    public boolean tryPlaceTrap(int x, int y) {
+        if (this.trapIndex >= trapsToPlace.size()) return false;
+
+        TrapType trapType = trapsToPlace.get(this.trapIndex);
+        boolean canPlace = playerGrid.canPlaceTrapWeapon(x, y);
 
         if (canPlace) {
-            playerGrid.addTrap(trap, new Position(x, y));
-            state.trapIndex++;
+            Trap trap = createTrap(trapType);
+            playerGrid.placeTrap(trap, x, y);
+            this.trapIndex++;
 
-            if (state.trapIndex >= trapsToPlace.size()) {
+            if (this.trapIndex >= trapsToPlace.size()) {
                 onTrapsComplete();
             }
 
@@ -163,15 +204,16 @@ public class PlacementModel {
     }
 
     public boolean tryPlaceWeapon(int x, int y) {
-        if (state.weaponIndex >= weaponsToPlace.size()) return false;
+        if (this.weaponIndex >= weaponsToPlace.size()) return false;
 
-        WeaponType weapon = weaponsToPlace.get(state.weaponIndex);
+        WeaponType weaponType = weaponsToPlace.get(this.weaponIndex);
 
-        if (validator.canPlaceOnIsland(playerGrid, x, y, config.getGridSize())) {
-            playerGrid.addWeapon(weapon, new Position(x, y));
-            state.weaponIndex++;
+        if (playerGrid.canPlaceTrapWeapon(x, y)) {
+            Weapon weapon = createWeapon(weaponType);
+            playerGrid.placeWeapon(weapon, x, y);
+            this.weaponIndex++;
 
-            if (state.weaponIndex >= weaponsToPlace.size()) {
+            if (this.weaponIndex >= weaponsToPlace.size()) {
                 notifyMessage("Tous les éléments sont placés !", MessageType.INFO);
             }
 
@@ -195,14 +237,14 @@ public class PlacementModel {
                 placeWeaponsRandom();
             }
         } else {
-            state.setPhase(PlacementPhase.TRAPS);
+            this.phase = PlacementPhase.TRAPS;
             notifyPhaseChanged();
         }
     }
 
     private void onTrapsComplete() {
         if (config.getModeGame() == ModeGame.ISLAND) {
-            state.setPhase(PlacementPhase.WEAPONS);
+            this.phase = PlacementPhase.WEAPONS;
             notifyPhaseChanged();
             notifyMessage("Pièges placés, placez les armes !", MessageType.INFO);
         } else {
@@ -213,23 +255,24 @@ public class PlacementModel {
     // PLACEMENTS AUTOMATIQUES
 
     public void applyFixedPlacement() {
+        this.strategy = new FixedPlacementStrategy();
         playerGrid.clearBoats();
-        state.boatIndex = 0;
+        this.boatIndex = 0;
 
         if(config.getTrapMode() != TrapPlacement.FIXED){
             playerGrid.clear();
-            state.trapIndex = 0;
-            state.weaponIndex = 0;
+            this.trapIndex = 0;
+            this.weaponIndex = 0;
         }
 
-        if (!balancedStrategy.placeBoats(playerGrid, boatsToPlace, config.getGridSize())) {
+        if (!strategy.placeBoats(playerGrid, boatsToPlace)) {
             notifyMessage("Impossible de placer tous les bateaux !", MessageType.ERROR);
         }
 
-        state.boatIndex = boatsToPlace.size();
+        this.boatIndex = boatsToPlace.size();
 
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
-            state.setPhase(PlacementPhase.TRAPS);
+            this.phase = PlacementPhase.TRAPS;
             notifyPhaseChanged();
         }
         onBoatsComplete();
@@ -239,23 +282,24 @@ public class PlacementModel {
     }
 
     public void applyRandomPlacement() {
+        this.strategy = new RandomPlacementStrategy();
         playerGrid.clearBoats();
-        state.boatIndex = 0;
+        this.boatIndex = 0;
 
         if(config.getTrapMode() != TrapPlacement.FIXED){
             playerGrid.clear();
-            state.trapIndex = 0;
-            state.weaponIndex = 0;
+            this.trapIndex = 0;
+            this.weaponIndex = 0;
         }
 
-        if (!randomStrategy.placeBoats(playerGrid, boatsToPlace, config.getGridSize())) {
+        if (!strategy.placeBoats(playerGrid, boatsToPlace)) {
             notifyMessage("Impossible de placer tous les bateaux !", MessageType.ERROR);
         }
 
-        state.boatIndex = boatsToPlace.size();
+        this.boatIndex = boatsToPlace.size();
 
         if (config.getTrapMode() == TrapPlacement.MANUAL) {
-            state.setPhase(PlacementPhase.TRAPS);
+            this.phase = PlacementPhase.TRAPS;
             notifyPhaseChanged();
         }
         onBoatsComplete();
@@ -268,76 +312,75 @@ public class PlacementModel {
         playerGrid.clearBoats();
         playerGrid.clearTraps();
         playerGrid.clearWeapons();
-        state.reset();
+        reset();
 
         notifyPhaseChanged();
         notifySelectionChanged();
         notifyGridChanged();
     }
 
+    private void reset(){
+        this.boatIndex = 0;
+        this.trapIndex = 0;
+        this.weaponIndex = 0;
+        this.phase = PlacementPhase.BOATS;
+    }
+
     private void placeTrapsFixed() {
-        balancedStrategy.placeTraps(playerGrid, trapsToPlace, config.getGridSize());
-        state.trapIndex = trapsToPlace.size();
+        strategy = new FixedPlacementStrategy();
+        strategy.placeTraps(playerGrid, trapsToPlace);
+        this.trapIndex = trapsToPlace.size();
     }
 
     private void placeTrapsRandom() {
-        randomStrategy.placeTraps(playerGrid, trapsToPlace, config.getGridSize());
-        state.trapIndex = trapsToPlace.size();
+        strategy = new RandomPlacementStrategy();
+        strategy.placeTraps(playerGrid, trapsToPlace);
+        this.trapIndex = trapsToPlace.size();
     }
 
     private void placeWeaponsRandom() {
-        randomStrategy.placeWeapons(playerGrid, weaponsToPlace, config.getGridSize());
-        state.weaponIndex = weaponsToPlace.size();
+        strategy = new RandomPlacementStrategy();
+        strategy.placeWeapons(playerGrid, weaponsToPlace);
+        this.weaponIndex = weaponsToPlace.size();
     }
 
     // VALIDATION
 
     public GamePlacement validateAndCreatePlacement(String robotPlacementMode) {
-        if (state.boatIndex < boatsToPlace.size()) {
+        if (this.boatIndex < boatsToPlace.size()) {
             notifyMessage("Placez tous les bateaux d'abord !", MessageType.ERROR);
             return null;
         }
-        if (state.trapIndex < trapsToPlace.size()) {
+        if (this.trapIndex < trapsToPlace.size()) {
             notifyMessage("Placez tous les pièges d'abord !", MessageType.ERROR);
             return null;
         }
-        if (config.getModeGame() == ModeGame.ISLAND && state.weaponIndex < weaponsToPlace.size()) {
+        if (config.getModeGame() == ModeGame.ISLAND && this.weaponIndex < weaponsToPlace.size()) {
             notifyMessage("Placez toutes les armes d'abord !", MessageType.ERROR);
             return null;
         }
 
         placeRobot(robotPlacementMode);
-        return createGamePlacement();
+        return new GamePlacement(playerGrid, robotGrid);
     }
 
     private void placeRobot(String mode) {
         robotGrid.clear();
 
-        PlacementStrategy strategy = mode.equals("Random") ? randomStrategy : balancedStrategy;
-        strategy.placeBoats(robotGrid, boatsToPlace, config.getGridSize());
+        if(mode.equals("Random")) {
+            strategy = new RandomPlacementStrategy();
+        }
+        else{
+            strategy = new FixedPlacementStrategy();
+        }
+        strategy.placeBoats(robotGrid, boatsToPlace);
 
         if (config.getModeGame() == ModeGame.ISLAND) {
-            randomStrategy.placeTraps(robotGrid, trapsToPlace, config.getGridSize());
-            randomStrategy.placeWeapons(robotGrid, weaponsToPlace, config.getGridSize());
+            this.strategy.placeTraps(robotGrid, trapsToPlace);
+            this.strategy.placeWeapons(robotGrid, weaponsToPlace);
         } else {
-            randomStrategy.placeTraps(robotGrid, trapsToPlace, config.getGridSize());
+            this.strategy.placeTraps(robotGrid, trapsToPlace);
         }
-    }
-
-    private GamePlacement createGamePlacement() {
-        GamePlacement placement = new GamePlacement();
-
-        //Player
-        placement.setBoatsPlacementPlayer(playerGrid.getBoats());
-        placement.setTrapsPlacementsPlayer(playerGrid.getTraps());
-        placement.setWeaponsPlacementPlayer(playerGrid.getWeapons());
-
-        //Robot
-        placement.setBoatsPlacementRobot(robotGrid.getBoats());
-        placement.setTrapsPlacementRobot(robotGrid.getTraps());
-        placement.setWeaponsPlacementRobot(robotGrid.getWeapons());
-
-        return placement;
     }
 
     // PREVIEW
@@ -345,19 +388,19 @@ public class PlacementModel {
     public PreviewInfo getPreviewInfo(int x, int y, Orientation orientation) {
         if (x < 0 || y < 0) return null;
 
-        switch (state.getPhase()) {
+        switch (this.phase) {
             case BOATS:
-                if (state.boatIndex < boatsToPlace.size()) {
+                if (this.boatIndex < boatsToPlace.size()) {
                     return getBoatPreview(x, y, orientation);
                 }
                 break;
             case TRAPS:
-                if (state.trapIndex < trapsToPlace.size()) {
+                if (this.trapIndex < trapsToPlace.size()) {
                     return getTrapPreview(x, y);
                 }
                 break;
             case WEAPONS:
-                if (state.weaponIndex < weaponsToPlace.size()) {
+                if (this.weaponIndex < weaponsToPlace.size()) {
                     return getWeaponPreview(x, y);
                 }
                 break;
@@ -366,9 +409,9 @@ public class PlacementModel {
     }
 
     private PreviewInfo getBoatPreview(int x, int y, Orientation orient) {
-        BoatName boat = boatsToPlace.get(state.boatIndex);
-        boolean canPlace = validator.canPlaceBoat(playerGrid, boat, x, y, orient, config.getGridSize());
+        BoatName boat = boatsToPlace.get(this.boatIndex);
         int size = Boat.getBoatSize(boat);
+        boolean canPlace = playerGrid.canPlaceBoat(size, x, y, orient);
 
         List<Position> cells = new ArrayList<>();
         for (int i = 0; i < size; i++) {
@@ -383,9 +426,7 @@ public class PlacementModel {
     }
 
     private PreviewInfo getTrapPreview(int x, int y) {
-        boolean canPlace = config.getModeGame() == ModeGame.ISLAND
-                ? validator.canPlaceOnIsland(playerGrid, x, y, config.getGridSize())
-                : validator.canPlaceTrap(playerGrid, x, y, config.getGridSize());
+        boolean canPlace = playerGrid.canPlaceTrapWeapon(x, y);
 
         List<Position> cells = new ArrayList<>();
         cells.add(new Position(x, y));
@@ -393,7 +434,7 @@ public class PlacementModel {
     }
 
     private PreviewInfo getWeaponPreview(int x, int y) {
-        boolean canPlace = validator.canPlaceOnIsland(playerGrid, x, y, config.getGridSize());
+        boolean canPlace = playerGrid.canPlaceTrapWeapon(x, y);
 
         List<Position> cells = new ArrayList<>();
         cells.add(new Position(x, y));
@@ -402,7 +443,7 @@ public class PlacementModel {
 
     // ÉTAT POUR LA VUE
 
-    public PlacementGrid getGridState() {
+    public Grid getGridState() {
         return playerGrid;
     }
 
@@ -410,8 +451,7 @@ public class PlacementModel {
         return new SelectionState(
                 getBoatOptions(),
                 getTrapWeaponOptions(),
-                state.getPhase() == PlacementPhase.BOATS,
-                state.getPhase() != PlacementPhase.BOATS
+                this.phase == PlacementPhase.BOATS
         );
     }
 
@@ -436,14 +476,14 @@ public class PlacementModel {
     private List<String> getTrapWeaponOptions() {
         List<String> options = new ArrayList<>();
 
-        for (int i = state.trapIndex; i < trapsToPlace.size(); i++) {
+        for (int i = this.trapIndex; i < trapsToPlace.size(); i++) {
             TrapType trap = trapsToPlace.get(i);
             String name = trap == TrapType.BLACKHOLE ? "Trou noir" : "Tornade";
             options.add(name + " (Piège)");
         }
 
-        if (config.getModeGame() == ModeGame.ISLAND && state.trapIndex >= trapsToPlace.size()) {
-            for (int i = state.weaponIndex; i < weaponsToPlace.size(); i++) {
+        if (config.getModeGame() == ModeGame.ISLAND && this.trapIndex >= trapsToPlace.size()) {
+            for (int i = this.weaponIndex; i < weaponsToPlace.size(); i++) {
                 WeaponType weapon = weaponsToPlace.get(i);
                 String name = weapon == WeaponType.BOMB ? "Bombe" : "Sonar";
                 options.add(name + " (Arme)");
@@ -455,10 +495,10 @@ public class PlacementModel {
     }
 
     public PlacementPhase getCurrentPhase() {
-        return state.getPhase();
+        return this.phase;
     }
 
     public boolean squareInIsland(int x, int y) {
-        return this.playerGrid.isInIsland(x, y);
+        return this.playerGrid.squareIsInIsland(new Position(x, y));
     }
 }

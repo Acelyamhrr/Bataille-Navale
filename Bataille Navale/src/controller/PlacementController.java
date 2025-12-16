@@ -1,9 +1,9 @@
 package controller;
 
-import model.contents.fleet.Boat;
 import model.enums.*;
 import model.game.GameConfig;
 import model.game.GamePlacement;
+import model.grid.Grid;
 import model.grid.Position;
 import model.placement.*;
 import view.PlacementView;
@@ -17,17 +17,21 @@ import java.util.Map;
  * - Appelle le modèle
  * - Observe le modèle et met à jour la vue
  */
-public class PlacementController implements PlacementObserver {
+public class PlacementController {
     private PlacementView view;
-    private final PlacementModel model;
+    private final Placement model;
 
     public PlacementController(GameConfig config) {
-        this.model = new PlacementModel(config);
-        this.model.addObserver(this);
+        this.model = new Placement(config);
     }
 
     public void setView(PlacementView view) {
         this.view = view;
+        this.model.addObserver(this.view);
+    }
+
+    public Placement getModel() {
+        return model;
     }
 
     // INITIALISATION
@@ -70,62 +74,14 @@ public class PlacementController implements PlacementObserver {
         return model.validateAndCreatePlacement(robotMode);
     }
 
-    // CALLBACKS OBSERVER (Modèle -> Vue)
-
-    @Override
-    public void onGridChanged(PlacementGrid state) {
-        updateGrid(state);
-    }
-
-    @Override
-    public void onPhaseChanged(PlacementPhase phase) {
-        String phaseText;
-        switch (phase) {
-            case WEAPONS:
-                phaseText = "Phase: Placement des armes";
-                break;
-            case TRAPS:
-                phaseText = "Phase: Placement des pièges";
-                break;
-            default:
-                phaseText = "Phase: Placement des bateaux";
-        };
-        view.setPhaseText(phaseText);
-    }
-
-    @Override
-    public void onMessage(String message, MessageType type) {
-        switch (type) {
-            case INFO:
-                view.setInfoText(message);
-                break;
-            case SUCCESS:
-                view.setInfoText(message);
-                view.showSuccess(message);
-                break;
-            case ERROR:
-                view.setInfoText(message);
-                view.showError(message);
-                break;
-        }
-    }
-
-    @Override
-    public void onSelectionChanged(SelectionState state) {
-        view.setBoatOptions(state.getBoatOptions().toArray(new String[0]));
-        view.setTrapWeaponOptions(state.getTrapWeaponOptions().toArray(new String[0]));
-        view.enableBoatSelector(state.isBoatSelectorEnabled());
-        view.enableTrapWeaponSelector(state.isTrapWeaponSelectorEnabled());
-    }
-
     // MISE À JOUR DE LA GRILLE
 
     public void updateGrid() {
-        onGridChanged(model.getGridState());
+        updateGrid(model.getGridState());
     }
 
-    private void updateGrid(PlacementGrid state) {
-        int size = state.getGridSize();
+    private void updateGrid(Grid grid) {
+        int size = grid.getSize();
 
         // Reset
         for (int y = 0; y < size; y++) {
@@ -136,14 +92,14 @@ public class PlacementController implements PlacementObserver {
         }
 
         // Île
-        if (state.hasIsland()) {
+        if (grid.hasIsland()) {
             drawIsland(size);
         }
 
         // Éléments placés
-        drawBoats(state);
-        drawTraps(state);
-        drawWeapons(state);
+        drawBoats(grid);
+        drawTraps(grid);
+        drawWeapons(grid);
 
         // Preview
         drawPreview();
@@ -159,21 +115,14 @@ public class PlacementController implements PlacementObserver {
         }
     }
 
-    private void drawBoats(PlacementGrid state) {
-        for(Map.Entry<BoatName, List<Position>> entry : state.getBoats().entrySet()) {
-            int size = getBoatSize(entry.getKey());
-            for(Position pos : entry.getValue()) {
-                for (int i = 0; i < size; i++) {
-                    int x = pos.getOrientation() == Orientation.HORIZONTAL ? pos.getX() + i : pos.getX();
-                    int y = pos.getOrientation() == Orientation.VERTICAL ? pos.getY() + i : pos.getY();
-                    view.setCellColor(x, y, "boat");
-                }
-            }
+    private void drawBoats(Grid grid) {
+        for(Position position : grid.getPositionsBoats()){
+            view.setCellColor(position.getX(), position.getY(), "boat");
         }
     }
 
-    private void drawTraps(PlacementGrid state) {
-        for(Map.Entry<TrapType, List<Position>> entry : state.getTraps().entrySet()) {
+    private void drawTraps(Grid grid) {
+        for(Map.Entry<TrapType, List<Position>> entry : grid.getPositionsTraps().entrySet()) {
             String text = (entry.getKey() == TrapType.BLACKHOLE ? "Trou noir" : "Tornade");
             for(Position pos : entry.getValue()) {
                 view.setCellColor(pos.getX(), pos.getY(), "trap");
@@ -182,8 +131,8 @@ public class PlacementController implements PlacementObserver {
         }
     }
 
-    private void drawWeapons(PlacementGrid state) {
-        for(Map.Entry<WeaponType, List<Position>> entry : state.getWeapons().entrySet()) {
+    private void drawWeapons(Grid grid) {
+        for(Map.Entry<WeaponType, List<Position>> entry : grid.getPositionsWeapons().entrySet()) {
             String text = (entry.getKey() == WeaponType.BOMB ? "Bombe" : "Sonar");
             for(Position pos : entry.getValue()) {
                 view.setCellColor(pos.getX(), pos.getY(), "weapon");
@@ -202,15 +151,10 @@ public class PlacementController implements PlacementObserver {
 
         if (preview != null) {
             String color = preview.isValid() ? "previewOk" : "previewBad";
-            preview.getCells().forEach(pos -> {
+            for(Position pos : preview.getCells()){
                 view.setCellColor(pos.getX(), pos.getY(), color);
-            });
+            }
         }
-    }
-
-    private int getBoatSize(BoatName boatType){
-        Boat boat = new Boat();
-        return Boat.getBoatSize(boatType);
     }
 
     public boolean squareInIsland(int x, int y){

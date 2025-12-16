@@ -5,7 +5,7 @@ import model.grid.Position;
 import java.util.List;
 
 /**
- * Utilisé pour les previews (transmis au controller)
+ * Utilisé pour les previews (transmis à la vue)
  */
 public class PreviewInfo {
     private List<Position> cells;

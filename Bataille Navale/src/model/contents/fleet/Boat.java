@@ -128,4 +128,8 @@ public class Boat extends Content {
     public boolean isTouched() {
         return this.alreadyTouched;
     }
+
+    public BoatName getName() {
+        return this.name;
+    }
 }

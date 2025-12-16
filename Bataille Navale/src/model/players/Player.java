@@ -39,9 +39,7 @@ public class Player {
 
     // INIT
 
-    public void createGrid(int size, ModeGame mode) {
-        this.grid = new Grid(size, mode, isRobot);
-    }
+    public void setGrid(Grid grid) { this.grid = grid; }
 
     public void placeBoat(Boat boat, Position position) {
         grid.placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
@@ -351,6 +349,11 @@ public class Player {
         if (grid != null) {
             grid.reset();
         }
+    }
+
+    // SETTERS
+    public void addBoat(Boat boat) {
+        boats.add(boat);
     }
 
 

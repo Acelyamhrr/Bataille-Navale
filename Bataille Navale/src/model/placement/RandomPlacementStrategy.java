@@ -1,28 +1,26 @@
 package model.placement;
 
+import model.contents.fleet.Boat;
+import model.contents.traps.Trap;
+import model.contents.weapons.Weapon;
 import model.enums.BoatName;
 import model.enums.Orientation;
 import model.enums.TrapType;
 import model.enums.WeaponType;
-import model.grid.Position;
+import model.grid.Grid;
 
 import java.util.List;
 import java.util.Random;
 
 public class RandomPlacementStrategy implements PlacementStrategy{
     private final Random rand = new Random();
-    private final PlacementValidator validator;
-    private final boolean hasIsland;
 
-    public RandomPlacementStrategy(PlacementValidator validator, boolean hasIsland) {
-        this.validator = validator;
-        this.hasIsland = hasIsland;
-    }
+    public RandomPlacementStrategy() {}
 
     @Override
-    public boolean placeBoats(PlacementGrid grid, List<BoatName> boats, int gridSize) {
+    public boolean placeBoats(Grid grid, List<BoatName> boats) {
         for (BoatName boat : boats) {
-            if (!tryPlaceBoatRandomly(grid, boat, gridSize)) {
+            if (!tryPlaceBoatRandomly(grid, boat)) {
                 return false;
             }
         }
@@ -30,9 +28,9 @@ public class RandomPlacementStrategy implements PlacementStrategy{
     }
 
     @Override
-    public boolean placeTraps(PlacementGrid grid, List<TrapType> traps, int gridSize) {
+    public boolean placeTraps(Grid grid, List<TrapType> traps) {
         for (TrapType trap : traps) {
-            if (!tryPlaceTrapRandomly(grid, trap, gridSize)) {
+            if (!tryPlaceTrapRandomly(grid, trap)) {
                 return false;
             }
         }
@@ -40,43 +38,46 @@ public class RandomPlacementStrategy implements PlacementStrategy{
     }
 
     @Override
-    public boolean placeWeapons(PlacementGrid grid, List<WeaponType> weapons, int gridSize) {
+    public boolean placeWeapons(Grid grid, List<WeaponType> weapons) {
         for (WeaponType weapon : weapons) {
-            if (!tryPlaceWeaponRandomly(grid, weapon, gridSize)) {
+            if (!tryPlaceWeaponRandomly(grid, weapon)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean tryPlaceBoatRandomly(PlacementGrid grid, BoatName boat, int gridSize) {
+    private boolean tryPlaceBoatRandomly(Grid grid, BoatName boatName) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(gridSize);
-            int y = rand.nextInt(gridSize);
+            int x = rand.nextInt(grid.getSize());
+            int y = rand.nextInt(grid.getSize());
             Orientation o = rand.nextBoolean() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
-            if (validator.canPlaceBoat(grid, boat, x, y, o, gridSize)) {
-                grid.addBoat(boat, new Position(x, y, o));
+            if (grid.canPlaceBoat(Boat.getBoatSize(boatName), x, y, o)) {
+                Boat boat = Placement.createBoat(boatName);
+                grid.placeBoat(boat, x, y, o);
                 return true;
             }
         }
         return false;
     }
 
-    private boolean tryPlaceTrapRandomly(PlacementGrid grid, TrapType trap, int gridSize) {
+    private boolean tryPlaceTrapRandomly(Grid grid, TrapType trapType) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(gridSize);
-            int y = rand.nextInt(gridSize);
+            int x = rand.nextInt(grid.getSize());
+            int y = rand.nextInt(grid.getSize());
 
-            if(hasIsland){
-                if(validator.canPlaceOnIsland(grid, x, y, gridSize)){
-                    grid.addTrap(trap, new Position(x, y));
+            if(grid.hasIsland()){
+                if(grid.canPlaceTrapWeapon(x, y)){
+                    Trap trap = Placement.createTrap(trapType);
+                    grid.placeTrap(trap, x, y);
                     return true;
                 }
             }
             else {
-                if (validator.canPlaceTrap(grid, x, y, gridSize)) {
-                    grid.addTrap(trap, new Position(x, y));
+                if (grid.canPlaceTrapWeapon(x, y)) {
+                    Trap trap = Placement.createTrap(trapType);
+                    grid.placeTrap(trap, x, y);
                     return true;
                 }
             }
@@ -84,13 +85,14 @@ public class RandomPlacementStrategy implements PlacementStrategy{
         return false;
     }
 
-    private boolean tryPlaceWeaponRandomly(PlacementGrid grid, WeaponType weapon, int gridSize) {
+    private boolean tryPlaceWeaponRandomly(Grid grid, WeaponType weaponType) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(gridSize);
-            int y = rand.nextInt(gridSize);
+            int x = rand.nextInt(grid.getSize());
+            int y = rand.nextInt(grid.getSize());
 
-            if (validator.canPlaceOnIsland(grid, x, y, gridSize)) {
-                grid.addWeapon(weapon, new Position(x, y));
+            if (grid.hasIsland() && grid.canPlaceTrapWeapon(x, y)) {
+                Weapon weapon = Placement.createWeapon(weaponType);
+                grid.placeWeapon(weapon, x, y);
                 return true;
             }
         }
