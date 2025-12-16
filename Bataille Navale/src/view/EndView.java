@@ -1,5 +1,6 @@
 package view;
 
+import controller.EndController;
 import model.game.GameStats;
 
 import javax.swing.*;
@@ -14,8 +15,11 @@ import java.awt.event.ActionListener;
 public class EndView extends JFrame {
     private JButton restartButton;
     private JButton quitButton;
+    private EndController controller;
 
-    public EndView(String winner, int turnNumber, GameStats playerStats, GameStats robotStats, String playerName) {
+    public EndView(String winner, int turnNumber, GameStats playerStats, GameStats robotStats, String playerName, EndController controller) {
+        this.controller = controller;
+
         setTitle("Fin de partie - Bataille Navale");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(700, 600);
@@ -108,6 +112,7 @@ public class EndView extends JFrame {
         restartButton.setForeground(Color.WHITE);
         restartButton.setFocusPainted(false);
         restartButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        restartButton.addActionListener(e->controller.handleRestart());
 
         quitButton = new JButton("❌ Quitter");
         quitButton.setFont(new Font("Arial", Font.BOLD, 16));
@@ -116,6 +121,7 @@ public class EndView extends JFrame {
         quitButton.setForeground(Color.WHITE);
         quitButton.setFocusPainted(false);
         quitButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        quitButton.addActionListener(e->controller.handleQuit());
 
         buttonPanel.add(restartButton);
         buttonPanel.add(quitButton);
@@ -153,14 +159,6 @@ public class EndView extends JFrame {
         if (totalCells == 0) return "0%";
         double precision = (hitCells * 100.0) / totalCells;
         return String.format("%.1f%%", precision);
-    }
-
-    public void addRestartListener(ActionListener listener) {
-        restartButton.addActionListener(listener);
-    }
-
-    public void addQuitListener(ActionListener listener) {
-        quitButton.addActionListener(listener);
     }
 
     public int showRestartChoiceDialog() {

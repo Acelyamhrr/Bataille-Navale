@@ -8,36 +8,17 @@ import model.players.Player;
 
 import java.util.*;
 
-public class SmartRobotStrategy implements RobotStrategy {
-
-    private Random random;
-
-    // de positions à explorer quand on a touché un bateau
+public class SmartRobotStrategy extends RobotStrategy {
+    // positions à explorer quand on a touché un bateau
     private Queue<Position> targetQueue;
 
     // Dernière position qui a touché (pour ajouter les adj)
     private Position lastHit;
 
     public SmartRobotStrategy() {
-        this.random = new Random();
+        super();
         this.targetQueue = new LinkedList<>();
         this.lastHit = null;
-    }
-
-    @Override
-    public WeaponType chooseWeapon(Player robot, Position target) {
-        Map<WeaponType, Integer> weapons = robot.getWeapons();
-
-        List<WeaponType> available = new ArrayList<>();
-        for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
-            if (entry.getValue() > 0) {
-                available.add(entry.getKey());
-            }
-        }
-
-        // Choisir aléatoirement
-        return available.get(random.nextInt(available.size()));
-
     }
 
     @Override
@@ -47,28 +28,13 @@ public class SmartRobotStrategy implements RobotStrategy {
         while (!targetQueue.isEmpty()) {
             Position target = targetQueue.poll();
 
-            System.out.println("DEBUG - Testing position: " + target.getX() + "," + target.getY());
-
             if (isValidTarget(target, opponent, gridSize)) {
-                System.out.println("DEBUG - Position VALIDE, on tire !");
                 return target;
-            } else {
-                System.out.println("DEBUG - Position INVALIDE, on passe");
             }
         }
 
         // Sinon: Tir aléatoire
-        Position target;
-        Square square;
-
-        do {
-            int x = random.nextInt(gridSize);
-            int y = random.nextInt(gridSize);
-            target = new Position(x, y);
-            square = opponent.getGrid().getSquare(target);
-        } while (square.wasAttacked());
-
-        return target;
+        return getRandomValidTarget(opponent, gridSize);
     }
 
     @Override
@@ -86,40 +52,28 @@ public class SmartRobotStrategy implements RobotStrategy {
     }
 
     private void addAdjacentPositions(Position pos) {
-        // Haut
-        targetQueue.add(new Position(pos.getX(), pos.getY() - 1));
-
-        // Bas
-        targetQueue.add(new Position(pos.getX(), pos.getY() + 1));
-
-        // Gauche
-        targetQueue.add(new Position(pos.getX() - 1, pos.getY()));
-
-        // Droite
-        targetQueue.add(new Position(pos.getX() + 1, pos.getY()));
+        targetQueue.add(new Position(pos.getX(), pos.getY() - 1));  // haut
+        targetQueue.add(new Position(pos.getX(), pos.getY() + 1));  // bas
+        targetQueue.add(new Position(pos.getX() - 1, pos.getY()));  // gauche
+        targetQueue.add(new Position(pos.getX() + 1, pos.getY()));  // droite
     }
 
-
-    private boolean isValidTarget(Position pos, Player opponent, int gridSize) {
-        // Hors de la grille
+    /**
+     * Vérifie si une position est une cible valide (dans la grille et non attaquée).
+     * Méthode utilitaire commune.
+     */
+    protected boolean isValidTarget(Position pos, Player opponent, int gridSize) {
+        // Vérifier les limites de la grille
         if (pos.getX() < 0 || pos.getX() >= gridSize ||
                 pos.getY() < 0 || pos.getY() >= gridSize) {
             return false;
         }
 
-        // Déjà attaquée
+        // Vérifier si déjà attaquée
         Square square = opponent.getGrid().getSquare(pos);
-
-        if (square == null) {
-            return false;
-        }
-
-        if (square.wasAttacked()) {
-            return false;
-        }
-
-        return true;
+        return square != null && !square.wasAttacked();
     }
+
 
     @Override
     public boolean shouldSearchIsland(Player robot, Player player, int gridSize) {
@@ -127,26 +81,7 @@ public class SmartRobotStrategy implements RobotStrategy {
         int bombCount = robot.getWeaponCount(WeaponType.BOMB);
         int sonarCount = robot.getWeaponCount(WeaponType.SONAR);
 
-        // Fouille si on a moins de 2 armes spéciales
-        return (bombCount + sonarCount) < 2;
-    }
-
-    @Override
-    public Position chooseIslandSquareToSearch(Player player, int gridSize) {
-        // Même implémentation que Random
-        Random rand = new Random();
-        int ix = gridSize / 2 - 2;
-        int iy = gridSize / 2 - 2;
-
-        for (int attempt = 0; attempt < 50; attempt++) {
-            int x = rand.nextInt(ix, ix + 4);
-            int y = rand.nextInt(iy, iy + 4);
-            Position pos = new Position(x, y);
-
-            if (player.getGrid().getSquare(pos).isNotSearched()) {
-                return pos;
-            }
-        }
-        return null;
+        // Fouille si on a moins de 1 armes spéciales
+        return (bombCount + sonarCount) < 1;
     }
 }

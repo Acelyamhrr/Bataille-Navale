@@ -752,12 +752,58 @@ public class GameView extends JFrame implements Observer {
     }
 
     public void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Erreur", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "❌ Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
     public void showSuccess(String message) {
-        JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "✅ Succès", JOptionPane.INFORMATION_MESSAGE);
     }
+
+    /**
+     * Affiche un effet de piège avec une couleur appropriée
+     * @param title Le titre du message
+     * @param message Le contenu du message
+     * @param beneficial true si c'est bon pour le joueur (vert), false si mauvais (rouge)
+     */
+    public void showTrapEffect(String title, String message, boolean beneficial) {
+        // Créer un panel personnalisé avec la couleur de fond
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout(10, 10));
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        // Couleur de fond selon l'effet
+        Color backgroundColor = beneficial ?
+                new Color(200, 255, 200) :  // Vert clair pour positif
+                new Color(255, 200, 200);    // Rouge clair pour négatif
+        panel.setBackground(backgroundColor);
+
+        // Titre en gros et gras
+        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(beneficial ?
+                new Color(0, 120, 0) :      // Vert foncé
+                new Color(180, 0, 0));       // Rouge foncé
+        panel.add(titleLabel, BorderLayout.NORTH);
+
+        // Message principal
+        JTextArea messageArea = new JTextArea(message);
+        messageArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        messageArea.setLineWrap(true);
+        messageArea.setWrapStyleWord(true);
+        messageArea.setEditable(false);
+        messageArea.setOpaque(false);
+        messageArea.setBorder(new EmptyBorder(10, 5, 10, 5));
+        panel.add(messageArea, BorderLayout.CENTER);
+
+        // Afficher le dialog
+        JOptionPane.showMessageDialog(
+                this,
+                panel,
+                beneficial ? "✅ Piège Activé (Vous)" : "⚠️ Piège Activé (Adversaire)",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
+
 
 
     //Méthodes de l'observer
@@ -930,4 +976,115 @@ public class GameView extends JFrame implements Observer {
     public JLabel getRobotHitRatioLabel() {
         return robotHitRatioLabel;
     }
+
+
+
+
+    /**
+     * Affiche le résultat du sonar avec une visualisation de la zone
+     * @param centerX Position X du centre
+     * @param centerY Position Y du centre
+     * @param occupiedCells Nombre de cases occupées
+     * @param isPlayerSonar true si c'est le joueur qui utilise le sonar
+     */
+    public void showSonarResult(int centerX, int centerY, int occupiedCells, boolean isPlayerSonar) {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+        panel.setBackground(new Color(230, 240, 255));
+
+        // Titre
+        JLabel titleLabel = new JLabel(
+                isPlayerSonar ? "📡 VOTRE SONAR" : "📡 SONAR DU ROBOT",
+                SwingConstants.CENTER
+        );
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(0, 100, 200));
+        panel.add(titleLabel, BorderLayout.NORTH);
+
+        // Panel central avec grille + résultat
+        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
+        centerPanel.setOpaque(false);
+
+        // Visualisation de la zone 3x3 (SANS montrer quelles cases sont occupées)
+        JPanel gridPanel = new JPanel(new GridLayout(3, 3, 2, 2));
+        gridPanel.setBackground(Color.DARK_GRAY);
+        gridPanel.setBorder(BorderFactory.createTitledBorder("Zone scannée"));
+
+        Color scanColor = new Color(100, 150, 255);
+        Color centerColor = new Color(255, 200, 100);
+        Color questionColor = new Color(150, 180, 255);
+
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                JPanel cell = new JPanel(new BorderLayout());
+                cell.setPreferredSize(new Dimension(60, 60));
+
+                // Couleur différente pour le centre
+                if (dx == 0 && dy == 0) {
+                    cell.setBackground(centerColor);
+                    JLabel centerLabel = new JLabel("📡", SwingConstants.CENTER);
+                    centerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+                    cell.add(centerLabel, BorderLayout.CENTER);
+                } else {
+                    cell.setBackground(questionColor);
+                }
+
+                // Afficher les coordonnées en petit
+                int posX = centerX + dx;
+                int posY = centerY + dy;
+
+                if (posX >= 0 && posX < gridSize && posY >= 0 && posY < gridSize) {
+                    JLabel coordLabel = new JLabel(posX + "," + posY, SwingConstants.CENTER);
+                    coordLabel.setFont(new Font("Arial", Font.PLAIN, 9));
+                    coordLabel.setForeground(dx == 0 && dy == 0 ? Color.WHITE : new Color(60, 100, 180));
+                    cell.add(coordLabel, BorderLayout.SOUTH);
+                }
+
+                cell.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
+                gridPanel.add(cell);
+            }
+        }
+
+        centerPanel.add(gridPanel, BorderLayout.CENTER);
+
+        // Résultat en gros
+        JPanel resultPanel = new JPanel();
+        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setOpaque(false);
+        resultPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+        JLabel resultLabel = new JLabel("Résultat du scan :", SwingConstants.CENTER);
+        resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel countLabel = new JLabel(occupiedCells + " case(s) occupée(s)", SwingConstants.CENTER);
+        countLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        countLabel.setForeground(occupiedCells > 0 ? new Color(200, 0, 0) : new Color(0, 150, 0));
+        countLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        resultPanel.add(resultLabel);
+        resultPanel.add(Box.createVerticalStrut(5));
+        resultPanel.add(countLabel);
+
+        centerPanel.add(resultPanel, BorderLayout.SOUTH);
+
+        panel.add(centerPanel, BorderLayout.CENTER);
+
+        // Info supplémentaire
+        JLabel infoLabel = new JLabel( "Le sonar détecte le nombre de cases occupées", SwingConstants.CENTER );
+        infoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
+        infoLabel.setForeground(Color.DARK_GRAY);
+        panel.add(infoLabel, BorderLayout.SOUTH);
+
+        // Afficher
+        JOptionPane.showMessageDialog(
+                this,
+                panel,
+                "📡 Résultat du Sonar",
+                JOptionPane.PLAIN_MESSAGE
+        );
+    }
+
+
+
 }
