@@ -142,7 +142,7 @@ public class Placement {
         }
     }
 
-    static Boat createBoat(BoatName boatName){
+    public static Boat createBoat(BoatName boatName){
         BoatFactory boatFactory = new BoatFactory();
         switch (boatName) {
             case AIRCRAFT_CARRIER:
@@ -160,7 +160,7 @@ public class Placement {
         }
     }
 
-    static Trap createTrap(TrapType trapType){
+    public static Trap createTrap(TrapType trapType){
         TrapFactory trapFactory = new TrapFactory();
         switch (trapType) {
             case TORNADO: return trapFactory.createTornado();
@@ -169,7 +169,7 @@ public class Placement {
         }
     }
 
-    static Weapon createWeapon(WeaponType weaponType){
+    public static Weapon createWeapon(WeaponType weaponType){
         WeaponFactory weaponFactory = new WeaponFactory();
         switch (weaponType) {
             case MISSILE: return weaponFactory.createMissile();

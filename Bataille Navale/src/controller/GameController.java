@@ -435,6 +435,11 @@ public class GameController {
         view.dispose();
     }
 
+    public void resetPlayers(){
+        this.game.getPlayer().reset();
+        this.game.getRobot().reset();
+    }
+
     // GET
 
     public boolean isInIsland(int x, int y) {
@@ -457,6 +462,7 @@ public class GameController {
         return game.getPlayer();
     }
 
+    public Player getRobot() { return game.getRobot(); }
 
     public void quit() {
         System.exit(0);
