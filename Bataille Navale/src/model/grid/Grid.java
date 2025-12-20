@@ -4,7 +4,9 @@ import model.contents.fleet.Boat;
 import model.contents.traps.Trap;
 import model.contents.weapons.Weapon;
 import model.enums.*;
+import model.placement.Placement;
 
+import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -128,12 +130,53 @@ public  class Grid {
     }
 
     public void reset(){
+        Map<WeaponType, List<Position>> weapons = getPositionsWeapons();
+        Map<TrapType, List<Position>> traps = getPositionsTraps();
+        List<Boat> boats = new ArrayList<>(this.getBoats());
+
         this.squares.clear();
+        clear();
 
         for(int i = 0; i< gridSize; i++){
             for(int j = 0; j< gridSize; j++){
                 Position pos = new Position(i, j);
                 this.squares.put(pos, new Square(pos, this.robot));
+            }
+        }
+
+        if(mode == ModeGame.ISLAND){
+            int x = gridSize/2 -2;
+            int y = gridSize/2 -2;
+            this.island = new Island(new Position(x, y));
+
+            for(int i=x; i<x+4; i++){
+                for(int j=y; j<y+4; j++){
+                    Position pos = new Position(i, j);
+                    this.squares.get(pos).setIsland();
+                }
+            }
+        }
+
+        //Recréer les bateaux
+        for(Boat boat : boats){
+            Boat b = Placement.createBoat(boat.getName());
+            Position oldPosition = boat.getPosition();
+            placeBoat(b, oldPosition.getX(), oldPosition.getY(), oldPosition.getOrientation());
+        }
+
+        //Recréer les traps
+        for(Map.Entry<TrapType, List<Position>> entry : traps.entrySet()){
+            for(Position pos : entry.getValue()){
+                Trap t = Placement.createTrap(entry.getKey());
+                placeTrap(t, pos.getX(), pos.getY());
+            }
+        }
+
+        //Recréer les weapons
+        for(Map.Entry<WeaponType, List<Position>> entry : weapons.entrySet()){
+            for(Position pos : entry.getValue()){
+                Weapon w = Placement.createWeapon(entry.getKey());
+                placeWeapon(w, pos.getX(), pos.getY());
             }
         }
     }

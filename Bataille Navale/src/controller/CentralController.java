@@ -3,6 +3,7 @@ package controller;
 import model.enums.*;
 import model.game.GameConfig;
 import model.game.GamePlacement;
+import model.grid.Grid;
 import model.grid.Position;
 import view.*;
 
@@ -129,6 +130,16 @@ public class CentralController {
             gameView.dispose();
             gameView = null;
         }
+
+        // Reset les deux grilles
+        Grid playerGrid = gameController.getPlayer().getGrid();
+        Grid robotGrid = gameController.getRobot().getGrid();
+
+        playerGrid.reset();
+        robotGrid.reset();
+
+        this.currentPlacement = new GamePlacement(playerGrid, robotGrid);
+
         openGame();
     }
 
