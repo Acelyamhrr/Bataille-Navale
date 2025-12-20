@@ -296,6 +296,13 @@ public class GameController {
         _view.appendHistory("Tour " + _game.getTurnNumber() + " - " +
                 _game.getPlayer().getUsername() + ": " + action + "\n");
 
+        if(result.wasTornadoActivated()){
+            _view.showTrapEffect("🌪️ TORNADE ACTIVÉE !",
+                    "Votre fouille a été dévié par la tornade du ROBOT !\n" +
+                            "Destination finale : " + result.getRedirectedTo().getX() + "," + result.getRedirectedTo().getY(),
+                    false);     // pas bon pour le jouer
+        }
+
         if (result.getWeaponFound() != null) {
             updateWeaponsDisplay();
         }
