@@ -7,20 +7,64 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 
+/**
+ * Vue de configuration de la partie de bataille navale.
+ * Cette fenêtre permet au joueur de configurer tous les paramètres d'une nouvelle partie.
+ */
 public class ConfigurationView extends JFrame {
 
-    private JTextField usernameField;
-    private JComboBox<String> gridSizeCombo;
-    private JRadioButton modeStandardRadio, modeIslandRadio;
-    private JRadioButton robotRandomRadio, robotSmartRadio;
-    private JRadioButton boatDefault, boatCustom;
-    private JButton backButton, nextButton, customizeBoatButton;
-    private JLabel boatInfoLabel;
+    /** Champ de saisie du nom du joueur */
+    private JTextField _txtUsername;
 
-    private TrapPlacementPanel trapPlacementPanel;
+    /** Liste déroulante pour sélectionner la taille de la grille */
+    private JComboBox<String> _cmbGridSize;
 
-    private int[] customBoatNumbers = {1, 1, 1, 1, 1};      // par défaut, un de chaque bateau.
+    /** Bouton radio pour le mode de jeu standard */
+    private JRadioButton _rdbModeStandard;
 
+    /** Bouton radio pour le mode de jeu île */
+    private JRadioButton _rdbModeIsland;
+
+    /** Bouton radio pour le robot avec difficulté aléatoire */
+    private JRadioButton _rdbRobotRandom;
+
+    /** Bouton radio pour le robot avec difficulté intelligente */
+    private JRadioButton _rdbRobotSmart;
+
+    /** Bouton radio pour utiliser le nombre de bateaux par défaut */
+    private JRadioButton _rdbBoatDefault;
+
+    /** Bouton radio pour personnaliser le nombre de bateaux */
+    private JRadioButton _rdbBoatCustom;
+
+    /** Bouton pour retourner à l'écran précédent */
+    private JButton _btnBack;
+
+    /** Bouton pour passer à l'écran suivant */
+    private JButton _btnNext;
+
+    /** Bouton pour ouvrir la boîte de dialogue de personnalisation des bateaux */
+    private JButton _btnCustomizeBoat;
+
+    /** Label affichant le nombre total de cases utilisées par les bateaux */
+    private JLabel _lblBoatInfo;
+
+    /** Panel contenant les options de placement des pièges */
+    private TrapPlacementPanel _pnlTrapPlacement;
+
+    /**
+     * Tableau stockant le nombre de bateaux personnalisés pour chaque type.
+     * Ordre : [Porte-avions, Croiseur, Contre-torpilleur, Sous-marin, Torpilleur]
+     * Valeur par défaut : 1 bateau de chaque type
+     */
+    private int[] _customBoatNumbers = {1, 1, 1, 1, 1};
+
+    /**
+     * Construit une nouvelle vue de configuration.
+     * <p>
+     * Initialise la fenêtre avec une taille de 650x700 pixels, centrée à l'écran,
+     * et crée tous les composants d'interface nécessaires.
+     */
     public ConfigurationView() {
         setTitle("Configuration de la partie");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -29,127 +73,136 @@ public class ConfigurationView extends JFrame {
         initComponents();
     }
 
+    /**
+     * Initialise tous les composants graphiques de la fenêtre.
+     */
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(240, 245, 250));
 
+        // Titre principal
         JLabel titleLabel = new JLabel("Configuration", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
         titleLabel.setForeground(new Color(30, 50, 100));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
 
-        // Panel de configuration
+        // Panel principal de configuration avec disposition verticale
         JPanel configPanel = new JPanel();
         configPanel.setLayout(new BoxLayout(configPanel, BoxLayout.Y_AXIS));
         configPanel.setBackground(Color.WHITE);
         configPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        // nom du joueur
+        // Section : Nom du joueur
         configPanel.add(createSection("Nom du joueur"));
-        usernameField = new JTextField("Joueur");       // par défaut
-        usernameField.setMaximumSize(new Dimension(300, 30));
-
-        configPanel.add(usernameField);
+        _txtUsername = new JTextField("Joueur");       // Valeur par défaut
+        _txtUsername.setMaximumSize(new Dimension(300, 30));
+        configPanel.add(_txtUsername);
         configPanel.add(Box.createVerticalStrut(20));
 
-        // Taille de la grille
+        // Section : Taille de la grille
         configPanel.add(createSection("Taille de la grille"));
         String[] sizes = {"6x6", "7x7", "8x8", "9x9", "10x10"};
-        gridSizeCombo = new JComboBox<>(sizes);
-        gridSizeCombo.setSelectedIndex(0);
-        gridSizeCombo.setMaximumSize(new Dimension(150, 30));
-
-        configPanel.add(gridSizeCombo);
+        _cmbGridSize = new JComboBox<>(sizes);
+        _cmbGridSize.setSelectedIndex(0); // 6x6 par défaut
+        _cmbGridSize.setMaximumSize(new Dimension(150, 30));
+        configPanel.add(_cmbGridSize);
         configPanel.add(Box.createVerticalStrut(20));
 
-        // Mode de jeu
+        // Section : Mode de jeu
         configPanel.add(createSection("Mode de jeu"));
         ButtonGroup modeGroup = new ButtonGroup();
-        modeStandardRadio = new JRadioButton("Standard", true);
-        modeIslandRadio = new JRadioButton("Île");
+        _rdbModeStandard = new JRadioButton("Standard", true); // Sélectionné par défaut
+        _rdbModeIsland = new JRadioButton("Île");
 
-        modeGroup.add(modeStandardRadio);
-        modeGroup.add(modeIslandRadio);
+        modeGroup.add(_rdbModeStandard);
+        modeGroup.add(_rdbModeIsland);
 
-        modeStandardRadio.addActionListener(e -> trapPlacementPanel.updateForMode(false));
-        modeIslandRadio.addActionListener(e -> trapPlacementPanel.updateForMode(true));
+        // Mise à jour du panel de pièges selon le mode sélectionné
+        _rdbModeStandard.addActionListener(e -> _pnlTrapPlacement.updateForMode(false));
+        _rdbModeIsland.addActionListener(e -> _pnlTrapPlacement.updateForMode(true));
 
-        configPanel.add(modeStandardRadio);
-        configPanel.add(modeIslandRadio);
+        configPanel.add(_rdbModeStandard);
+        configPanel.add(_rdbModeIsland);
         configPanel.add(Box.createVerticalStrut(20));
 
-        // Difficulté du roboy
+        // Section : Difficulté du robot
         configPanel.add(createSection("Difficulté du robot"));
         ButtonGroup robotGroup = new ButtonGroup();
-        robotRandomRadio = new JRadioButton("Aléatoire", true);     // par défaut
-        robotSmartRadio = new JRadioButton("Intelligent");
+        _rdbRobotRandom = new JRadioButton("Aléatoire", true);     // Par défaut
+        _rdbRobotSmart = new JRadioButton("Intelligent");
 
-        robotGroup.add(robotRandomRadio);
-        robotGroup.add(robotSmartRadio);
-        configPanel.add(robotRandomRadio);
-        configPanel.add(robotSmartRadio);
+        robotGroup.add(_rdbRobotRandom);
+        robotGroup.add(_rdbRobotSmart);
+        configPanel.add(_rdbRobotRandom);
+        configPanel.add(_rdbRobotSmart);
         configPanel.add(Box.createVerticalStrut(20));
 
-        // nb de bateaux
+        // Section : Nombre de bateaux
         configPanel.add(createSection("Nombre de bateaux"));
         ButtonGroup boatGroup = new ButtonGroup();
-        boatDefault = new JRadioButton("1 bateau de chaque type", true);
-        boatCustom = new JRadioButton("Personnalisé");
+        _rdbBoatDefault = new JRadioButton("1 bateau de chaque type", true);
+        _rdbBoatCustom = new JRadioButton("Personnalisé");
 
-        boatGroup.add(boatDefault);
-        boatGroup.add(boatCustom);
-        configPanel.add(boatDefault);
-        configPanel.add(boatCustom);
+        boatGroup.add(_rdbBoatDefault);
+        boatGroup.add(_rdbBoatCustom);
+        configPanel.add(_rdbBoatDefault);
+        configPanel.add(_rdbBoatCustom);
         configPanel.add(Box.createVerticalStrut(10));
 
-        customizeBoatButton = new JButton("Personnaliser les bateaux");
-        customizeBoatButton.setEnabled(false);
-        boatCustom.addActionListener(e -> customizeBoatButton.setEnabled(true));
+        // Bouton de personnalisation des bateaux (désactivé par défaut)
+        _btnCustomizeBoat = new JButton("Personnaliser les bateaux");
+        _btnCustomizeBoat.setEnabled(false);
 
-        boatDefault.addActionListener(e -> {
-            customizeBoatButton.setEnabled(false);
-            customBoatNumbers = new int[]{1, 1, 1, 1, 1};
+        // Active le bouton quand le mode personnalisé est sélectionné
+        _rdbBoatCustom.addActionListener(e -> _btnCustomizeBoat.setEnabled(true));
+
+        // Réinitialise à la configuration par défaut
+        _rdbBoatDefault.addActionListener(e -> {
+            _btnCustomizeBoat.setEnabled(false);
+            _customBoatNumbers = new int[]{1, 1, 1, 1, 1};
             updateBoatInfo();
         });
 
-        customizeBoatButton.addActionListener(e -> {
-            BoatCustomizationDialog dialog = new BoatCustomizationDialog(this, customBoatNumbers);
+        // Ouvre la boîte de dialogue de personnalisation
+        _btnCustomizeBoat.addActionListener(e -> {
+            BoatCustomizationDialog dialog = new BoatCustomizationDialog(this, _customBoatNumbers);
             int[] result = dialog.showAndGetResult();
             if (result != null) {
-                customBoatNumbers = result;
+                _customBoatNumbers = result;
                 updateBoatInfo();
             }
         });
 
-
-        configPanel.add(customizeBoatButton);
+        configPanel.add(_btnCustomizeBoat);
         configPanel.add(Box.createVerticalStrut(10));
 
-        boatInfoLabel = new JLabel("Total: 17 cases utilisées");
-        boatInfoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-
-        configPanel.add(boatInfoLabel);
+        // Label affichant le total de cases utilisées
+        _lblBoatInfo = new JLabel("Total: 17 cases utilisées");
+        _lblBoatInfo.setFont(new Font("Arial", Font.ITALIC, 12));
+        configPanel.add(_lblBoatInfo);
         configPanel.add(Box.createVerticalStrut(20));
 
-        // Placement des pièges
-        trapPlacementPanel = new TrapPlacementPanel();
-        trapPlacementPanel.updateForMode(modeIslandRadio.isSelected());
-        configPanel.add(trapPlacementPanel);
+        // Section : Placement des pièges
+        _pnlTrapPlacement = new TrapPlacementPanel();
+        _pnlTrapPlacement.updateForMode(_rdbModeIsland.isSelected());
+        configPanel.add(_pnlTrapPlacement);
 
+        // Panel scrollable pour le contenu
         JScrollPane scrollPane = new JScrollPane(configPanel);
         scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Vitesse de scroll
 
-        // Boutons
+        // Panel des boutons de navigation
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         buttonPanel.setBackground(new Color(240, 245, 250));
 
-        backButton = createButton("Retour", new Color(150, 150, 150));
-        nextButton = createButton("Suivant", new Color(70, 150, 70));
+        _btnBack = createButton("Retour", new Color(150, 150, 150));
+        _btnNext = createButton("Suivant", new Color(70, 150, 70));
 
-        buttonPanel.add(backButton);
-        buttonPanel.add(nextButton);
+        buttonPanel.add(_btnBack);
+        buttonPanel.add(_btnNext);
 
+        // Assemblage final de la fenêtre
         mainPanel.add(titleLabel, BorderLayout.NORTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -157,7 +210,11 @@ public class ConfigurationView extends JFrame {
         add(mainPanel);
     }
 
-    // pour avoir mêmes écritures partt
+    /**
+     * Crée un label pour les titres de section
+     * @param title Le texte du titre de section
+     * @return Un {@code JLabel} stylisé pour une section
+     */
     private JLabel createSection(String title) {
         JLabel label = new JLabel(title);
         label.setFont(new Font("Arial", Font.BOLD, 16));
@@ -166,6 +223,12 @@ public class ConfigurationView extends JFrame {
         return label;
     }
 
+    /**
+     * Crée un bouton stylisé avec une couleur de fond personnalisée.
+     * @param text Le texte à afficher sur le bouton
+     * @param bgColor La couleur de fond du bouton
+     * @return Un {@code JButton} stylisé
+     */
     private JButton createButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.BOLD, 16));
@@ -179,67 +242,122 @@ public class ConfigurationView extends JFrame {
     }
 
     /**
-     * Met à jour le label affichant le total de cases utilisées par les bateaux
+     * Met à jour le label affichant le nombre total de cases utilisées par les bateaux.
      */
     private void updateBoatInfo() {
-        int[] sizes = {5, 4, 3, 3, 2};
+        int[] sizes = {5, 4, 3, 3, 2}; // Tailles des bateaux
         int total = 0;
         for (int i = 0; i < 5; i++) {
-            total += customBoatNumbers[i] * sizes[i];
+            total += _customBoatNumbers[i] * sizes[i];
         }
-        boatInfoLabel.setText("Total: " + total + " cases utilisées");
+        _lblBoatInfo.setText("Total: " + total + " cases utilisées");
     }
 
-    // pour le controlleur
+    // Méthodes pour le contrôleur
 
-
-    // les vues ne se connaissent pas entre eux donc le controlleur va se déplacer entre vues.
+    /**
+     * Ajoute un listener au bouton "Retour".
+     * @param listener L'écouteur d'événements à ajouter
+     */
     public void addBackListener(ActionListener listener) {
-        backButton.addActionListener(listener);
+        _btnBack.addActionListener(listener);
     }
 
+    /**
+     * Ajoute un listener au bouton "Suivant".
+     * @param listener L'écouteur d'événements à ajouter
+     */
     public void addNextListener(ActionListener listener) {
-        nextButton.addActionListener(listener);
+        _btnNext.addActionListener(listener);
     }
 
+    /**
+     * Ajoute un listener au bouton de personnalisation des bateaux.
+     * @param listener L'écouteur d'événements à ajouter
+     */
     public void addCustomizeBoatListener(ActionListener listener) {
-        customizeBoatButton.addActionListener(listener);
+        _btnCustomizeBoat.addActionListener(listener);
     }
 
-    // Getters pour récupérer les valeurs : le controlleur va lire les choix de l'utilisateur.
+    // Getters pour récupérer les valeurs
+
+    /**
+     * Récupère le nom du joueur saisi.
+     * @return Le nom du joueur (sans espaces superflus)
+     */
     public String getUsername() {
-        return usernameField.getText().trim();
+        return _txtUsername.getText().trim();
     }
 
+    /**
+     * Récupère la taille de grille sélectionnée.
+     * @return La taille de la grille (entre 6 et 10)
+     */
     public int getGridSize() {
-        return gridSizeCombo.getSelectedIndex() + 6;
+        return _cmbGridSize.getSelectedIndex() + 6;
     }
 
+    /**
+     * Vérifie si le mode standard est sélectionné.
+     *
+     * @return {@code true} si le mode standard est sélectionné, {@code false} pour le mode île
+     */
     public boolean isStandardMode() {
-        return modeStandardRadio.isSelected();
+        return _rdbModeStandard.isSelected();
     }
 
+    /**
+     * Vérifie si le robot aléatoire est sélectionné.
+     *
+     * @return {@code true} si le robot aléatoire est sélectionné, {@code false} pour le robot intelligent
+     */
     public boolean isRandomRobot() {
-        return robotRandomRadio.isSelected();
+        return _rdbRobotRandom.isSelected();
     }
 
+    /**
+     * Vérifie si la configuration par défaut des bateaux est sélectionnée.
+     *
+     * @return {@code true} si la configuration par défaut est sélectionnée, {@code false} pour personnalisée
+     */
     public boolean isDefaultBoats() {
-        return boatDefault.isSelected();
+        return _rdbBoatDefault.isSelected();
     }
 
+    /**
+     * Récupère le tableau des nombres de bateaux personnalisés.
+     *
+     * @return Un clone du tableau contenant le nombre de chaque type de bateau
+     */
     public int[] getCustomBoatNumbers() {
-        return customBoatNumbers.clone();
+        return _customBoatNumbers.clone();
     }
 
+    /**
+     * Récupère le mode de placement des pièges sélectionné.
+     *
+     * @return Le mode de placement sélectionné sous forme de chaîne
+     */
     public String getTrapPlacementMode() {
-        return trapPlacementPanel.getSelectedMode();
+        return _pnlTrapPlacement.getSelectedMode();
     }
 
-    // pour l'affichage
+    //  Méthodes d'affichage de messages
+
+    /**
+     * Affiche un message d'erreur dans une boîte de dialogue modale.
+     *
+     * @param message Le message d'erreur à afficher
+     */
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Affiche un message de succès dans une boîte de dialogue modale.
+     *
+     * @param message Le message de succès à afficher
+     */
     public void showSuccess(String message) {
         JOptionPane.showMessageDialog(this, message, "Succès", JOptionPane.INFORMATION_MESSAGE);
     }
