@@ -4,23 +4,23 @@ import model.enums.*;
 import model.grid.Position;
 
 public class TurnResult {
-    private boolean success;
-    private String errorMessage;
-    private TurnType type;
-    private AttackResult attackResult;
-    private WeaponType weaponUsed;
-    private Position targetPosition;
-    private boolean tornadoActivated;
-    private Position redirectedTo;
+    private boolean _success;
+    private String _errorMessage;
+    private TurnType _type;
+    private AttackResult _attackResult;
+    private WeaponType _weaponUsed;
+    private Position _targetPosition;
+    private boolean _tornadoActivated;
+    private Position _redirectedTo;
 
     // pour les trucs trouvés sur l'île
-    private WeaponType weaponFound;
-    private TrapType trapFound;
-    private TrapType trapPlaced;
-    private Position trapPlacementPosition;
+    private WeaponType _weaponFound;
+    private TrapType _trapFound;
+    private TrapType _trapPlaced;
+    private Position _trapPlacementPosition;
 
     // pour le robot
-    private boolean isRobotAction;
+    private boolean _isRobotAction;
 
     private TurnResult() {}
 
@@ -28,55 +28,55 @@ public class TurnResult {
 
     public static TurnResult success(AttackResult attackResult, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ATTACK;
-        result.attackResult = attackResult;
-        result.tornadoActivated = tornadoActivated;
-        result.redirectedTo = finalTarget;
-        result.isRobotAction = false;
+        result._success = true;
+        result._type = TurnType.ATTACK;
+        result._attackResult = attackResult;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
+        result._isRobotAction = false;
         return result;
     }
 
     public static TurnResult emptyIslandSquare() {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.isRobotAction = false;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._isRobotAction = false;
         return result;
     }
 
     public static TurnResult weaponFound(WeaponType weapon) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.weaponFound = weapon;
-        result.isRobotAction = false;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._weaponFound = weapon;
+        result._isRobotAction = false;
         return result;
     }
 
     public static TurnResult trapFound(TrapType trap) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.trapFound = trap;
-        result.isRobotAction = false;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._trapFound = trap;
+        result._isRobotAction = false;
         return result;
     }
 
     public static TurnResult trapPlaced(TrapType trap, Position position) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.TRAP_PLACEMENT;
-        result.trapPlaced = trap;
-        result.trapPlacementPosition = position;
-        result.isRobotAction = false;
+        result._success = true;
+        result._type = TurnType.TRAP_PLACEMENT;
+        result._trapPlaced = trap;
+        result._trapPlacementPosition = position;
+        result._isRobotAction = false;
         return result;
     }
 
     public static TurnResult error(String message) {
         TurnResult result = new TurnResult();
-        result.success = false;
-        result.errorMessage = message;
+        result._success = false;
+        result._errorMessage = message;
         return result;
     }
 
@@ -84,49 +84,49 @@ public class TurnResult {
     // factory methods du robot
     public static TurnResult robotAttack(WeaponType weapon, AttackResult attackResult, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ATTACK;
-        result.weaponUsed = weapon;
-        result.attackResult = attackResult;
-        result.tornadoActivated = tornadoActivated;
-        result.redirectedTo = finalTarget;
-        result.isRobotAction = true;
+        result._success = true;
+        result._type = TurnType.ATTACK;
+        result._weaponUsed = weapon;
+        result._attackResult = attackResult;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
+        result._isRobotAction = true;
         return result;
     }
 
     public static TurnResult robotEmptyIsland() {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.isRobotAction = true;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._isRobotAction = true;
         return result;
     }
 
     public static TurnResult robotWeaponFound(WeaponType weapon) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.weaponFound = weapon;
-        result.isRobotAction = true;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._weaponFound = weapon;
+        result._isRobotAction = true;
         return result;
     }
 
     public static TurnResult robotTrapFound(TrapType trap, Position placement) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.trapFound = trap;
-        result.trapPlacementPosition = placement;
-        result.isRobotAction = true;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._trapFound = trap;
+        result._trapPlacementPosition = placement;
+        result._isRobotAction = true;
         return result;
     }
 
     public static TurnResult robotTrapFoundButNoSpace(TrapType trap) {
         TurnResult result = new TurnResult();
-        result.success = true;
-        result.type = TurnType.ISLAND_SEARCH;
-        result.trapFound = trap;
-        result.isRobotAction = true;
+        result._success = true;
+        result._type = TurnType.ISLAND_SEARCH;
+        result._trapFound = trap;
+        result._isRobotAction = true;
         return result;
     }
 
@@ -134,88 +134,88 @@ public class TurnResult {
     // GETTERS
 
     public boolean isSuccess() {
-        return success;
+        return _success;
     }
 
     public String getErrorMessage() {
-        return errorMessage;
+        return _errorMessage;
     }
 
     public TurnType getType() {
-        return type;
+        return _type;
     }
 
     public AttackResult getAttackResult() {
-        return attackResult;
+        return _attackResult;
     }
 
     public WeaponType getWeaponUsed() {
-        return weaponUsed;
+        return _weaponUsed;
     }
 
     public boolean wasTornadoActivated() {
-        return tornadoActivated;
+        return _tornadoActivated;
     }
 
     public Position getRedirectedTo() {
-        return redirectedTo;
+        return _redirectedTo;
     }
 
     public WeaponType getWeaponFound() {
-        return weaponFound;
+        return _weaponFound;
     }
 
     public TrapType getTrapFound() {
-        return trapFound;
+        return _trapFound;
     }
 
     public TrapType getTrapPlaced() {
-        return trapPlaced;
+        return _trapPlaced;
     }
 
     public Position getTrapPlacementPosition() {
-        return trapPlacementPosition;
+        return _trapPlacementPosition;
     }
 
     public boolean isRobotAction() {
-        return isRobotAction;
+        return _isRobotAction;
     }
 
     public String getActionDescription() {
-        if (!success) {
-            return errorMessage;
+        if (!_success) {
+            return _errorMessage;
         }
 
-        String actor = isRobotAction ? "Robot" : "Joueur";
+        String actor = _isRobotAction ? "Robot" : "Joueur";
 
-        switch (type) {
+        switch (_type) {
             case ATTACK:
-                if (attackResult.isSonar()) {
-                    return actor + " utilise un Sonar : " + attackResult.getOccupiedCells() + " case(s) occupée(s)";
+                if (_attackResult.isSonar()) {
+                    return actor + " utilise un Sonar : " + _attackResult.getOccupiedCells() + " case(s) occupée(s)";
                 }
-                if (attackResult.hadSunk()) {
+                if (_attackResult.hadSunk()) {
                     return actor + " a coulé un bateau !";
                 }
-                if (attackResult.hadHit()) {
-                    return actor + " a touché ! (" + attackResult.getHits() + " case(s))";
+                if (_attackResult.hadHit()) {
+                    return actor + " a touché ! (" + _attackResult.getHits() + " case(s))";
                 }
                 return actor + " a raté (à l'eau)";
 
             case ISLAND_SEARCH:
-                if (weaponFound != null) {
-                    return actor + " a trouvé une arme : " + weaponFound;
+                if (_weaponFound != null) {
+                    return actor + " a trouvé une arme : " + _weaponFound;
                 }
-                if (trapFound != null) {
-                    String msg = actor + " a trouvé un piège : " + trapFound;
-                    if (trapPlacementPosition != null && isRobotAction) {
-                        msg += " (placé en " + trapPlacementPosition.getX() + "," + trapPlacementPosition.getY() + ")";
+                if (_trapFound != null) {
+                    String msg = actor + " a trouvé un piège : " + _trapFound;
+                    if (_trapPlacementPosition != null && _isRobotAction) {
+                        msg += " (placé en " + _trapPlacementPosition.getX() + "," + _trapPlacementPosition.getY() + ")";
                     }
                     return msg;
                 }
                 return actor + " a fouillé une case vide";
 
             case TRAP_PLACEMENT:
-                return "Piège placé en " + trapPlacementPosition.getX() + "," + trapPlacementPosition.getY();
+                return "Piège placé en " + _trapPlacementPosition.getX() + "," + _trapPlacementPosition.getY();
 
             default:
                 return "Action inconnue";

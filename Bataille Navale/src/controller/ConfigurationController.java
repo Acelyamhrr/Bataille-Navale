@@ -9,10 +9,16 @@ import view.ConfigurationView;
  * pour Valider et créer le GameConfig.
  */
 public class ConfigurationController {
-    private final ConfigurationView view;
+    private final ConfigurationView _view;
 
     public ConfigurationController(ConfigurationView view) {
-        this.view = view;
+        this._view = view;
+    }
+
+    public boolean numberSquaresValid(int[] boats) {
+        boolean modeIsland = !_view.isStandardMode();
+        int gridSize = _view.getGridSize();
+        return GameConfig.numberSquaresValid(gridSize, boats, modeIsland);
     }
 
     /**
@@ -21,12 +27,12 @@ public class ConfigurationController {
      */
     public GameConfig validateAndCreateConfig() {
         // 1. Récupérer les données de la vue
-        String username = view.getUsername();
-        int gridSize = view.getGridSize();
-        ModeGame mode = view.isStandardMode() ? ModeGame.STANDARD : ModeGame.ISLAND;
-        RobotMode robot = view.isRandomRobot() ? RobotMode.RANDOM : RobotMode.SMART;
+        String username = _view.getUsername();
+        int gridSize = _view.getGridSize();
+        ModeGame mode = _view.isStandardMode() ? ModeGame.STANDARD : ModeGame.ISLAND;
+        RobotMode robot = _view.isRandomRobot() ? RobotMode.RANDOM : RobotMode.SMART;
 
-        String trapMode = view.getTrapPlacementMode();
+        String trapMode = _view.getTrapPlacementMode();
         TrapPlacement trap;
 
         switch (trapMode) {
@@ -40,7 +46,7 @@ public class ConfigurationController {
                 trap = TrapPlacement.MANUAL;
         }
 
-        int[] boats = view.isDefaultBoats() ? new int[]{1, 1, 1, 1, 1} : view.getCustomBoatNumbers();
+        int[] boats = _view.isDefaultBoats() ? new int[]{1, 1, 1, 1, 1} : _view.getCustomBoatNumbers();
 
         // 2. Créer le Modèle
         GameConfig config = new GameConfig(mode, gridSize, robot, boats, username, trap);
@@ -50,7 +56,7 @@ public class ConfigurationController {
             StringBuilder error = new StringBuilder("Configuration invalide !\n");
             if (username.isEmpty()) error.append("- Nom vide\n");
             if (config.getTotalBoatSquares() > 35) error.append("- Max 35 cases\n");
-            view.showError(error.toString());
+            _view.showError(error.toString());
             return null;
         }
 

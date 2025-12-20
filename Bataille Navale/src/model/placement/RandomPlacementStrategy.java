@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Random;
 
 public class RandomPlacementStrategy implements PlacementStrategy{
-    private final Random rand = new Random();
+    private final Random _rand = new Random();
 
     public RandomPlacementStrategy() {}
 
@@ -49,9 +49,9 @@ public class RandomPlacementStrategy implements PlacementStrategy{
 
     private boolean tryPlaceBoatRandomly(Grid grid, BoatName boatName) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(grid.getSize());
-            int y = rand.nextInt(grid.getSize());
-            Orientation o = rand.nextBoolean() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+            int x = _rand.nextInt(grid.getSize());
+            int y = _rand.nextInt(grid.getSize());
+            Orientation o = _rand.nextBoolean() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 
             if (grid.canPlaceBoat(Boat.getBoatSize(boatName), x, y, o)) {
                 Boat boat = Placement.createBoat(boatName);
@@ -64,8 +64,8 @@ public class RandomPlacementStrategy implements PlacementStrategy{
 
     private boolean tryPlaceTrapRandomly(Grid grid, TrapType trapType) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(grid.getSize());
-            int y = rand.nextInt(grid.getSize());
+            int x = _rand.nextInt(grid.getSize());
+            int y = _rand.nextInt(grid.getSize());
 
             if(grid.hasIsland()){
                 if(grid.canPlaceTrapWeapon(x, y)){
@@ -87,8 +87,8 @@ public class RandomPlacementStrategy implements PlacementStrategy{
 
     private boolean tryPlaceWeaponRandomly(Grid grid, WeaponType weaponType) {
         for (int attempts = 0; attempts < 100; attempts++) {
-            int x = rand.nextInt(grid.getSize());
-            int y = rand.nextInt(grid.getSize());
+            int x = _rand.nextInt(grid.getSize());
+            int y = _rand.nextInt(grid.getSize());
 
             if (grid.hasIsland() && grid.canPlaceTrapWeapon(x, y)) {
                 Weapon weapon = Placement.createWeapon(weaponType);

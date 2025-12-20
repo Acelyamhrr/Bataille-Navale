@@ -9,27 +9,27 @@ import java.util.List;
  * Encapsule le résultat d'une attaque (missile, bombe, sonar).
  */
 public class AttackResult {
-    private int hits;
-    private int misses;
-    private boolean sunkBoat;
-    private List<TrapActivation> trapActivations;
+    private int _hits;
+    private int _misses;
+    private boolean _sunkBoat;
+    private List<TrapActivation> _trapActivations;
 
     // Pour le sonar
-    private boolean isSonar;
-    private int occupiedCells;
+    private boolean _isSonar;
+    private int _occupiedCells;
 
     public AttackResult(int hits, int misses, boolean sunkBoat, List<TrapActivation> trapActivations) {
-        this.hits = hits;
-        this.misses = misses;
-        this.sunkBoat = sunkBoat;
-        this.trapActivations = new ArrayList<>(trapActivations);
-        this.isSonar = false;
+        this._hits = hits;
+        this._misses = misses;
+        this._sunkBoat = sunkBoat;
+        this._trapActivations = new ArrayList<>(trapActivations);
+        this._isSonar = false;
     }
 
     private AttackResult(int occupiedCells) {
-        this.isSonar = true;
-        this.occupiedCells = occupiedCells;
-        this.trapActivations = new ArrayList<>();
+        this._isSonar = true;
+        this._occupiedCells = occupiedCells;
+        this._trapActivations = new ArrayList<>();
     }
 
     public static AttackResult sonarResult(int occupiedCells) {
@@ -39,34 +39,34 @@ public class AttackResult {
     // ===== GETTERS =====
 
     public int getHits() {
-        return hits;
+        return _hits;
     }
 
     public int getMisses() {
-        return misses;
+        return _misses;
     }
 
     public boolean hadSunk() {
-        return sunkBoat;
+        return _sunkBoat;
     }
 
     public boolean hadHit() {
-        return hits > 0;
+        return _hits > 0;
     }
 
     public List<TrapActivation> getTrapActivations() {
-        return new ArrayList<>(trapActivations);
+        return new ArrayList<>(_trapActivations);
     }
 
     public boolean isSonar() {
-        return isSonar;
+        return _isSonar;
     }
 
     public int getOccupiedCells() {
-        return occupiedCells;
+        return _occupiedCells;
     }
 
     public boolean hadTrapActivations() {
-        return !trapActivations.isEmpty();
+        return !_trapActivations.isEmpty();
     }
 }
