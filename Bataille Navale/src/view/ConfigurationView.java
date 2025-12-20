@@ -1,5 +1,8 @@
 package view;
 
+import view.dialogs.BoatCustomizationDialog;
+import view.panels.TrapPlacementPanel;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -11,11 +14,10 @@ public class ConfigurationView extends JFrame {
     private JRadioButton modeStandardRadio, modeIslandRadio;
     private JRadioButton robotRandomRadio, robotSmartRadio;
     private JRadioButton boatDefault, boatCustom;
-    private JRadioButton trapFixedRadio, trapRandomRadio, trapManualRadio;
-    private JRadioButton islandRandomRadio, islandManualRadio;
     private JButton backButton, nextButton, customizeBoatButton;
     private JLabel boatInfoLabel;
-    private JPanel trapPanel;
+
+    private TrapPlacementPanel trapPlacementPanel;
 
     private int[] customBoatNumbers = {1, 1, 1, 1, 1};      // par défaut, un de chaque bateau.
 
@@ -69,8 +71,8 @@ public class ConfigurationView extends JFrame {
         modeGroup.add(modeStandardRadio);
         modeGroup.add(modeIslandRadio);
 
-        modeStandardRadio.addActionListener(e -> updateTrapPanel());
-        modeIslandRadio.addActionListener(e -> updateTrapPanel());
+        modeStandardRadio.addActionListener(e -> trapPlacementPanel.updateForMode(false));
+        modeIslandRadio.addActionListener(e -> trapPlacementPanel.updateForMode(true));
 
         configPanel.add(modeStandardRadio);
         configPanel.add(modeIslandRadio);
@@ -110,7 +112,15 @@ public class ConfigurationView extends JFrame {
             updateBoatInfo();
         });
 
-        customizeBoatButton.addActionListener(e -> openBoatCustomizationDialog());
+        customizeBoatButton.addActionListener(e -> {
+            BoatCustomizationDialog dialog = new BoatCustomizationDialog(this, customBoatNumbers);
+            int[] result = dialog.showAndGetResult();
+            if (result != null) {
+                customBoatNumbers = result;
+                updateBoatInfo();
+            }
+        });
+
 
         configPanel.add(customizeBoatButton);
         configPanel.add(Box.createVerticalStrut(10));
@@ -122,12 +132,9 @@ public class ConfigurationView extends JFrame {
         configPanel.add(Box.createVerticalStrut(20));
 
         // Placement des pièges
-        trapPanel = new JPanel();
-        trapPanel.setLayout(new BoxLayout(trapPanel, BoxLayout.Y_AXIS));
-        trapPanel.setBackground(Color.WHITE);
-
-        configPanel.add(trapPanel);
-        updateTrapPanel();
+        trapPlacementPanel = new TrapPlacementPanel();
+        trapPlacementPanel.updateForMode(modeIslandRadio.isSelected());
+        configPanel.add(trapPlacementPanel);
 
         JScrollPane scrollPane = new JScrollPane(configPanel);
         scrollPane.setBorder(null);
@@ -150,83 +157,6 @@ public class ConfigurationView extends JFrame {
         add(mainPanel);
     }
 
-    private void openBoatCustomizationDialog() {
-        JDialog dialog = new JDialog(this, "Personnalisation des bateaux", true);
-        dialog.setSize(500, 400);
-        dialog.setLocationRelativeTo(this);
-
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        String[] names = {"Porte-avions", "Croiseur", "Contre-torpilleur", "Sous-marin", "Torpilleur"};
-        int[] sizes = {5, 4, 3, 3, 2};
-        JSpinner[] spinners = new JSpinner[5];
-        JLabel totalLabel = new JLabel();
-
-        // Créer les lignes
-        for (int i = 0; i < 5; i++) {
-            JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            JLabel nameLabel = new JLabel(names[i] + " (" + sizes[i] + " cases)");
-            nameLabel.setPreferredSize(new Dimension(200, 25));
-            spinners[i] = new JSpinner(new SpinnerNumberModel(customBoatNumbers[i], 1, 3, 1));
-            spinners[i].setPreferredSize(new Dimension(60, 25));
-
-            // Mettre à jour le total quand on change une valeur
-            final int[] sizesRef = sizes;
-            spinners[i].addChangeListener(e -> updateDialogTotal(spinners, sizesRef, totalLabel));
-
-            row.add(nameLabel);
-            row.add(spinners[i]);
-            panel.add(row);
-        }
-
-        panel.add(Box.createVerticalStrut(20));
-        totalLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        panel.add(totalLabel);
-        updateDialogTotal(spinners, sizes, totalLabel);
-
-        // Bouton valider
-        JButton validateBtn = new JButton("Valider");
-        validateBtn.addActionListener(e -> {
-            int total = calculateDialogTotal(spinners, sizes);
-            if (total > 35) {
-                JOptionPane.showMessageDialog(dialog,
-                        "Maximum 35 cases ! Actuellement: " + total,
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Sauvegarder les valeurs dans l'attribut de la Vue
-            for (int i = 0; i < 5; i++) {
-                customBoatNumbers[i] = (Integer) spinners[i].getValue();
-            }
-            updateBoatInfo();
-            dialog.dispose();
-        });
-
-        panel.add(Box.createVerticalStrut(20));
-        panel.add(validateBtn);
-        dialog.add(panel);
-        dialog.setVisible(true);
-    }
-
-    private void updateDialogTotal(JSpinner[] spinners, int[] sizes, JLabel label) {
-        int total = calculateDialogTotal(spinners, sizes);
-        label.setText("Total: " + total + " cases" + (total > 35 ? " (DÉPASSÉ !)" : ""));
-        label.setForeground(total > 35 ? Color.RED : Color.BLACK);
-    }
-
-    private int calculateDialogTotal(JSpinner[] spinners, int[] sizes) {
-        int total = 0;
-        for (int i = 0; i < spinners.length; i++) {
-            total += (Integer) spinners[i].getValue() * sizes[i];
-        }
-        return total;
-    }
-
-
-
     // pour avoir mêmes écritures partt
     private JLabel createSection(String title) {
         JLabel label = new JLabel(title);
@@ -234,52 +164,6 @@ public class ConfigurationView extends JFrame {
         label.setForeground(new Color(30, 50, 100));
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
-    }
-
-    // change par rapport à si île sélectionné ou pas.
-    private void updateTrapPanel() {
-        trapPanel.removeAll();
-        if(modeIslandRadio.isSelected()) {
-            trapPanel.add(createSection("Placement des pièges et armes sur l'île"));
-        }
-        else{
-            trapPanel.add(createSection("Placement des pièges"));
-        }
-        trapPanel.add(Box.createVerticalStrut(10));
-
-        if (modeStandardRadio.isSelected()) {
-            ButtonGroup trapGroup = new ButtonGroup();
-            trapFixedRadio = new JRadioButton("Fixe", true);
-            trapRandomRadio = new JRadioButton("Aléatoire");
-            trapManualRadio = new JRadioButton("Manuel");
-            trapGroup.add(trapFixedRadio);
-            trapGroup.add(trapRandomRadio);
-            trapGroup.add(trapManualRadio);
-            trapPanel.add(trapFixedRadio);
-            trapPanel.add(trapRandomRadio);
-            trapPanel.add(trapManualRadio);
-        } else {
-            ButtonGroup islandGroup = new ButtonGroup();
-            islandRandomRadio = new JRadioButton("Aléatoire", true);
-            islandManualRadio = new JRadioButton("Manuel");
-            islandGroup.add(islandRandomRadio);
-            islandGroup.add(islandManualRadio);
-            trapPanel.add(islandRandomRadio);
-            trapPanel.add(islandManualRadio);
-        }
-
-        trapPanel.add(Box.createVerticalStrut(20));
-        trapPanel.revalidate();
-        trapPanel.repaint();
-    }
-
-    private void updateBoatInfo() {
-        int[] sizes = {5, 4, 3, 3, 2};
-        int total = 0;
-        for (int i = 0; i < 5; i++) {
-            total += customBoatNumbers[i] * sizes[i];
-        }
-        boatInfoLabel.setText("Total: " + total + " cases utilisées");
     }
 
     private JButton createButton(String text, Color bgColor) {
@@ -292,6 +176,18 @@ public class ConfigurationView extends JFrame {
         button.setPreferredSize(new Dimension(150, 40));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return button;
+    }
+
+    /**
+     * Met à jour le label affichant le total de cases utilisées par les bateaux
+     */
+    private void updateBoatInfo() {
+        int[] sizes = {5, 4, 3, 3, 2};
+        int total = 0;
+        for (int i = 0; i < 5; i++) {
+            total += customBoatNumbers[i] * sizes[i];
+        }
+        boatInfoLabel.setText("Total: " + total + " cases utilisées");
     }
 
     // pour le controlleur
@@ -335,20 +231,8 @@ public class ConfigurationView extends JFrame {
         return customBoatNumbers.clone();
     }
 
-    public void setCustomBoatNumbers(int[] numbers) {
-        this.customBoatNumbers = numbers.clone();
-        updateBoatInfo();
-    }
-
     public String getTrapPlacementMode() {
-        if (modeStandardRadio.isSelected()) {
-            if (trapFixedRadio != null && trapFixedRadio.isSelected()) return "FIXED";
-            if (trapRandomRadio != null && trapRandomRadio.isSelected()) return "RANDOM";
-            return "MANUAL";
-        } else {
-            if (islandRandomRadio != null && islandRandomRadio.isSelected()) return "RANDOM";
-            return "MANUAL";
-        }
+        return trapPlacementPanel.getSelectedMode();
     }
 
     // pour l'affichage
