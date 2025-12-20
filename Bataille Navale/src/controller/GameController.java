@@ -278,7 +278,7 @@ public class GameController {
                     view.showTrapEffect(
                             "🌪️ TORNADE DÉCLENCHÉE !",
                             "Vous avez activé la TORNADE du ROBOT !\n\n" +
-                                    "⚠️ Les 3 prochains tirs du robot seront déviés vers des positions aléatoires !",
+                                    "⚠️ Vos 3 prochains tirs seront déviés vers des positions aléatoires !",
                             false  // Rouge = mauvais pour le joueur
                     );
 

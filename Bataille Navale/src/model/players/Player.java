@@ -5,10 +5,7 @@ import model.contents.fleet.Boat;
 import model.contents.traps.Tornado;
 import model.contents.traps.Trap;
 import model.contents.weapons.Weapon;
-import model.enums.ContentType;
-import model.enums.ModeGame;
-import model.enums.TrapType;
-import model.enums.WeaponType;
+import model.enums.*;
 import model.game.RobotStrategy.RobotStrategy;
 import model.game.TrapActivation;
 import model.grid.Grid;
@@ -89,6 +86,23 @@ public class Player {
 
     public Map<WeaponType, Integer> getWeapons() {
         return new HashMap<>(weapons);
+    }
+
+    public boolean canUseSonar(){
+        if(getWeaponCount(WeaponType.SONAR) == 0){
+            return false;
+        }
+
+        return hasSubmarine();
+    }
+
+    private boolean hasSubmarine(){
+        for(Boat b :  boats){
+            if(b.getName() == BoatName.SUBMARINE && !b.hasSunk()){
+                return true;
+            }
+        }
+        return false;
     }
 
     // PIEGES
@@ -200,6 +214,7 @@ public class Player {
                 Tornado tornado = (Tornado) trap;
                 if (!tornado.isActive()) {
                     tornado.activate(gridSize);
+                    setTornado(tornado);
                     return new TrapActivation(TrapType.TORNADO, position, false);
                 }
             } else if (trap.getName() == TrapType.BLACKHOLE) {
