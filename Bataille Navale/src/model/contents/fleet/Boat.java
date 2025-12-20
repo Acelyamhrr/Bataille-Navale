@@ -28,8 +28,6 @@ public class Boat extends Content {
         this.alreadyTouched = false;
     }
 
-    public Boat(){}
-
     public static int getBoatSize(BoatName boat){
         switch (boat){
             case AIRCRAFT_CARRIER:

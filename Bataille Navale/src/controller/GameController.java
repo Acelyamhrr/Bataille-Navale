@@ -457,6 +457,7 @@ public class GameController {
         return game.getPlayer();
     }
 
+    public Player getRobot() { return game.getRobot(); }
 
     public void quit() {
         System.exit(0);
