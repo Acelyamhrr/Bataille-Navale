@@ -51,6 +51,42 @@ public class GameConfig {
             return false;
         }
 
+        // trop de cases pour la taille de la grille + île
+        if(modeGame == ModeGame.ISLAND){
+            int sizeIsland = 16;
+
+            switch (gridSize) {
+                case 7:
+                    if(getTotalBoatSquares() > 49-sizeIsland){
+                        return false;
+                    }
+                    break;
+                case 8:
+                    if(getTotalBoatSquares() > 64-sizeIsland){
+                        return false;
+                    }
+                    break;
+                case 9:
+                    if(getTotalBoatSquares() > 81-sizeIsland){
+                        return false;
+                    }
+                case 10:
+                    if(getTotalBoatSquares() > 100-sizeIsland){
+                        return false;
+                    }
+                    break;
+                default:
+                    if(getTotalBoatSquares() > 36-sizeIsland){
+                        return false;
+                    }
+            }
+        }
+        else{
+            if(gridSize == 6 && getTotalBoatSquares() > 34){
+                return false;
+            }
+        }
+
         // Au moins un boat
         int totalBoats = 0;
         for (int nb : numberBoat) {
