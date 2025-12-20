@@ -7,29 +7,29 @@ import model.enums.TrapType;
 import model.grid.Position;
 
 public abstract class Trap extends Content {
-    private TrapType name;
+    private TrapType _name;
 
     public Trap(TrapType name){
-        this.name = name;
-        this.contentType = ContentType.TRAP;
+        this._name = name;
+        this._contentType = ContentType.TRAP;
     }
 
     @Override
     public void setPosition(int x, int y, Orientation orientation){
-        position = new Position(x, y);
+        _position = new Position(x, y);
     }
 
     @Override
     public Position getPosition(){
-        return this.position;
+        return this._position;
     }
 
     @Override
     public ContentType getContentType() {
-        return this.contentType;
+        return this._contentType;
     }
 
     public TrapType getName() {
-        return this.name;
+        return this._name;
     }
 }

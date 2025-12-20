@@ -5,28 +5,28 @@ import model.enums.Orientation;
 import java.util.Objects;
 
 public class Position {
-    private int x;
-    private int y;
-    private Orientation orientation;
+    private int _x;
+    private int _y;
+    private Orientation _orientation;
 
     public Position(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.orientation = Orientation.NONE;
+        this._x = x;
+        this._y = y;
+        this._orientation = Orientation.NONE;
     }
 
     public Position(int x, int y, Orientation orientation) {
-        this.x = x;
-        this.y = y;
-        this.orientation = orientation;
+        this._x = x;
+        this._y = y;
+        this._orientation = orientation;
     }
 
     public int getX() {
-        return x;
+        return _x;
     }
 
     public int getY() {
-        return y;
+        return _y;
     }
 
     @Override
@@ -34,15 +34,15 @@ public class Position {
         if (this == o) return true;
         if (!(o instanceof Position)) return false;
         Position p = (Position) o;
-        return x == p.x && y == p.y;
+        return _x == p._x && _y == p._y;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return Objects.hash(_x, _y);
     }
 
     public Orientation getOrientation() {
-        return orientation;
+        return _orientation;
     }
 }

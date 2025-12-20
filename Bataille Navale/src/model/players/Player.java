@@ -15,44 +15,44 @@ import model.grid.Square;
 import java.util.*;
 
 public class Player {
-    private String username;
-    private boolean isRobot;
-    private Map<WeaponType, Integer> weapons;
-    private Grid grid;
-    private Tornado tornado;
-    private List<Boat> boats;
-    private RobotStrategy strategy;
-    private Map<TrapType, Integer> trapInventory;
+    private String _username;
+    private boolean _isRobot;
+    private Map<WeaponType, Integer> _weapons;
+    private Grid _grid;
+    private Tornado _tornado;
+    private List<Boat> _boats;
+    private RobotStrategy _strategy;
+    private Map<TrapType, Integer> _trapInventory;
 
     public Player(String username, Boolean robot) {
-        this.username = username;
-        this.isRobot = robot;
-        this.weapons = new HashMap<>();
-        this.boats = new ArrayList<>();
-        this.tornado = null;
-        this.strategy = null;
-        this.trapInventory = new HashMap<>();
+        this._username = username;
+        this._isRobot = robot;
+        this._weapons = new HashMap<>();
+        this._boats = new ArrayList<>();
+        this._tornado = null;
+        this._strategy = null;
+        this._trapInventory = new HashMap<>();
     }
 
     // INIT
 
-    public void setGrid(Grid grid) { this.grid = grid; }
+    public void setGrid(Grid grid) { this._grid = grid; }
 
     public void placeBoat(Boat boat, Position position) {
-        grid.placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
-        boats.add(boat);
+        _grid.placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
+        _boats.add(boat);
     }
 
     public void placeTrap(Trap trap, Position position) {
-        grid.placeTrap(trap, position.getX(), position.getY());
+        _grid.placeTrap(trap, position.getX(), position.getY());
 
         if (trap.getName() == TrapType.TORNADO) {
-            this.tornado = (Tornado) trap;
+            this._tornado = (Tornado) trap;
         }
     }
 
     public void placeWeaponOnIsland(Weapon weapon, Position position) {
-        grid.placeWeapon(weapon, position.getX(), position.getY());
+        _grid.placeWeapon(weapon, position.getX(), position.getY());
     }
 
     // ARMES
@@ -68,24 +68,24 @@ public class Player {
         }
         // Le missile est illimité, ne pas décrémenter
         if (type != WeaponType.MISSILE) {
-            weapons.put(type, count - 1);
+            _weapons.put(type, count - 1);
         }
     }
 
     public void addWeapon(WeaponType type) {
-        weapons.put(type, getWeaponCount(type) + 1);
+        _weapons.put(type, getWeaponCount(type) + 1);
     }
 
     public int getWeaponCount(WeaponType type) {
-        return weapons.getOrDefault(type, 0);
+        return _weapons.getOrDefault(type, 0);
     }
 
     public void setWeaponCount(WeaponType type, int count) {
-        weapons.put(type, count);
+        _weapons.put(type, count);
     }
 
     public Map<WeaponType, Integer> getWeapons() {
-        return new HashMap<>(weapons);
+        return new HashMap<>(_weapons);
     }
 
     public boolean canUseSonar(){
@@ -97,7 +97,7 @@ public class Player {
     }
 
     private boolean hasSubmarine(){
-        for(Boat b :  boats){
+        for(Boat b : _boats){
             if(b.getName() == BoatName.SUBMARINE && !b.hasSunk()){
                 return true;
             }
@@ -108,30 +108,30 @@ public class Player {
     // PIEGES
 
     public void addTrapToInventory(TrapType type) {
-        trapInventory.put(type, getTrapInventoryCount(type) + 1);
+        _trapInventory.put(type, getTrapInventoryCount(type) + 1);
     }
 
     public int getTrapInventoryCount(TrapType type) {
-        return trapInventory.getOrDefault(type, 0);
+        return _trapInventory.getOrDefault(type, 0);
     }
 
     public void removeTrapFromInventory(TrapType type) {
         int count = getTrapInventoryCount(type);
         if (count > 0) {
-            trapInventory.put(type, count - 1);
+            _trapInventory.put(type, count - 1);
         }
     }
 
     public Map<TrapType, Integer> getTrapInventory() {
-        return new HashMap<>(trapInventory);
+        return new HashMap<>(_trapInventory);
     }
 
     public boolean canPlaceTrapAt(Position position) {
-        if (grid == null) {
+        if (_grid == null) {
             return false;
         }
 
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
 
         // Case doit être vide et pas sur l'île
         return square.isEmpty() && !square.isInIsland();
@@ -147,12 +147,12 @@ public class Player {
         }
 
         // Placer le piège
-        grid.placeTrap(trap, position.getX(), position.getY());
+        _grid.placeTrap(trap, position.getX(), position.getY());
         removeTrapFromInventory(type);
 
         // Si c'est une tornade, la définir comme active
         if (type == TrapType.TORNADO) {
-            this.tornado = (Tornado) trap;
+            this._tornado = (Tornado) trap;
         }
 
         return true;
@@ -161,41 +161,41 @@ public class Player {
     // tornade
 
     public boolean hasTornadoActive() {
-        return tornado != null && tornado.isActive();
+        return _tornado != null && _tornado.isActive();
     }
 
     public Position applyTornado(Position target) {
         if (hasTornadoActive()) {
-            return tornado.getNewPosition(target);
+            return _tornado.getNewPosition(target);
         }
         return target;
     }
 
     public void setTornado(Tornado tornado) {
-        this.tornado = tornado;
+        this._tornado = tornado;
     }
 
     public Tornado getTornado() {
-        return tornado;
+        return _tornado;
     }
 
     // ATTAUQES ET DEFENSES
 
     public void receiveAttack(Position position) {
-        if (grid != null) {
-            grid.attack(position);
+        if (_grid != null) {
+            _grid.attack(position);
         }
     }
 
     public boolean receiveAttackAndCheckHit(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
         boolean wasHit = !square.isEmpty() && square.getContentType() == ContentType.BOAT;
         receiveAttack(position);
         return wasHit;
     }
 
     public boolean wasBoatSunkAt(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
         if (square.getContentType() == ContentType.BOAT) {
             Boat boat = (Boat) square.getContent();
             return boat.hasSunk();
@@ -205,7 +205,7 @@ public class Player {
 
     // verif si un piège est présent et l'active si il faut
     public TrapActivation checkAndActivateTrap(Position position, int gridSize) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
 
         if (!square.isEmpty() && square.getContentType() == ContentType.TRAP) {
             Trap trap = (Trap) square.getContent();
@@ -228,7 +228,7 @@ public class Player {
     }
 
     public boolean allBoatSunk() {
-        for (Boat boat : boats) {
+        for (Boat boat : _boats) {
             if (!boat.hasSunk()) {
                 return false;
             }
@@ -239,26 +239,26 @@ public class Player {
     // ILE
 
     public boolean isSquareOnIsland(Position position) {
-        return grid.squareIsInIsland(position);
+        return _grid.squareIsInIsland(position);
     }
 
     public boolean wasSquareSearched(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
         return !square.isNotSearched();
     }
 
     public Content searchIsland(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
         return square.search();
     }
 
     public boolean wasSquareAttacked(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
         return square.wasAttacked();
     }
 
     public boolean isSquareOccupied(Position position) {
-        Square square = grid.getSquare(position);
+        Square square = _grid.getSquare(position);
 
         if (square.isEmpty()) {
             return false;
@@ -282,54 +282,54 @@ public class Player {
     // ROBOIT
 
     public void setStrategy(RobotStrategy strategy) {
-        this.strategy = strategy;
+        this._strategy = strategy;
     }
 
     public boolean shouldSearchIsland(Player opponent, int gridSize) {
-        return strategy != null && strategy.shouldSearchIsland(this, opponent, gridSize);
+        return _strategy != null && _strategy.shouldSearchIsland(this, opponent, gridSize);
     }
 
     public Position chooseIslandSquare(Player opponent, int gridSize) {
-        if (strategy == null) {
+        if (_strategy == null) {
             return null;
         }
-        return strategy.chooseIslandSquareToSearch(opponent, gridSize);
+        return _strategy.chooseIslandSquareToSearch(opponent, gridSize);
     }
 
     public Position chooseAttackTarget(Player opponent, int gridSize) {
-        if (strategy == null) {
+        if (_strategy == null) {
             throw new IllegalStateException("Pas de stratégie définie pour le robot");
         }
-        return strategy.chooseTarget(this, opponent, gridSize);
+        return _strategy.chooseTarget(this, opponent, gridSize);
     }
 
     public WeaponType chooseWeapon(Position target) {
-        if (strategy == null) {
+        if (_strategy == null) {
             return WeaponType.MISSILE;
         }
-        return strategy.chooseWeapon(this, target);
+        return _strategy.chooseWeapon(this, target);
     }
 
     public void notifyStrategyResult(Position target, boolean hit, boolean sunk) {
-        if (strategy != null) {
-            strategy.notifyResult(target, hit, sunk);
+        if (_strategy != null) {
+            _strategy.notifyResult(target, hit, sunk);
         }
     }
 
     public Position findEmptySquareForTrap() {
-        if (grid == null) {
+        if (_grid == null) {
             return null;
         }
 
         Random rand = new Random();
-        int gridSize = grid.getSize();
+        int gridSize = _grid.getSize();
 
         for (int attempt = 0; attempt < 100; attempt++) {
             int x = rand.nextInt(gridSize);
             int y = rand.nextInt(gridSize);
             Position pos = new Position(x, y);
 
-            Square square = grid.getSquare(pos);
+            Square square = _grid.getSquare(pos);
             if (square.isEmpty() && !square.isInIsland()) {
                 return pos;
             }
@@ -341,34 +341,34 @@ public class Player {
     // GETTERS
 
     public String getUsername() {
-        return username;
+        return _username;
     }
 
     public boolean isRobot() {
-        return isRobot;
+        return _isRobot;
     }
 
     public Grid getGrid() {
-        return grid;
+        return _grid;
     }
 
     public List<Boat> getBoats() {
-        return new ArrayList<>(boats);
+        return new ArrayList<>(_boats);
     }
 
     public void reset() {
-        weapons.clear();
-        boats.clear();
-        trapInventory.clear();
-        tornado = null;
-        if (grid != null) {
-            grid.reset();
+        _weapons.clear();
+        _boats.clear();
+        _trapInventory.clear();
+        _tornado = null;
+        if (_grid != null) {
+            _grid.reset();
         }
     }
 
     // SETTERS
     public void addBoat(Boat boat) {
-        boats.add(boat);
+        _boats.add(boat);
     }
 
 

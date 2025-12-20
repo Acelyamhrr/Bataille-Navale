@@ -9,15 +9,15 @@ import model.players.Player;
  * Calcule les statistiques d'un joueur pour l'écran de fin.
  */
 public class GameStats {
-    private int boatsIntact;
-    private int boatsTouched;
-    private int boatsSunk;
+    private int _boatsIntact;
+    private int _boatsTouched;
+    private int _boatsSunk;
 
-    private int missedShots;
-    private int hitCells;
-    private int totalCells;
+    private int _missedShots;
+    private int _hitCells;
+    private int _totalCells;
 
-    private int totalBoatCells;
+    private int _totalBoatCells;
 
     private GameStats() {}
 
@@ -35,28 +35,28 @@ public class GameStats {
     }
 
     private void calculateBoatStats(Player player) {
-        boatsIntact = 0;
-        boatsTouched = 0;
-        boatsSunk = 0;
-        totalBoatCells = 0;
+        _boatsIntact = 0;
+        _boatsTouched = 0;
+        _boatsSunk = 0;
+        _totalBoatCells = 0;
 
         for (Boat boat : player.getBoats()) {
-            totalBoatCells += boat.getSize();
+            _totalBoatCells += boat.getSize();
 
             if (boat.hasSunk()) {
-                boatsSunk++;
+                _boatsSunk++;
             } else if (boat.isTouched()) {
-                boatsTouched++;
+                _boatsTouched++;
             } else {
-                boatsIntact++;
+                _boatsIntact++;
             }
         }
     }
 
     private void calculateShotStats(Player opponent, int gridSize) {
-        missedShots = 0;
-        hitCells = 0;
-        totalCells = 0;
+        _missedShots = 0;
+        _hitCells = 0;
+        _totalCells = 0;
 
         // Parcourir la grille de l'adversaire pour compter les tirs
         for (int x = 0; x < gridSize; x++) {
@@ -65,12 +65,12 @@ public class GameStats {
                 Square square = opponent.getGrid().getSquare(pos);
 
                 if (square.wasAttacked()) {
-                    totalCells++;
+                    _totalCells++;
 
                     if (square.isEmpty() || square.getContentType() != model.enums.ContentType.BOAT) {
-                        missedShots++;
+                        _missedShots++;
                     } else {
-                        hitCells++;
+                        _hitCells++;
                     }
                 }
             }
@@ -80,47 +80,47 @@ public class GameStats {
     // GETTERS
 
     public int getBoatsIntact() {
-        return boatsIntact;
+        return _boatsIntact;
     }
 
     public int getBoatsTouched() {
-        return boatsTouched;
+        return _boatsTouched;
     }
 
     public int getBoatsSunk() {
-        return boatsSunk;
+        return _boatsSunk;
     }
 
     public int getMissedShots() {
-        return missedShots;
+        return _missedShots;
     }
 
     public int getHitCells() {
-        return hitCells;
+        return _hitCells;
     }
 
     public int getTotalCells() {
-        return totalCells;
+        return _totalCells;
     }
 
     public int getTotalBoatCells() {
-        return totalBoatCells;
+        return _totalBoatCells;
     }
 
     /**
      * Retourne le ratio de précision (pour affichage).
      */
     public String getHitRatio() {
-        return hitCells + "/" + totalBoatCells;
+        return _hitCells + "/" + _totalBoatCells;
     }
 
     @Override
     public String toString() {
         return "GameStats{" +
-                "boatsIntact=" + boatsIntact +
-                ", boatsTouched=" + boatsTouched +
-                ", boatsSunk=" + boatsSunk +
-                ", missedShots=" + missedShots +
+                "boatsIntact=" + _boatsIntact +
+                ", boatsTouched=" + _boatsTouched +
+                ", boatsSunk=" + _boatsSunk +
+                ", missedShots=" + _missedShots +
                 ", hitRatio=" + getHitRatio() +
                 '}';
     }

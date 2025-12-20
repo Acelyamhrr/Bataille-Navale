@@ -12,10 +12,10 @@ import java.util.Random;
 
 public abstract class RobotStrategy {
 
-    protected Random random;
+    protected Random _random;
 
     public RobotStrategy() {
-        this.random = new Random();
+        this._random = new Random();
 
     }
 
@@ -37,7 +37,7 @@ public abstract class RobotStrategy {
             return WeaponType.MISSILE;
         }
 
-        return available.get(random.nextInt(available.size()));
+        return available.get(_random.nextInt(available.size()));
     }
 
     // Choisit quelle case de l'île fouiller
@@ -46,8 +46,8 @@ public abstract class RobotStrategy {
         int iy = gridSize / 2 - 2;
 
         for (int attempt = 0; attempt < 50; attempt++) {
-            int x = random.nextInt(ix, ix + 4);
-            int y = random.nextInt(iy, iy + 4);
+            int x = _random.nextInt(ix, ix + 4);
+            int y = _random.nextInt(iy, iy + 4);
             Position pos = new Position(x, y);
 
             if (player.getGrid().getSquare(pos).isNotSearched()) {
@@ -67,8 +67,8 @@ public abstract class RobotStrategy {
         Square square;
 
         do {
-            int x = random.nextInt(gridSize);
-            int y = random.nextInt(gridSize);
+            int x = _random.nextInt(gridSize);
+            int y = _random.nextInt(gridSize);
             target = new Position(x, y);
             square = opponent.getGrid().getSquare(target);
         } while (square.wasAttacked());

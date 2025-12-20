@@ -8,36 +8,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class History implements Observer {
-    private final List<String> actions;
+    private final List<String> _actions;
 
     public History() {
-        this.actions = new ArrayList<String>();
+        this._actions = new ArrayList<String>();
 
     }
 
     public void reset() {
-        this.actions.clear();
+        this._actions.clear();
     }
 
     @Override
     public void boatAttacked(Position position, boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("Bateau touché en position (%d, %d) sur la grille du %s", position.getX(), position.getY(), player);
-        actions.add(action);
+        _actions.add(action);
     }
 
     @Override
     public void boatTouched(boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("Bateau trouvé sur la grille du %s", player);
-        actions.add(action);
+        _actions.add(action);
     }
 
     @Override
     public void boatSunk(Position position, int size, boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("Bateau de taille %d coulé en position (%d, %d) sur la grille du %s", size, position.getX(), position.getY(), player);
-        actions.add(action);
+        _actions.add(action);
 
     }
 
@@ -45,44 +45,44 @@ public class History implements Observer {
     public void squareAttacked(Position position, boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("Case vide attaquée en position (%d, %d) sur la grille du %s", position.getX(), position.getY(), player);
-        actions.add(action);
+        _actions.add(action);
     }
 
     @Override
     public void squareIsland(Position position, State state, boolean robot) {
         String player = robot?"Robot":"Player";
         String action = String.format("île en position (%d, %d) sur la grille du %s - État: %s", position.getX(), position.getY(), player, state);
-        actions.add(action);
+        _actions.add(action);
     }
 
     public List<String> getActions() {
-        return new ArrayList<>(actions);
+        return new ArrayList<>(_actions);
     }
 
     public String getHistory() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== HISTORIQUE DES ACTIONS ===\n");
-        for (int i = 0; i < actions.size(); i++) {
-            sb.append(String.format("%d. %s\n", i + 1, actions.get(i)));
+        for (int i = 0; i < _actions.size(); i++) {
+            sb.append(String.format("%d. %s\n", i + 1, _actions.get(i)));
         }
         return sb.toString();
     }
 
     public String getLastAction() {
-        if (actions.isEmpty()) {
+        if (_actions.isEmpty()) {
             return null;
         }
-        return actions.getLast();
+        return _actions.getLast();
     }
 
     public int getActionCount() {
-        return actions.size();
+        return _actions.size();
     }
 
 
     public String toString() {
         return "History{" +
-                "actions=" + actions.size() +
+                "actions=" + _actions.size() +
                 '}';
     }
 

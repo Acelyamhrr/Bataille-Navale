@@ -6,44 +6,43 @@ import model.contents.weapons.Weapon;
 import model.enums.*;
 import model.placement.Placement;
 
-import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
 public  class Grid {
-    private int gridSize;
-    private Map<Position, Square> squares;
-    private ModeGame mode;
-    private Island island;
-    private boolean robot;
-    private Map<BoatName, Integer> boatsCount;
-    private List<Boat> allBoats = new ArrayList<>();
+    private int _gridSize;
+    private Map<Position, Square> _squares;
+    private ModeGame _mode;
+    private Island _island;
+    private boolean _robot;
+    private Map<BoatName, Integer> _boatsCount;
+    private List<Boat> _allBoats = new ArrayList<>();
 
     public Grid(int size, ModeGame mode, boolean robot) {
-        this.gridSize = size;
-        this.mode = mode;
-        this.squares = new HashMap<>();
-        this.robot = robot;
-        this.boatsCount = new HashMap<>();
+        this._gridSize = size;
+        this._mode = mode;
+        this._squares = new HashMap<>();
+        this._robot = robot;
+        this._boatsCount = new HashMap<>();
 
         for(int i=0; i<size; i++){
             for(int j=0; j<size; j++){
                 Position pos = new Position(i, j);
-                this.squares.put(pos, new Square(pos, robot));
+                this._squares.put(pos, new Square(pos, robot));
             }
         }
 
         if(mode == ModeGame.ISLAND){
             int x = size/2 -2;
             int y = size/2 -2;
-            this.island = new Island(new Position(x, y));
+            this._island = new Island(new Position(x, y));
 
             for(int i=x; i<x+4; i++){
                 for(int j=y; j<y+4; j++){
                     Position pos = new Position(i, j);
-                    this.squares.get(pos).setIsland();
+                    this._squares.get(pos).setIsland();
                 }
             }
         }
@@ -54,8 +53,8 @@ public  class Grid {
      */
     public boolean canPlaceBoat(int size, int x, int y, Orientation orientation){
         // Vérifier que le bateau ne dépasse pas de la grille
-        if (orientation == Orientation.HORIZONTAL && x + size > gridSize) return false;
-        if (orientation == Orientation.VERTICAL && y + size > gridSize) return false;
+        if (orientation == Orientation.HORIZONTAL && x + size > _gridSize) return false;
+        if (orientation == Orientation.VERTICAL && y + size > _gridSize) return false;
 
         // Vérifier chaque cellule du bateau
         for (int i = 0; i < size; i++) {
@@ -63,12 +62,12 @@ public  class Grid {
             int cy = orientation == Orientation.VERTICAL ? y + i : y;
             Position pos2 = new Position(cx, cy);
             // Un bateau ne peut pas être sur l'île
-            if(this.mode == ModeGame.ISLAND){
-                if (island.contains(pos2)) return false;
+            if(this._mode == ModeGame.ISLAND){
+                if (_island.contains(pos2)) return false;
             }
 
             // La cellule ne doit pas être déjà occupée
-            if (!this.squares.get(pos2).isEmpty()) return false;
+            if (!this._squares.get(pos2).isEmpty()) return false;
         }
 
         return true;
@@ -79,15 +78,15 @@ public  class Grid {
      */
     public boolean canPlaceTrapWeapon(int x, int y){
         // Vérifier les limites
-        if (x >= gridSize || y >= gridSize) return false;
+        if (x >= _gridSize || y >= _gridSize) return false;
 
         Position pos = new Position(x, y);
 
         // La cellule ne doit pas être occupée
-        if(!this.squares.get(pos).isEmpty()) return false;
+        if(!this._squares.get(pos).isEmpty()) return false;
 
-        if(mode == ModeGame.ISLAND){
-            if(island.contains(pos)) return true;
+        if(_mode == ModeGame.ISLAND){
+            if(_island.contains(pos)) return true;
             return false;
         }
 
@@ -96,12 +95,12 @@ public  class Grid {
 
     public void placeBoat(Boat b, int x, int y, Orientation orientation) {
         // Incrémenter le compteur
-        Integer count = (this.boatsCount.getOrDefault(b.getName(), 0)) +1;
-        this.boatsCount.put(b.getName(), count);
-        this.allBoats.add(b);
+        Integer count = (this._boatsCount.getOrDefault(b.getName(), 0)) +1;
+        this._boatsCount.put(b.getName(), count);
+        this._allBoats.add(b);
 
         b.setPosition(x, y, orientation);
-        b.belongsTo(robot);
+        b.belongsTo(_robot);
 
         //Placement de l'instance dans les cases occupées
         for (int i = 0; i < b.getSize(); i++) {
@@ -109,24 +108,24 @@ public  class Grid {
             int cy = orientation == Orientation.VERTICAL ? y + i : y;
             Position pos = new Position(cx, cy);
 
-            this.squares.get(pos).setContent(b);
+            this._squares.get(pos).setContent(b);
         }
     }
 
     public void placeTrap(Trap trap, int x, int y) {
         Position pos = new Position(x, y);
         trap.setPosition(x, y, Orientation.NONE);
-        this.squares.get(pos).setContent(trap);
+        this._squares.get(pos).setContent(trap);
     }
 
     public void placeWeapon(Weapon weapon, int x, int y) {
         Position pos = new Position(x, y);
         weapon.setPosition(x, y, Orientation.NONE);
-        this.squares.get(pos).setContent(weapon);
+        this._squares.get(pos).setContent(weapon);
     }
 
     public void attack(Position position){
-        this.squares.get(position).attack();
+        this._squares.get(position).attack();
     }
 
     public void reset(){
@@ -134,25 +133,25 @@ public  class Grid {
         Map<TrapType, List<Position>> traps = getPositionsTraps();
         List<Boat> boats = new ArrayList<>(this.getBoats());
 
-        this.squares.clear();
+        this._squares.clear();
         clear();
 
-        for(int i = 0; i< gridSize; i++){
-            for(int j = 0; j< gridSize; j++){
+        for(int i = 0; i< _gridSize; i++){
+            for(int j = 0; j< _gridSize; j++){
                 Position pos = new Position(i, j);
-                this.squares.put(pos, new Square(pos, this.robot));
+                this._squares.put(pos, new Square(pos, this._robot));
             }
         }
 
-        if(mode == ModeGame.ISLAND){
-            int x = gridSize/2 -2;
-            int y = gridSize/2 -2;
-            this.island = new Island(new Position(x, y));
+        if(_mode == ModeGame.ISLAND){
+            int x = _gridSize /2 -2;
+            int y = _gridSize /2 -2;
+            this._island = new Island(new Position(x, y));
 
             for(int i=x; i<x+4; i++){
                 for(int j=y; j<y+4; j++){
                     Position pos = new Position(i, j);
-                    this.squares.get(pos).setIsland();
+                    this._squares.get(pos).setIsland();
                 }
             }
         }
@@ -182,54 +181,54 @@ public  class Grid {
     }
 
     public int getSize(){
-        return this.gridSize;
+        return this._gridSize;
     }
 
     public ContentType getContentTypeSquare(Position pos){
-        return this.squares.get(pos).getContentType();
+        return this._squares.get(pos).getContentType();
     }
 
     public boolean squareIsInIsland(Position pos){
-        return this.squares.get(pos).isInIsland();
+        return this._squares.get(pos).isInIsland();
     }
 
     public Square getSquare(Position pos) {
-        return this.squares.get(pos);
+        return this._squares.get(pos);
     }
 
     public boolean hasIsland(){
-        return this.mode == ModeGame.ISLAND;
+        return this._mode == ModeGame.ISLAND;
     }
 
     public Position getPositionIsland(){
-        return this.island.getPosition();
+        return this._island.getPosition();
     }
 
     public int getSizeIsland(){
-        return this.island.getSize();
+        return this._island.getSize();
     }
 
     /**
      * Cherche tous les boats et les supprime de la grille
      */
     public void clearBoats(){
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if(entry.getValue().getContentType() == ContentType.BOAT){
-                this.squares.get(entry.getKey()).setContent(null);
+                this._squares.get(entry.getKey()).setContent(null);
             }
         }
 
-        allBoats.clear();
-        boatsCount.clear();
+        _allBoats.clear();
+        _boatsCount.clear();
     }
 
     /**
      * Cherche tous les traps et les supprime de la grille
      */
     public void clearTraps(){
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if(entry.getValue().getContentType() == ContentType.TRAP){
-                this.squares.get(entry.getKey()).setContent(null);
+                this._squares.get(entry.getKey()).setContent(null);
             }
         }
     }
@@ -238,9 +237,9 @@ public  class Grid {
      * Cherche tous les weapons et les supprime de la grille
      */
     public void clearWeapons(){
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if (entry.getValue().getContentType() == ContentType.WEAPON){
-                this.squares.get(entry.getKey()).setContent(null);
+                this._squares.get(entry.getKey()).setContent(null);
             }
         }
     }
@@ -255,11 +254,11 @@ public  class Grid {
     }
 
     public boolean isCellOccupied(int x, int y){
-        return !this.squares.get(new Position(x, y)).isEmpty();
+        return !this._squares.get(new Position(x, y)).isEmpty();
     }
 
     public int getBoatCount(BoatName boat){
-        return this.boatsCount.getOrDefault(boat, 0);
+        return this._boatsCount.getOrDefault(boat, 0);
     }
 
     /**
@@ -267,7 +266,7 @@ public  class Grid {
      */
     public List<Position> getPositionsBoats(){
         List<Position> list = new ArrayList<>();
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if(entry.getValue().getContentType() == ContentType.BOAT){
                 list.add(entry.getKey());
             }
@@ -281,7 +280,7 @@ public  class Grid {
      */
     public Map<TrapType, List<Position>> getPositionsTraps(){
         Map<TrapType,  List<Position>> map = new HashMap<>();
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if(entry.getValue().getContentType() == ContentType.TRAP){
                 Trap t = (Trap) entry.getValue().getContent();
                 if(!map.containsKey(t.getName())) map.put(t.getName(), new ArrayList<>());
@@ -297,7 +296,7 @@ public  class Grid {
      */
     public Map<WeaponType, List<Position>> getPositionsWeapons(){
         Map<WeaponType,  List<Position>> map = new HashMap<>();
-        for(Map.Entry<Position, Square> entry : this.squares.entrySet()){
+        for(Map.Entry<Position, Square> entry : this._squares.entrySet()){
             if(entry.getValue().getContentType() == ContentType.WEAPON){
                 Weapon w = (Weapon) entry.getValue().getContent();
                 if(!map.containsKey(w.getName())) map.put(w.getName(), new ArrayList<>());
@@ -312,7 +311,7 @@ public  class Grid {
      * Retourne tous les bateaux placés
      */
     public List<Boat> getBoats(){
-        return this.allBoats;
+        return this._allBoats;
     }
 
 }

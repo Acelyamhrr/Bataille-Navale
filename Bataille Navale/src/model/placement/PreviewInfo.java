@@ -8,19 +8,19 @@ import java.util.List;
  * Utilisé pour les previews (transmis à la vue)
  */
 public class PreviewInfo {
-    private List<Position> cells;
-    private boolean canPlace;
+    private List<Position> _cells;
+    private boolean _canPlace;
 
     public PreviewInfo(List<Position> cells, boolean canPlace) {
-        this.cells = cells;
-        this.canPlace = canPlace;
+        this._cells = cells;
+        this._canPlace = canPlace;
     }
 
     public List<Position> getCells() {
-        return cells;
+        return _cells;
     }
 
     public boolean isValid() {
-        return canPlace && !cells.isEmpty();
+        return _canPlace && !_cells.isEmpty();
     }
 }

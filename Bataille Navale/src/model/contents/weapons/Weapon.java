@@ -9,31 +9,31 @@ import model.grid.Position;
 import java.util.ArrayList;
 
 public abstract class Weapon extends Content {
-    private WeaponType name;
+    private WeaponType _name;
 
     public Weapon(WeaponType name){
-        this.name = name;
-        this.contentType = ContentType.WEAPON;
+        this._name = name;
+        this._contentType = ContentType.WEAPON;
     }
 
     @Override
     public Position getPosition() {
-        return this.position;
+        return this._position;
     }
 
     @Override
     public void setPosition(int x, int y, Orientation orientation) {
-        this.position = new Position(x, y);
+        this._position = new Position(x, y);
     }
 
     @Override
     public ContentType getContentType() {
-        return this.contentType;
+        return this._contentType;
     }
 
     public abstract ArrayList<Position> use(Position position);
 
     public WeaponType getName() {
-        return this.name;
+        return this._name;
     }
 }
