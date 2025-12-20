@@ -24,6 +24,10 @@ public abstract class RobotStrategy {
 
         List<WeaponType> available = new ArrayList<>();
         for (Map.Entry<WeaponType, Integer> entry : weapons.entrySet()) {
+            if(entry.getKey() == WeaponType.SONAR && !robot.canUseSonar()){
+                continue;
+            }
+
             if (entry.getValue() > 0) {
                 available.add(entry.getKey());
             }
