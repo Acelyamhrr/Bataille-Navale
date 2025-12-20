@@ -1,5 +1,6 @@
 package view;
 
+import controller.ConfigurationController;
 import view.dialogs.BoatCustomizationDialog;
 import view.panels.TrapPlacementPanel;
 
@@ -52,6 +53,9 @@ public class ConfigurationView extends JFrame {
     /** Panel contenant les options de placement des pièges */
     private TrapPlacementPanel _pnlTrapPlacement;
 
+    /** Controlleur */
+    private ConfigurationController controller;
+
     /**
      * Tableau stockant le nombre de bateaux personnalisés pour chaque type.
      * Ordre : [Porte-avions, Croiseur, Contre-torpilleur, Sous-marin, Torpilleur]
@@ -71,6 +75,7 @@ public class ConfigurationView extends JFrame {
         setSize(650, 700);
         setLocationRelativeTo(null);
         initComponents();
+
     }
 
     /**
@@ -165,7 +170,7 @@ public class ConfigurationView extends JFrame {
 
         // Ouvre la boîte de dialogue de personnalisation
         _btnCustomizeBoat.addActionListener(e -> {
-            BoatCustomizationDialog dialog = new BoatCustomizationDialog(this, _customBoatNumbers);
+            BoatCustomizationDialog dialog = new BoatCustomizationDialog(this, _customBoatNumbers, controller);
             int[] result = dialog.showAndGetResult();
             if (result != null) {
                 _customBoatNumbers = result;

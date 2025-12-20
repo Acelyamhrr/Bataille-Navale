@@ -126,7 +126,7 @@ public class Game {
         if (weaponType == WeaponType.SONAR) {
             attackResult = executeSonar(positions, _robot);
         } else {
-            attackResult = executeAttack(positions, _robot, false);
+            attackResult = executeAttack(positions, _robot, false, weaponType);
         }
         return TurnResult.success(attackResult, tornadoActivated, finalTarget);
     }
@@ -263,7 +263,7 @@ public class Game {
             attackResult = executeSonar(positions, _player);
             _robot.notifyStrategyResult(finalTarget, false, false);
         } else {
-            attackResult = executeAttack(positions, _player, true);
+            attackResult = executeAttack(positions, _player, true, weaponChoice);
             _robot.notifyStrategyResult(finalTarget, attackResult.hadHit(), attackResult.hadSunk());
         }
 
@@ -273,7 +273,7 @@ public class Game {
     // EXECUTION DES ATTAQUES
 
     // execute une attaque (missile ou bombe car même logique)
-    private AttackResult executeAttack(ArrayList<Position> positions, Player target, boolean isRobotAttacker) {
+    private AttackResult executeAttack(ArrayList<Position> positions, Player target, boolean isRobotAttacker, WeaponType weaponType) {
         int hits = 0;
         int misses = 0;
         boolean sunkBoat = false;
@@ -293,8 +293,25 @@ public class Game {
                 // si trou noir, l'attaque revient sur l'attaquant
                 if (trapResult.isBounced()) {
                     Player attacker = isRobotAttacker ? _robot : _player;
-                    attacker.receiveAttack(pos);
+
+                    Weapon bouncedWeapon = createWeapon(weaponType);
+                    ArrayList<Position> bouncedPositions = bouncedWeapon.use(pos);
+
+                    for (Position bouncedPos : bouncedPositions) {
+                        if (isPositionValid(bouncedPos)) {
+                            boolean wasHit = attacker.receiveAttackAndCheckHit(bouncedPos);
+                            if (wasHit) {
+                                hits++;
+                                if (attacker.wasBoatSunkAt(bouncedPos)) {
+                                    sunkBoat = true;
+                                }
+                            } else {
+                                misses++;
+                            }
+                        }
+                    }
                     continue;
+
                 }
             }
 
@@ -420,6 +437,7 @@ public class Game {
     public boolean hasIsland() {
         return _config.getModeGame() == ModeGame.ISLAND;
     }
+
 
 
 }
