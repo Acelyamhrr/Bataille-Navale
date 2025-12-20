@@ -1,5 +1,7 @@
 package view.dialogs;
 
+import controller.ConfigurationController;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -26,15 +28,20 @@ public class BoatCustomizationDialog extends JDialog {
     /** indique si l'utilisateur a validé ses choix (true) ou annulé (false) */
     private boolean _validated = false;
 
+    /** le controller : utilisé pour la vérification des nombres de cases */
+    private ConfigurationController _controller;
+
     /**
-     * Construit une nvl boute de dialogue de personnalisation des bateaux
+     * Construit une nouvelle boîte de dialogue de personnalisation des bateaux
      * @param parent La fenêtre parent
      * @param currentBoats Les nombres actuels de bateaux (5 pour le moment)
+     * @param controller Le controller de configuration
      */
-    public BoatCustomizationDialog(JFrame parent, int[] currentBoats) {
+    public BoatCustomizationDialog(JFrame parent, int[] currentBoats, ConfigurationController controller) {
         super(parent, "Personnalisation des bateaux", true);
         // clone le tab pour éviter de modifier l'original avant la validation
         this._boatNumbers = currentBoats.clone();
+        this._controller = controller;
         setSize(500, 400);
         setLocationRelativeTo(parent);
         initComponents();
@@ -132,8 +139,9 @@ public class BoatCustomizationDialog extends JDialog {
      */
     private void updateTotal(int[] sizes) {
         int total = calculateTotal(sizes);
-        _lblTotal.setText("Total: " + total + " cases" + (total > 35 ? " (DÉPASSÉ !)" : ""));
-        _lblTotal.setForeground(total > 35 ? Color.RED : Color.BLACK);
+        boolean valid = _controller.numberSquaresValid(_boatNumbers);
+        _lblTotal.setText("Total: " + total + " cases" + (valid ? " (DÉPASSÉ !)" : ""));
+        _lblTotal.setForeground(valid ? Color.RED : Color.BLACK);
     }
 
     /**

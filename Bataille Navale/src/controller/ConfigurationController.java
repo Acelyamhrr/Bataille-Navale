@@ -15,6 +15,12 @@ public class ConfigurationController {
         this.view = view;
     }
 
+    public boolean numberSquaresValid(int[] boats) {
+        boolean modeIsland = !view.isStandardMode();
+        int gridSize = view.getGridSize();
+        return GameConfig.numberSquaresValid(gridSize, boats, modeIsland);
+    }
+
     /**
      * Valide la configuration et crée le GameConfig.
      * @return GameConfig si valide, null sinon (avec affichage d'erreur)

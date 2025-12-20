@@ -28,13 +28,17 @@ public class GameConfig {
     public RobotMode getRobotMode() { return robotMode; }
     public TrapPlacement getTrapMode() { return trapPlacement; }
 
-    public int getTotalBoatSquares() {
+    public static int totalBoatSquares(int[] boats) {
         int[] sizes = {5, 4, 3, 3, 2};
         int total = 0;
-        for (int i = 0; i < numberBoat.length; i++) {
-            total += numberBoat[i] * sizes[i];
+        for (int i = 0; i < boats.length; i++) {
+            total += boats[i] * sizes[i];
         }
         return total;
+    }
+
+    public int getTotalBoatSquares() {
+        return totalBoatSquares(numberBoat);
     }
 
     public int getNumberBoatsTotal(){
@@ -46,45 +50,9 @@ public class GameConfig {
     }
 
     public boolean isValid() {
-        // trop de cases
-        if (getTotalBoatSquares() > 35) {
+        //Vérifie le nombre de cases des bateaux
+        if(!numberSquaresValid(gridSize, numberBoat, modeGame == ModeGame.ISLAND)){
             return false;
-        }
-
-        // trop de cases pour la taille de la grille + île
-        if(modeGame == ModeGame.ISLAND){
-            int sizeIsland = 16;
-
-            switch (gridSize) {
-                case 7:
-                    if(getTotalBoatSquares() > 49-sizeIsland){
-                        return false;
-                    }
-                    break;
-                case 8:
-                    if(getTotalBoatSquares() > 64-sizeIsland){
-                        return false;
-                    }
-                    break;
-                case 9:
-                    if(getTotalBoatSquares() > 81-sizeIsland){
-                        return false;
-                    }
-                case 10:
-                    if(getTotalBoatSquares() > 100-sizeIsland){
-                        return false;
-                    }
-                    break;
-                default:
-                    if(getTotalBoatSquares() > 36-sizeIsland){
-                        return false;
-                    }
-            }
-        }
-        else{
-            if(gridSize == 6 && getTotalBoatSquares() > 34){
-                return false;
-            }
         }
 
         // Au moins un boat
@@ -107,5 +75,28 @@ public class GameConfig {
 
     public String toString() {
         return "Config: " + username + ", " + gridSize + "x" + gridSize + ", jeu " + modeGame + ", robot " + robotMode + ", pièges " + trapPlacement;
+    }
+
+    public static boolean numberSquaresValid(int gridSize, int[] boats, boolean island) {
+        int totalSquares = totalBoatSquares(boats);
+
+        if(totalSquares > 35){
+            return false;
+        }
+
+        if(island){
+            int sizeIsland = 16;
+
+            if (gridSize == 7) {
+                return totalSquares <= 49 - sizeIsland;
+            } else if (gridSize == 6) {
+                return totalSquares <= 36 - sizeIsland;
+            }
+        }
+        else{
+            return gridSize != 6 || totalSquares <= 34;
+        }
+
+        return true;
     }
 }
