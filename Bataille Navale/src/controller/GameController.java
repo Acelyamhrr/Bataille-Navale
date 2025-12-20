@@ -435,11 +435,6 @@ public class GameController {
         view.dispose();
     }
 
-    public void resetPlayers(){
-        this.game.getPlayer().reset();
-        this.game.getRobot().reset();
-    }
-
     // GET
 
     public boolean isInIsland(int x, int y) {
