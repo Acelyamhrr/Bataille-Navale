@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 
 /**
  * Vue du menu principal.
- * NE CONNAÎT PAS le Controller - expose seulement des méthodes
+ * expose seulement des méthodes
  * pour que le Controller puisse s'y connecter.
  */
 public class MenuView extends JFrame {
