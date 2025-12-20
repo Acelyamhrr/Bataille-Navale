@@ -1,7 +1,6 @@
 package model.game.RobotStrategy;
 
 import model.enums.WeaponType;
-import model.game.RobotStrategy.RobotStrategy;
 import model.grid.Position;
 import model.grid.Square;
 import model.players.Player;
@@ -10,14 +9,14 @@ import java.util.*;
 
 public class SmartRobotStrategy extends RobotStrategy {
     // positions à explorer quand on a touché un bateau
-    private Queue<Position> targetQueue;
+    private Queue<Position> _targetQueue;
 
     // Dernière position qui a touché (pour ajouter les adj)
     private Position lastHit;
 
     public SmartRobotStrategy() {
         super();
-        this.targetQueue = new LinkedList<>();
+        this._targetQueue = new LinkedList<>();
         this.lastHit = null;
     }
 
@@ -25,8 +24,8 @@ public class SmartRobotStrategy extends RobotStrategy {
     public Position chooseTarget(Player robot, Player opponent, int gridSize) {
 
         // Si on a des cibles en attente, on les vise
-        while (!targetQueue.isEmpty()) {
-            Position target = targetQueue.poll();
+        while (!_targetQueue.isEmpty()) {
+            Position target = _targetQueue.poll();
 
             if (isValidTarget(target, opponent, gridSize)) {
                 return target;
@@ -41,7 +40,7 @@ public class SmartRobotStrategy extends RobotStrategy {
     public void notifyResult(Position position, boolean hit, boolean sunk) {
         if (sunk) {
             // Bateau coulé on vide la queue et on recommence en mode aléatoire
-            targetQueue.clear();
+            _targetQueue.clear();
             lastHit = null;
 
         } else if (hit) {
@@ -52,10 +51,10 @@ public class SmartRobotStrategy extends RobotStrategy {
     }
 
     private void addAdjacentPositions(Position pos) {
-        targetQueue.add(new Position(pos.getX(), pos.getY() - 1));  // haut
-        targetQueue.add(new Position(pos.getX(), pos.getY() + 1));  // bas
-        targetQueue.add(new Position(pos.getX() - 1, pos.getY()));  // gauche
-        targetQueue.add(new Position(pos.getX() + 1, pos.getY()));  // droite
+        _targetQueue.add(new Position(pos.getX(), pos.getY() - 1));  // haut
+        _targetQueue.add(new Position(pos.getX(), pos.getY() + 1));  // bas
+        _targetQueue.add(new Position(pos.getX() - 1, pos.getY()));  // gauche
+        _targetQueue.add(new Position(pos.getX() + 1, pos.getY()));  // droite
     }
 
     /**

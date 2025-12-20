@@ -17,31 +17,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
-    private GameConfig config;
-    private GamePlacement placement;
-    private Player player;
-    private Player robot;
-    private int turnNumber;
+    private GameConfig _config;
+    private GamePlacement _placement;
+    private Player _player;
+    private Player _robot;
+    private int _turnNumber;
 
-    private WeaponFactory weaponFactory;
-    private TrapFactory trapFactory;
+    private WeaponFactory _weaponFactory;
+    private TrapFactory _trapFactory;
 
     public Game(GameConfig config, GamePlacement placement) {
-        this.config = config;
-        this.placement = placement;
-        this.turnNumber = 1;
-        this.weaponFactory = new WeaponFactory();
-        this.trapFactory = new TrapFactory();
+        this._config = config;
+        this._placement = placement;
+        this._turnNumber = 1;
+        this._weaponFactory = new WeaponFactory();
+        this._trapFactory = new TrapFactory();
     }
 
     public void initialize() {
-        player = new Player(config.getUsername(), false);
-        robot = new Player("Robot", true);
+        _player = new Player(_config.getUsername(), false);
+        _robot = new Player("Robot", true);
 
-        player.setGrid(placement.getPlayerGrid());
-        setBoatPlayer(player);
-        robot.setGrid(placement.getRobotGrid());
-        setBoatPlayer(robot);
+        _player.setGrid(_placement.getPlayerGrid());
+        setBoatPlayer(_player);
+        _robot.setGrid(_placement.getRobotGrid());
+        setBoatPlayer(_robot);
 
         initializeWeapons();
     }
@@ -57,29 +57,29 @@ public class Game {
 
     private Trap createTrap(TrapType type) {
         switch (type) {
-            case TORNADO: return trapFactory.createTornado();
-            case BLACKHOLE: return trapFactory.createBlackHole();
+            case TORNADO: return _trapFactory.createTornado();
+            case BLACKHOLE: return _trapFactory.createBlackHole();
             default: throw new IllegalArgumentException("Type de piège inconnu: " + type);
         }
     }
 
     private void initializeWeapons(){
-        player.setWeaponCount(WeaponType.MISSILE, 1);
-        robot.setWeaponCount(WeaponType.MISSILE, 1);
+        _player.setWeaponCount(WeaponType.MISSILE, 1);
+        _robot.setWeaponCount(WeaponType.MISSILE, 1);
 
-        if(config.getModeGame() == ModeGame.STANDARD){
-            player.setWeaponCount(WeaponType.BOMB, 1);
-            player.setWeaponCount(WeaponType.SONAR, 1);
-            robot.setWeaponCount(WeaponType.BOMB, 1);
-            robot.setWeaponCount(WeaponType.SONAR, 1);
+        if(_config.getModeGame() == ModeGame.STANDARD){
+            _player.setWeaponCount(WeaponType.BOMB, 1);
+            _player.setWeaponCount(WeaponType.SONAR, 1);
+            _robot.setWeaponCount(WeaponType.BOMB, 1);
+            _robot.setWeaponCount(WeaponType.SONAR, 1);
         }
     }
 
     private Weapon createWeapon(WeaponType type) {
         switch (type) {
-            case MISSILE: return weaponFactory.createMissile();
-            case BOMB: return weaponFactory.createBomb();
-            case SONAR: return weaponFactory.createSonar();
+            case MISSILE: return _weaponFactory.createMissile();
+            case BOMB: return _weaponFactory.createBomb();
+            case SONAR: return _weaponFactory.createSonar();
             default: throw new IllegalArgumentException("Type d'arme inconnu: " + type);
         }
 
@@ -89,17 +89,22 @@ public class Game {
 
     public TurnResult playerAttack(WeaponType weaponType, Position target) {
         // verifier que le joueur a l'arme
-        if (!player.hasWeapon(weaponType)) {
+        if (!_player.hasWeapon(weaponType)) {
             return TurnResult.error("Vous n'avez pas cette arme.");
         }
 
+        //Si sonar, vérifie s'il peut l'utiliser
+        if(weaponType == WeaponType.SONAR && !_player.canUseSonar()){
+            return TurnResult.error("Vous ne pouvez pas utilisé le sonar (pas de sous-marin en état).");
+        }
+
         // verifie que la case n'a pas déja été attaquée
-        if (robot.wasSquareAttacked(target)) {
+        if (_robot.wasSquareAttacked(target)) {
             return TurnResult.error("Cette case a déjà été attaquée.");
         }
 
         // Appliquer la tornade si active
-        Position finalTarget = robot.applyTornado(target);
+        Position finalTarget = _robot.applyTornado(target);
         boolean tornadoActivated = !finalTarget.equals(target);
 
         // verif l'île
@@ -114,14 +119,14 @@ public class Game {
         ArrayList<Position> positions = weapon.use(finalTarget);
 
         // utilise l'arme
-        player.useWeapon(weaponType);
+        _player.useWeapon(weaponType);
 
         // execute l'attaque
         AttackResult attackResult;
         if (weaponType == WeaponType.SONAR) {
-            attackResult = executeSonar(positions, robot);
+            attackResult = executeSonar(positions, _robot);
         } else {
-            attackResult = executeAttack(positions, robot, false);
+            attackResult = executeAttack(positions, _robot, false);
         }
         return TurnResult.success(attackResult, tornadoActivated, finalTarget);
     }
@@ -130,17 +135,17 @@ public class Game {
     // le joueur fouille l'île
     public TurnResult playerSearchIsland(Position target) {
         // verif que c'est sur l'île
-        if (!robot.isSquareOnIsland(target)) {
+        if (!_robot.isSquareOnIsland(target)) {
             return TurnResult.error("Cette case n'est pas sur l'île.");
         }
 
         // verif que la case n'a pas déja été fouillée
-        if (robot.wasSquareSearched(target)) {
+        if (_robot.wasSquareSearched(target)) {
             return TurnResult.error("Cette case a déjà été fouillée.");
         }
 
         // fouiller
-        Content found = robot.searchIsland(target);
+        Content found = _robot.searchIsland(target);
 
         if (found == null) {
             return TurnResult.emptyIslandSquare();
@@ -150,13 +155,13 @@ public class Game {
 
         if (type == ContentType.WEAPON) {
             Weapon weapon = (Weapon) found;
-            player.addWeapon(weapon.getName());
+            _player.addWeapon(weapon.getName());
             return TurnResult.weaponFound(weapon.getName());
         }
 
         if (type == ContentType.TRAP) {
             Trap trap = (Trap) found;
-            player.addTrapToInventory(trap.getName());
+            _player.addTrapToInventory(trap.getName());
             return TurnResult.trapFound(trap.getName());
         }
 
@@ -166,18 +171,18 @@ public class Game {
     // joueur place un piège depuis son inventaire
     public TurnResult playerPlaceTrap(TrapType trapType, Position target) {
         // verif l'inventaire
-        if (player.getTrapInventoryCount(trapType) <= 0) {
+        if (_player.getTrapInventoryCount(trapType) <= 0) {
             return TurnResult.error("Vous n'avez pas de " + trapType + " dans votre inventaire.");
         }
 
         // verif que la case est valide
-        if (!player.canPlaceTrapAt(target)) {
+        if (!_player.canPlaceTrapAt(target)) {
             return  TurnResult.error("Vous ne pouvez pas placer un piège à cette position.");
         }
 
         // créer et placer le piège
         Trap trap = createTrap(trapType);
-        boolean placed = player.placeTrapFromInventory(trapType, target, trap);
+        boolean placed = _player.placeTrapFromInventory(trapType, target, trap);
 
         if (!placed) {
             return TurnResult.error("Échec du placement du piège.");
@@ -190,8 +195,8 @@ public class Game {
 
     public TurnResult playRobotTurn() {
         // verif si le robot veut fouiller l'île
-        if (hasIsland() && robot.shouldSearchIsland(player, config.getGridSize())) {
-            Position islandTarget = robot.chooseIslandSquare(player,config.getGridSize());
+        if (hasIsland() && _robot.shouldSearchIsland(_player, _config.getGridSize())) {
+            Position islandTarget = _robot.chooseIslandSquare(_player, _config.getGridSize());
 
             if (islandTarget != null) {
                 return robotSearchIsland(islandTarget);
@@ -203,7 +208,7 @@ public class Game {
     }
 
     private TurnResult robotSearchIsland(Position target) {
-        Content found = player.searchIsland(target);
+        Content found = _player.searchIsland(target);
 
         if (found == null) {
             return TurnResult.robotEmptyIsland();
@@ -213,7 +218,7 @@ public class Game {
 
         if (type == ContentType.WEAPON) {
             Weapon weapon = (Weapon) found;
-            robot.addWeapon(weapon.getName());
+            _robot.addWeapon(weapon.getName());
             return TurnResult.robotWeaponFound(weapon.getName());
         }
 
@@ -221,10 +226,10 @@ public class Game {
             Trap trap = (Trap) found;
 
             // le robot place le piège
-            Position placement = robot.findEmptySquareForTrap();
+            Position placement = _robot.findEmptySquareForTrap();
             if (placement != null) {
                 Trap newTrap = createTrap(trap.getName());
-                robot.placeTrap(newTrap, placement);
+                _robot.placeTrap(newTrap, placement);
                 return TurnResult.robotTrapFound(trap.getName(), placement);
             }
             return TurnResult.robotTrapFoundButNoSpace(trap.getName());
@@ -234,14 +239,14 @@ public class Game {
     }
 
     private TurnResult robotAttack() {
-        Position target = robot.chooseAttackTarget(player, config.getGridSize());
+        Position target = _robot.chooseAttackTarget(_player, _config.getGridSize());
 
         // applique la tornade du joueur si active
-        Position finalTarget = player.applyTornado(target);
+        Position finalTarget = _player.applyTornado(target);
         boolean tornadoActivated = !finalTarget.equals(target);
 
         // Choisir l'arme
-        WeaponType weaponChoice = robot.chooseWeapon(finalTarget);
+        WeaponType weaponChoice = _robot.chooseWeapon(finalTarget);
 
         // Créer l'arme
         Weapon weapon = createWeapon(weaponChoice);
@@ -249,17 +254,17 @@ public class Game {
 
         // Utiliser l'arme si ce n'est pas un missile
         if (weaponChoice != WeaponType.MISSILE) {
-            robot.useWeapon(weaponChoice);
+            _robot.useWeapon(weaponChoice);
         }
 
         // exec l'attaque
         AttackResult attackResult;
         if (weaponChoice == WeaponType.SONAR) {
-            attackResult = executeSonar(positions, player);
-            robot.notifyStrategyResult(finalTarget, false, false);
+            attackResult = executeSonar(positions, _player);
+            _robot.notifyStrategyResult(finalTarget, false, false);
         } else {
-            attackResult = executeAttack(positions, player, true);
-            robot.notifyStrategyResult(finalTarget, attackResult.hadHit(), attackResult.hadSunk());
+            attackResult = executeAttack(positions, _player, true);
+            _robot.notifyStrategyResult(finalTarget, attackResult.hadHit(), attackResult.hadSunk());
         }
 
         return TurnResult.robotAttack(weaponChoice, attackResult, tornadoActivated, finalTarget);
@@ -281,13 +286,13 @@ public class Game {
             }
 
             // traiter les pièges
-            TrapActivation trapResult = target.checkAndActivateTrap(pos, config.getGridSize());
+            TrapActivation trapResult = target.checkAndActivateTrap(pos, _config.getGridSize());
             if (trapResult != null) {
                 trapActivations.add(trapResult);
 
                 // si trou noir, l'attaque revient sur l'attaquant
                 if (trapResult.isBounced()) {
-                    Player attacker = isRobotAttacker ? robot : player;
+                    Player attacker = isRobotAttacker ? _robot : _player;
                     attacker.receiveAttack(pos);
                     continue;
                 }
@@ -332,7 +337,7 @@ public class Game {
 
     private String checkIslandRestrictions(WeaponType weapon, Position target) {
         if (weapon == WeaponType.MISSILE) {
-            if (robot.isSquareOnIsland(target)) {
+            if (_robot.isSquareOnIsland(target)) {
                 return "Le missile ne peut pas être utilisé sur l'île !";
             }
         } else if (weapon == WeaponType.BOMB) {
@@ -340,7 +345,7 @@ public class Game {
                 return "La bombe ne peut pas toucher l'île !";
             }
         } else if (weapon == WeaponType.SONAR) {
-            if (robot.isSquareOnIsland(target)) {
+            if (_robot.isSquareOnIsland(target)) {
                 return "Le sonar ne peut pas être utilisé sur l'île !";
             }
         }
@@ -348,7 +353,7 @@ public class Game {
     }
 
     private boolean bombHitsIsland(Position center) {
-        if (robot.isSquareOnIsland(center)) {
+        if (_robot.isSquareOnIsland(center)) {
             return true;
         }
 
@@ -360,7 +365,7 @@ public class Game {
         };
 
         for (Position pos : adjacent) {
-            if (isPositionValid(pos) && robot.isSquareOnIsland(pos)) {
+            if (isPositionValid(pos) && _robot.isSquareOnIsland(pos)) {
                 return true;
             }
         }
@@ -370,50 +375,50 @@ public class Game {
 
 
     private boolean isPositionValid(Position pos) {
-        return pos.getX() >= 0 && pos.getX() < config.getGridSize() &&
-                pos.getY() >= 0 && pos.getY() < config.getGridSize();
+        return pos.getX() >= 0 && pos.getX() < _config.getGridSize() &&
+                pos.getY() >= 0 && pos.getY() < _config.getGridSize();
     }
 
 
     // GAME STATE
 
     public boolean checkGameOver() {
-        return player.allBoatSunk() || robot.allBoatSunk();
+        return _player.allBoatSunk() || _robot.allBoatSunk();
     }
 
     public String getWinner() {
-        if (player.allBoatSunk()) {
+        if (_player.allBoatSunk()) {
             return "Robot";
-        } else if (robot.allBoatSunk()) {
-            return player.getUsername();
+        } else if (_robot.allBoatSunk()) {
+            return _player.getUsername();
         }
         return null;
     }
 
     public void incrementTurn() {
-        turnNumber++;
+        _turnNumber++;
     }
 
     // GETTERS
 
     public Player getPlayer() {
-        return player;
+        return _player;
     }
 
     public Player getRobot() {
-        return robot;
+        return _robot;
     }
 
     public int getTurnNumber() {
-        return turnNumber;
+        return _turnNumber;
     }
 
     public GameConfig getConfig() {
-        return config;
+        return _config;
     }
 
     public boolean hasIsland() {
-        return config.getModeGame() == ModeGame.ISLAND;
+        return _config.getModeGame() == ModeGame.ISLAND;
     }
 
 

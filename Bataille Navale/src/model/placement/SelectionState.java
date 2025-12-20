@@ -7,29 +7,29 @@ import java.util.List;
  * Contient les options à mettre dans les comboBox pour la vue
  */
 public class SelectionState {
-    private List<String> boatOptions;
-    private List<String> trapWeaponOptions;
-    private boolean onPhaseBoat;
+    private List<String> _boatOptions;
+    private List<String> _trapWeaponOptions;
+    private boolean _onPhaseBoat;
 
     public SelectionState(List<String> boatOptions, List<String> trapWeaponOptions, boolean onPhaseBoat) {
-        this.boatOptions = boatOptions;
-        this.trapWeaponOptions = trapWeaponOptions;
-        this.onPhaseBoat = onPhaseBoat;
+        this._boatOptions = boatOptions;
+        this._trapWeaponOptions = trapWeaponOptions;
+        this._onPhaseBoat = onPhaseBoat;
     }
 
     public List<String> getBoatOptions() {
-        return boatOptions;
+        return _boatOptions;
     }
 
     public List<String> getTrapWeaponOptions(){
-        return trapWeaponOptions;
+        return _trapWeaponOptions;
     }
 
     public boolean isBoatSelectorEnabled() {
-        return onPhaseBoat;
+        return _onPhaseBoat;
     }
 
     public boolean isTrapWeaponSelectorEnabled() {
-        return !onPhaseBoat;
+        return !_onPhaseBoat;
     }
 }

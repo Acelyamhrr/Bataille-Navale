@@ -5,91 +5,59 @@ import model.enums.RobotMode;
 import model.enums.TrapPlacement;
 
 public class GameConfig {
-    private int gridSize;
-    private String username;
-    private int[] numberBoat;        // [porte-avions, croiseur, destroyer, sous-marin, torpilleur]
-    private ModeGame modeGame;
-    private RobotMode robotMode;
-    private TrapPlacement trapPlacement;
+    private int _gridSize;
+    private String _username;
+    private int[] _numberBoat;        // [porte-avions, croiseur, destroyer, sous-marin, torpilleur]
+    private ModeGame _modeGame;
+    private RobotMode _robotMode;
+    private TrapPlacement _trapPlacement;
 
     public GameConfig(ModeGame mode, int gridSize, RobotMode robotMode, int[] numberBoat, String username, TrapPlacement trapMode) {
-        this.modeGame = mode;
-        this.gridSize = gridSize;
-        this.robotMode = robotMode;
-        this.numberBoat = numberBoat.clone();
-        this.username = username;
-        this.trapPlacement = trapMode;
+        this._modeGame = mode;
+        this._gridSize = gridSize;
+        this._robotMode = robotMode;
+        this._numberBoat = numberBoat.clone();
+        this._username = username;
+        this._trapPlacement = trapMode;
     }
 
-    public int getGridSize() { return gridSize; }
-    public String getUsername() { return username; }
-    public int[] getNumberBoat() { return numberBoat.clone(); }
-    public ModeGame getModeGame() { return modeGame; }
-    public RobotMode getRobotMode() { return robotMode; }
-    public TrapPlacement getTrapMode() { return trapPlacement; }
+    public int getGridSize() { return _gridSize; }
+    public String getUsername() { return _username; }
+    public int[] getNumberBoat() { return _numberBoat.clone(); }
+    public ModeGame getModeGame() { return _modeGame; }
+    public RobotMode getRobotMode() { return _robotMode; }
+    public TrapPlacement getTrapMode() { return _trapPlacement; }
 
-    public int getTotalBoatSquares() {
+    public static int totalBoatSquares(int[] boats) {
         int[] sizes = {5, 4, 3, 3, 2};
         int total = 0;
-        for (int i = 0; i < numberBoat.length; i++) {
-            total += numberBoat[i] * sizes[i];
+        for (int i = 0; i < boats.length; i++) {
+            total += boats[i] * sizes[i];
         }
         return total;
     }
 
+    public int getTotalBoatSquares() {
+        return totalBoatSquares(_numberBoat);
+    }
+
     public int getNumberBoatsTotal(){
         int total = 0;
-        for (int j : numberBoat) {
+        for (int j : _numberBoat) {
             total += j;
         }
         return total;
     }
 
     public boolean isValid() {
-        // trop de cases
-        if (getTotalBoatSquares() > 35) {
+        //Vérifie le nombre de cases des bateaux
+        if(!numberSquaresValid(_gridSize, _numberBoat, _modeGame == ModeGame.ISLAND)){
             return false;
-        }
-
-        // trop de cases pour la taille de la grille + île
-        if(modeGame == ModeGame.ISLAND){
-            int sizeIsland = 16;
-
-            switch (gridSize) {
-                case 7:
-                    if(getTotalBoatSquares() > 49-sizeIsland){
-                        return false;
-                    }
-                    break;
-                case 8:
-                    if(getTotalBoatSquares() > 64-sizeIsland){
-                        return false;
-                    }
-                    break;
-                case 9:
-                    if(getTotalBoatSquares() > 81-sizeIsland){
-                        return false;
-                    }
-                case 10:
-                    if(getTotalBoatSquares() > 100-sizeIsland){
-                        return false;
-                    }
-                    break;
-                default:
-                    if(getTotalBoatSquares() > 36-sizeIsland){
-                        return false;
-                    }
-            }
-        }
-        else{
-            if(gridSize == 6 && getTotalBoatSquares() > 34){
-                return false;
-            }
         }
 
         // Au moins un boat
         int totalBoats = 0;
-        for (int nb : numberBoat) {
+        for (int nb : _numberBoat) {
             totalBoats += nb;
         }
         if (totalBoats == 0) {
@@ -97,7 +65,7 @@ public class GameConfig {
         }
 
         // si username pas remplis
-        if (username == null || username.trim().isEmpty()) {
+        if (_username == null || _username.trim().isEmpty()) {
             return false;
         }
 
@@ -106,6 +74,29 @@ public class GameConfig {
     }
 
     public String toString() {
-        return "Config: " + username + ", " + gridSize + "x" + gridSize + ", jeu " + modeGame + ", robot " + robotMode + ", pièges " + trapPlacement;
+        return "Config: " + _username + ", " + _gridSize + "x" + _gridSize + ", jeu " + _modeGame + ", robot " + _robotMode + ", pièges " + _trapPlacement;
+    }
+
+    public static boolean numberSquaresValid(int gridSize, int[] boats, boolean island) {
+        int totalSquares = totalBoatSquares(boats);
+
+        if(totalSquares > 35){
+            return false;
+        }
+
+        if(island){
+            int sizeIsland = 16;
+
+            if (gridSize == 7) {
+                return totalSquares <= 49 - sizeIsland;
+            } else if (gridSize == 6) {
+                return totalSquares <= 36 - sizeIsland;
+            }
+        }
+        else{
+            return gridSize != 6 || totalSquares <= 34;
+        }
+
+        return true;
     }
 }

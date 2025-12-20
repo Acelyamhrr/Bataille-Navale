@@ -1,14 +1,9 @@
 package controller;
 
-import model.enums.*;
 import model.game.GameConfig;
 import model.game.GamePlacement;
 import model.grid.Grid;
-import model.grid.Position;
 import view.*;
-
-import java.util.*;
-import java.util.List;
 
 
 /**
@@ -17,104 +12,104 @@ import java.util.List;
  * Ne contient aucune logique métier, tout est dans model
  */
 public class CentralController {
-    private MenuView menuView;
-    private ConfigurationView configView;
-    private PlacementView placementView;
-    private GameView gameView;
+    private MenuView _menuView;
+    private ConfigurationView _configView;
+    private PlacementView _placementView;
+    private GameView _gameView;
 
-    private ConfigurationController configController;
-    private PlacementController placementController;
-    private GameController gameController;
+    private ConfigurationController _configController;
+    private PlacementController _placementController;
+    private GameController _gameController;
 
-    private GameConfig currentConfig;
-    private GamePlacement currentPlacement;
+    private GameConfig _currentConfig;
+    private GamePlacement _currentPlacement;
 
     public CentralController() {}
 
     // démarre le jeu
     public void start() {
-        menuView = new MenuView();
+        _menuView = new MenuView();
         connectMenuView();
-        menuView.setVisible(true);
+        _menuView.setVisible(true);
     }
 
     private void connectMenuView() {
-        menuView.addNewGameListener(e -> openConfiguration());
-        menuView.addQuitListener(e -> quit());
+        _menuView.addNewGameListener(e -> openConfiguration());
+        _menuView.addQuitListener(e -> quit());
     }
 
     // ouvre l'écran de config
     private void openConfiguration() {
-        configView = new ConfigurationView();
-        configController = new ConfigurationController(configView);
+        _configView = new ConfigurationView();
+        _configController = new ConfigurationController(_configView);
         connectConfigView();
-        configView.setVisible(true);
-        menuView.setVisible(false);
+        _configView.setVisible(true);
+        _menuView.setVisible(false);
     }
 
     // events de la config
     private void connectConfigView() {
-        configView.addBackListener(e -> backToMenu());
-        configView.addNextListener(e -> validateConfiguration());
+        _configView.addBackListener(e -> backToMenu());
+        _configView.addNextListener(e -> validateConfiguration());
     }
 
     // retour au menu
     private void backToMenu() {
-        configView.dispose();
-        menuView.setVisible(true);
+        _configView.dispose();
+        _menuView.setVisible(true);
     }
 
     private void validateConfiguration() {
-        currentConfig = configController.validateAndCreateConfig();
+        _currentConfig = _configController.validateAndCreateConfig();
 
-        if (currentConfig == null ) {
+        if (_currentConfig == null ) {
             return;
         }
 
-        configView.showSuccess("Config ok : " + currentConfig);
+        _configView.showSuccess("Config ok : " + _currentConfig);
         openPlacement();
     }
 
     private void openPlacement() {
-        placementController = new PlacementController(currentConfig);
-        placementView = new PlacementView(currentConfig.getGridSize(), currentConfig.getUsername(), placementController, placementController.getModel());
-        placementController.setView(placementView);
+        _placementController = new PlacementController(_currentConfig);
+        _placementView = new PlacementView(_currentConfig.getGridSize(), _currentConfig.getUsername(), _placementController, _placementController.getModel());
+        _placementController.setView(_placementView);
         connectPlacementView();
-        placementView.setVisible(true);
-        configView.setVisible(false);
-        placementController.initializePlacement();
+        _placementView.setVisible(true);
+        _configView.setVisible(false);
+        _placementController.initializePlacement();
     }
 
     private void connectPlacementView() {
-        placementView.addBackListener(e -> backToConfig());
-        placementView.addValidateListener(e -> validatePlacement());
+        _placementView.addBackListener(e -> backToConfig());
+        _placementView.addValidateListener(e -> validatePlacement());
     }
 
     private void backToConfig() {
-        placementView.dispose();
-        configView.setVisible(true);
+        _placementView.dispose();
+        _configView.setVisible(true);
     }
 
     private void validatePlacement() {
-        currentPlacement = placementController.validateAndCreatePlacement();
+        _currentPlacement = _placementController.validateAndCreatePlacement();
 
-        if (currentPlacement == null) {
+        if (_currentPlacement == null) {
             return;
         }
 
-        placementView.showSuccess("Placement validé ! Prêt à jouer");
+        _placementView.showSuccess("Placement validé ! Prêt à jouer");
         openGame();
     }
 
     private void openGame() {
-        this.gameController = new GameController(currentConfig, currentPlacement, this);
-        gameView = new GameView(currentConfig.getGridSize(), currentConfig.getUsername(), gameController, this.currentPlacement);
-        this.gameController.setView(gameView);
+        this._gameController = new GameController(_currentConfig, _currentPlacement, this);
+        _gameView = new GameView(_currentConfig.getGridSize(), _currentConfig.getUsername(), _gameController, this._currentPlacement);
+        this._gameController.setView(_gameView);
 
-        gameView.setVisible(true);
-        placementView.setVisible(false);
+        _gameView.setVisible(true);
+        _placementView.setVisible(false);
 
-        gameView.showSuccess("La partie commence !");
+        _gameView.showSuccess("La partie commence !");
     }
 
     // quit
@@ -126,19 +121,19 @@ public class CentralController {
      * Recommence avec exactement le même placement.
      */
     public void restartWithSamePlacement() {
-        if (gameView != null) {
-            gameView.dispose();
-            gameView = null;
+        if (_gameView != null) {
+            _gameView.dispose();
+            _gameView = null;
         }
 
         // Reset les deux grilles
-        Grid playerGrid = gameController.getPlayer().getGrid();
-        Grid robotGrid = gameController.getRobot().getGrid();
+        Grid playerGrid = _gameController.getPlayer().getGrid();
+        Grid robotGrid = _gameController.getRobot().getGrid();
 
         playerGrid.reset();
         robotGrid.reset();
 
-        this.currentPlacement = new GamePlacement(playerGrid, robotGrid);
+        this._currentPlacement = new GamePlacement(playerGrid, robotGrid);
 
         openGame();
     }
@@ -147,11 +142,11 @@ public class CentralController {
      * Recommence avec la même config mais nouveaux placements.
      */
     public void restartWithSameConfig() {
-        if (gameView != null) {
-            gameView.dispose();
-            gameView = null;
+        if (_gameView != null) {
+            _gameView.dispose();
+            _gameView = null;
         }
-        currentPlacement = null;
+        _currentPlacement = null;
         openPlacement();
     }
 
@@ -159,12 +154,12 @@ public class CentralController {
      * Recommence complètement depuis la configuration.
      */
     public void restartFromBeginning() {
-        if (gameView != null) {
-            gameView.dispose();
-            gameView = null;
+        if (_gameView != null) {
+            _gameView.dispose();
+            _gameView = null;
         }
-        currentConfig = null;
-        currentPlacement = null;
+        _currentConfig = null;
+        _currentPlacement = null;
         openConfiguration();
     }
 }

@@ -1,24 +1,24 @@
 package model.grid;
 
 public class Island {
-    private static int SIZE = 4;
-    private Position position;
+    private static int _SIZE = 4;
+    private Position _position;
 
     public Island(Position position) {
-        this.position = position;
+        this._position = position;
     }
 
     public boolean contains(Position position) {
-        if(position.getX() < this.position.getX() || position.getX() >= this.position.getX() +SIZE) return false;
-        if(position.getY() < this.position.getY() || position.getY() >= this.position.getY() + SIZE) return false;
+        if(position.getX() < this._position.getX() || position.getX() >= this._position.getX() + _SIZE) return false;
+        if(position.getY() < this._position.getY() || position.getY() >= this._position.getY() + _SIZE) return false;
         return true;
     }
 
     Position getPosition() {
-        return position;
+        return _position;
     }
 
     int getSize() {
-        return SIZE;
+        return _SIZE;
     }
 }

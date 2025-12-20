@@ -3,21 +3,21 @@ package model.game;
 import model.grid.Grid;
 
 public class GamePlacement {
-    private Grid playerGrid;
-    private Grid robotGrid;
+    private Grid _playerGrid;
+    private Grid _robotGrid;
 
     public GamePlacement(Grid playerGrid, Grid robotGrid) {
-        this.playerGrid = playerGrid;
-        this.robotGrid = robotGrid;
+        this._playerGrid = playerGrid;
+        this._robotGrid = robotGrid;
     }
 
     // Getters
     public Grid getPlayerGrid() {
-        return playerGrid;
+        return _playerGrid;
     }
 
     public Grid getRobotGrid() {
-        return robotGrid;
+        return _robotGrid;
     }
 
 }

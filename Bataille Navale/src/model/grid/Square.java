@@ -9,72 +9,72 @@ import model.enums.State;
 import java.util.ArrayList;
 
 public class Square {
-    private boolean attacked;
-    private boolean inIsland;
-    private Content content;
-    private Position position;
-    private State islandState;
-    private ArrayList<Observer> observers;
-    private boolean robot;
+    private boolean _attacked;
+    private boolean _inIsland;
+    private Content _content;
+    private Position _position;
+    private State _islandState;
+    private ArrayList<Observer> _observers;
+    private boolean _robot;
 
     public Square(Position position, boolean inIsland, boolean robot) {
-        this.position = position;
-        this.inIsland = inIsland;
-        this.robot = robot;
+        this._position = position;
+        this._inIsland = inIsland;
+        this._robot = robot;
 
         if(inIsland) {
-            this.islandState = State.INTACT;
+            this._islandState = State.INTACT;
         }
 
-        this.observers = new ArrayList<>();
+        this._observers = new ArrayList<>();
     }
 
     public Square(Position position, boolean robot) {
-        this.position = position;
-        this.inIsland = false;
-        this.observers = new ArrayList<>();
-        this.robot = robot;
+        this._position = position;
+        this._inIsland = false;
+        this._observers = new ArrayList<>();
+        this._robot = robot;
     }
 
     public void setIsland(){
-        this.inIsland = true;
-        this.islandState = State.INTACT;
+        this._inIsland = true;
+        this._islandState = State.INTACT;
     }
 
     public boolean wasAttacked() {
-        return this.attacked;
+        return this._attacked;
     }
 
     public boolean isEmpty(){
-        return this.content == null;
+        return this._content == null;
     }
 
     public boolean isInIsland() {
-        return this.inIsland;
+        return this._inIsland;
     }
 
     public Content getContent() {
-        return this.content;
+        return this._content;
     }
 
     public void setContent(Content content) {
-        this.content = content;
+        this._content = content;
     }
 
     public Position getPosition() {
-        return this.position;
+        return this._position;
     }
 
     public void addObserver(Observer observer) {
-        this.observers.add(observer);
+        this._observers.add(observer);
     }
 
     public void attack(){
-        this.attacked = true;
+        this._attacked = true;
 
         if(getContentType() == ContentType.BOAT) {
-            Boat b = (Boat) this.content;
-            b.attack(this.position);
+            Boat b = (Boat) this._content;
+            b.attack(this._position);
         }
         else if (!isInIsland()){
             notifyObserversAttacked();
@@ -82,15 +82,15 @@ public class Square {
     }
 
     public Content search(){
-        if(this.islandState == State.INTACT) {
+        if(this._islandState == State.INTACT) {
             if(!this.isEmpty()){
-                this.islandState = State.SEARCHED;
+                this._islandState = State.SEARCHED;
 
 
                 notifyObserversIsland();
-                return this.content;
+                return this._content;
             }
-            this.islandState = State.EMPTY;
+            this._islandState = State.EMPTY;
             notifyObserversIsland();
             return null;
         }
@@ -98,28 +98,28 @@ public class Square {
     }
 
     public boolean isNotSearched(){
-        return this.islandState == State.INTACT;
+        return this._islandState == State.INTACT;
     }
 
     private void notifyObserversAttacked(){
-        for(Observer o : this.observers){
-            o.squareAttacked(this.position, this.robot);
+        for(Observer o : this._observers){
+            o.squareAttacked(this._position, this._robot);
         }
     }
 
     private void notifyObserversIsland(){
-        for(Observer o : this.observers){
-            o.squareIsland(this.position,  this.islandState, this.robot);
+        for(Observer o : this._observers){
+            o.squareIsland(this._position,  this._islandState, this._robot);
         }
     }
 
 
 
     public ContentType getContentType() {
-        if (this.content == null) {
+        if (this._content == null) {
             return ContentType.EMPTY;
         }
-        return this.content.getContentType();
+        return this._content.getContentType();
     }
 
 }
