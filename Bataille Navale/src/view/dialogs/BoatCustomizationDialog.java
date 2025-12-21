@@ -75,7 +75,8 @@ public class BoatCustomizationDialog extends JDialog {
             _spinners[i].setPreferredSize(new Dimension(60, 25));
 
             // Listener pour mettre à jour le total à chaque changement
-            _spinners[i].addChangeListener(e -> updateTotal(sizes));
+            int index = i;
+            _spinners[i].addChangeListener(e -> updateSpinner(index, sizes));
 
             row.add(nameLabel);
             row.add(_spinners[i]);
@@ -127,6 +128,15 @@ public class BoatCustomizationDialog extends JDialog {
     }
 
     /**
+     * Met à jour le tableau d'entiers
+     * Appelle updateTotal pour la validation
+     */
+    private void updateSpinner(int i, int[] sizes){
+        _boatNumbers[i] = (Integer) _spinners[i].getValue();
+        updateTotal(sizes);
+    }
+
+    /**
      * Met à jour l'affichage du total de cases occupées.
      * Change la couleur du texte en rouge si le total dépasse 35 cases.
      *
@@ -135,8 +145,8 @@ public class BoatCustomizationDialog extends JDialog {
     private void updateTotal(int[] sizes) {
         int total = calculateTotal(sizes);
         boolean valid = _controller.numberSquaresValid(_boatNumbers);
-        _lblTotal.setText("Total: " + total + " cases" + (valid ? " (DÉPASSÉ !)" : ""));
-        _lblTotal.setForeground(valid ? Color.RED : Color.BLACK);
+        _lblTotal.setText("Total: " + total + " cases" + (!valid ? " (DÉPASSÉ !)" : ""));
+        _lblTotal.setForeground(!valid ? Color.RED : Color.BLACK);
     }
 
     /**

@@ -11,9 +11,7 @@ import view.ConfigurationView;
 public class ConfigurationController {
     private ConfigurationView _view;
 
-    public ConfigurationController() {
-
-    }
+    public ConfigurationController() {}
 
     public void setView(ConfigurationView view) {
         this._view = view;
