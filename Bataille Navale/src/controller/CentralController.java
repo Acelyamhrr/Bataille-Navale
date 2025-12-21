@@ -40,8 +40,9 @@ public class CentralController {
 
     // ouvre l'écran de config
     private void openConfiguration() {
-        _configView = new ConfigurationView();
-        _configController = new ConfigurationController(_configView);
+        _configController = new ConfigurationController();
+        _configView = new ConfigurationView(_configController);
+        _configController.setView(_configView);
         connectConfigView();
         _configView.setVisible(true);
         _menuView.setVisible(false);

@@ -9,9 +9,13 @@ import view.ConfigurationView;
  * pour Valider et créer le GameConfig.
  */
 public class ConfigurationController {
-    private final ConfigurationView _view;
+    private ConfigurationView _view;
 
-    public ConfigurationController(ConfigurationView view) {
+    public ConfigurationController() {
+
+    }
+
+    public void setView(ConfigurationView view) {
         this._view = view;
     }
 

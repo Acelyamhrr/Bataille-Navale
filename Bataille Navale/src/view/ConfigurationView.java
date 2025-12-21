@@ -69,7 +69,8 @@ public class ConfigurationView extends JFrame {
      * Initialise la fenêtre avec une taille de 650x700 pixels, centrée à l'écran,
      * et crée tous les composants d'interface nécessaires.
      */
-    public ConfigurationView() {
+    public ConfigurationView(ConfigurationController controller) {
+        this.controller = controller;
         setTitle("Configuration de la partie");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(650, 700);
