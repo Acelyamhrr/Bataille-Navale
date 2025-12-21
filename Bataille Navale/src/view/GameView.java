@@ -4,91 +4,83 @@ import controller.GameController;
 import model.Observer;
 import model.enums.*;
 import model.game.GamePlacement;
-import model.grid.Grid;
 import model.grid.Position;
 import model.players.Player;
+import view.dialogs.GameDialogs;
+import view.panels.*;
+
+import static view.utils.GameColors.*;
 
 import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * Vue principale du jeu de bataille navale.
+ * Affiche les deux grilles (joueur et robot), les statistiques,
+ * l'historique des actions et la sélection d'armes.
+ * Implémente Observer pour être notifiée des événements du jeu.
+ */
 public class GameView extends JFrame implements Observer {
-    private final int gridSize;
-    private final String username;
+    /** Taille de la grille de jeu */
+    private final int _gridSize;
 
-    private JPanel inventoryPanel;
-    private JLabel blackholeInventoryLabel;
-    private JLabel tornadoInventoryLabel;
-    private JButton placeBlackholeButton;
-    private JButton placeTornadoButton;
-    private JButton cancelPlacementButton;
+    /** Nom du joueur humain */
+    private final String _username;
 
-    // Composants principaux
-    private JLabel turnLabel;
-    private JPanel playerStatsPanel;
-    private JPanel robotStatsPanel;
-    private JPanel playerGridPanel;
-    private JPanel robotGridPanel;
-    private JTextArea playerActionArea;
-    private JTextArea robotActionArea;
-    private JTextArea historyArea;
-    private JPanel weaponPanel;
+    /** Référence au contrôleur de jeu */
+    private GameController _controller;
 
-    // Boutons de grille
-    private JButton[][] playerGridButtons;
-    private JButton[][] robotGridButtons;
+    // === Composants principaux ===
 
-    // Radio buttons pour les armes
-    private ButtonGroup weaponGroup;
-    private JRadioButton missileRadio;
-    private JRadioButton bombRadio;
-    private JRadioButton sonarRadio;
-    private JRadioButton shovelRadio; // Pour fouiller l'île
+    /** Label affichant le numéro du tour actuel */
+    private JLabel _lblTurn;
 
-    // Labels pour les stats
-    private JLabel playerBoatsIntactLabel;
-    private JLabel playerBoatsTouchedLabel;
-    private JLabel playerBoatsSunkLabel;
-    private JLabel playerMissedShotsLabel;
-    private JLabel playerHitRatioLabel;
-    private JLabel playerWeaponsLabel;
-    private JLabel playerIslandLabel;
+    /** Panel de statistiques du joueur */
+    private PlayerStatsPanel _pnlPlayerStats;
 
-    private JLabel robotBoatsIntactLabel;
-    private JLabel robotBoatsTouchedLabel;
-    private JLabel robotBoatsSunkLabel;
-    private JLabel robotMissedShotsLabel;
-    private JLabel robotHitRatioLabel;
-    private JLabel robotWeaponsLabel;
-    private JLabel robotIslandLabel;
+    /** Panel de statistiques du robot */
+    private PlayerStatsPanel _pnlRobotStats;
 
-    // Menu déroulant pour l'historique
-    private JPopupMenu menuPopup;
-    private JMenuItem restartItem;
-    private JMenuItem legendItem;
-    private JMenuItem quitItem;
+    /** Panel de la grille du joueur */
+    private GameGridPanel _pnlPlayerGrid;
 
-    private GameController gameController;
+    /** Panel de la grille du robot */
+    private GameGridPanel _pnlRobotGrid;
 
+    /** Panel de sélection d'armes */
+    private WeaponSelectionPanel _pnlWeaponSelection;
 
-    // Couleurs
-    private static final Color WATER_COLOR = new Color(100, 150, 200);
-    private static final Color BOAT_COLOR = new Color(80, 80, 80);
-    private static final Color HIT_COLOR = new Color(255, 100, 100);
-    private static final Color SUNK_COLOR = new Color(150, 50, 50);
-    private static final Color MISS_COLOR = new Color(200, 200, 200);
-    private static final Color ISLAND_COLOR = new Color(210, 180, 140);
-    private static final Color ISLAND_SEARCHED_EMPTY = new Color(190, 160, 120);
-    private static final Color ISLAND_SEARCHED_FOUND = new Color(255, 215, 0);
-    private static final Color TRAP_COLOR = new Color(243, 88, 48);
-    private static final Color WEAPON_COLOR = new Color(218, 14, 232);
+    /** Panel d'historique et actions */
+    private ActionHistoryPanel _pnlActionHistory;
 
+    /** Panel d'inventaire des pièges (intégré dans playerStats) */
+    private InventoryPanel _pnlInventory;
+
+    // Menu
+
+    /** Menu popup pour options de jeu */
+    private JPopupMenu _menuPopup;
+
+    /** Item de menu pour afficher la légende */
+    private JMenuItem _menuItemLegend;
+
+    /** Item de menu pour quitter */
+    private JMenuItem _menuItemQuit;
+
+    /**
+     * Constructeur de la vue de jeu.
+     *
+     * @param gridSize La taille de la grille (6 à 10)
+     * @param username Le nom du joueur humain
+     * @param gameController Le contrôleur de jeu
+     * @param placement Le placement initial des éléments
+     */
     public GameView(int gridSize, String username, GameController gameController, GamePlacement placement) {
-        this.gridSize = gridSize;
-        this.username = username;
-        this.gameController = gameController;
+        this._gridSize = gridSize;
+        this._username = username;
+        this._controller = gameController;
 
         setTitle("Bataille Navale - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -98,6 +90,11 @@ public class GameView extends JFrame implements Observer {
         initComponents(placement);
     }
 
+    /**
+     * Initialise tous les composants graphiques de la fenêtre.
+     *
+     * @param placement Le placement initial des éléments
+     */
     private void initComponents(GamePlacement placement) {
         setLayout(new BorderLayout(10, 10));
 
@@ -109,92 +106,103 @@ public class GameView extends JFrame implements Observer {
         JPanel topPanel = new JPanel(new BorderLayout());
 
         // Menu
-        JButton menuButton = new JButton("☰");
+        JButton menuButton = new JButton("MENU");
         menuButton.setFont(new Font("Arial", Font.BOLD, 20));
         menuButton.setPreferredSize(new Dimension(50, 40));
         menuButton.addActionListener(e -> showMenu(menuButton));
         topPanel.add(menuButton, BorderLayout.WEST);
 
         // Numéro du tour
-        turnLabel = new JLabel("Tour 1", SwingConstants.CENTER);
-        turnLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        topPanel.add(turnLabel, BorderLayout.CENTER);
+        _lblTurn = new JLabel("Tour 1", SwingConstants.CENTER);
+        _lblTurn.setFont(new Font("Arial", Font.BOLD, 24));
+        topPanel.add(_lblTurn, BorderLayout.CENTER);
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        // Au milieu en grand:  Grilles + Stats de chaque joueur
+        // Au centre : Grilles + Stats + Actions
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
 
+        _pnlInventory = new InventoryPanel(_controller);
+
+        // Créer les panels de stats (avec inventaire pour le joueur)
+        _pnlPlayerStats = new PlayerStatsPanel(
+                _username,
+                false,
+                _controller.getNumberBoats(),
+                _controller.getNumberBoatSquares(),
+                _controller.hasIsland(),
+                _pnlInventory
+        );
+
+        _pnlRobotStats = new PlayerStatsPanel(
+                "Robot",
+                true,
+                _controller.getNumberBoats(),
+                _controller.getNumberBoatSquares(),
+                _controller.hasIsland(),
+                null // Pas d'inventaire pour le robot
+        );
+
+        // Créer les panels de grille
+        _pnlPlayerGrid = new GameGridPanel(_gridSize, true, _controller, placement);
+        _pnlRobotGrid = new GameGridPanel(_gridSize, false, _controller, placement);
+
+        // Disposition avec GridBagLayout
         JPanel gridsAndStatsPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH; // va s'étirer en largeur et en hauteur pour remplir toute la cellule dans la grille
-        gbc.insets = new Insets(5, 5, 5, 5);        // marges
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 5, 5, 5);
 
         // Stats joueur (gauche)
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 0.15;
         gbc.weighty = 1.0;
-        playerStatsPanel = createStatsPanel(username);
-        gridsAndStatsPanel.add(playerStatsPanel, gbc);
+        gridsAndStatsPanel.add(_pnlPlayerStats, gbc);
 
         // Grille joueur
         gbc.gridx = 1;
         gbc.weightx = 0.35;
-        playerGridPanel = createGridPanel(true, placement);
-        gridsAndStatsPanel.add(playerGridPanel, gbc);
+        gridsAndStatsPanel.add(_pnlPlayerGrid, gbc);
 
         // Grille robot
         gbc.gridx = 2;
         gbc.weightx = 0.35;
-        robotGridPanel = createGridPanel(false, placement);
-        gridsAndStatsPanel.add(robotGridPanel, gbc);
+        gridsAndStatsPanel.add(_pnlRobotGrid, gbc);
 
         // Stats robot
         gbc.gridx = 3;
         gbc.weightx = 0.15;
-        robotStatsPanel = createStatsPanel("Robot");
-        gridsAndStatsPanel.add(robotStatsPanel, gbc);
+        gridsAndStatsPanel.add(_pnlRobotStats, gbc);
 
         centerPanel.add(gridsAndStatsPanel, BorderLayout.CENTER);
 
-        // actions
-        JPanel actionsPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-
-        playerActionArea = new JTextArea(3, 30);
-        playerActionArea.setEditable(false);
-        playerActionArea.setBorder(BorderFactory.createTitledBorder("Dernière action - " + username));
-        playerActionArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        JScrollPane playerActionScroll = new JScrollPane(playerActionArea);
-        actionsPanel.add(playerActionScroll);
-
-        robotActionArea = new JTextArea(3, 30);
-        robotActionArea.setEditable(false);
-        robotActionArea.setBorder(BorderFactory.createTitledBorder("Dernière action - Robot"));
-        robotActionArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        JScrollPane robotActionScroll = new JScrollPane(robotActionArea);
-        actionsPanel.add(robotActionScroll);
-
-        centerPanel.add(actionsPanel, BorderLayout.SOUTH);
-
         mainPanel.add(centerPanel, BorderLayout.CENTER);
 
-        // en bas : Historique + Sélection d'armes
-        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        // En bas : Sélection d'armes
 
-        // Historique
-        historyArea = new JTextArea(8, 40);
-        historyArea.setEditable(false);
-        historyArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
-        JScrollPane historyScroll = new JScrollPane(historyArea);
-        historyScroll.setBorder(BorderFactory.createTitledBorder("Historique"));
-        bottomPanel.add(historyScroll);
+        ActionHistoryPanel actionHistory = new ActionHistoryPanel(_username);
 
-        // Sélection d'armes
-        weaponPanel = createWeaponPanel();
-        bottomPanel.add(weaponPanel);
+        // Panel du bas
+        JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
+        bottomPanel.add(actionHistory.getActionsPanel(), BorderLayout.NORTH);
+
+        _pnlWeaponSelection = new WeaponSelectionPanel();
+        JSplitPane splitBottom = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                actionHistory.getHistoryPanel(),
+                _pnlWeaponSelection
+        );
+
+        splitBottom.setResizeWeight(0.5);   // 50 / 50
+        splitBottom.setDividerSize(6);
+        splitBottom.setEnabled(false);      // empêche de bouger la barre
+
+        bottomPanel.add(splitBottom, BorderLayout.CENTER);
 
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        _pnlActionHistory = actionHistory;
 
         add(mainPanel);
 
@@ -202,889 +210,362 @@ public class GameView extends JFrame implements Observer {
         createMenuPopup();
     }
 
-    private JPanel createStatsPanel(String title) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createTitledBorder( BorderFactory.createLineBorder(Color.DARK_GRAY, 2), title, TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14) ));
-
-        // Créer les labels de stats
-        if (title.contains("Robot")) {
-            robotBoatsIntactLabel = new JLabel("Bateaux intacts : " + this.gameController.getNumberBoats());
-            robotBoatsTouchedLabel = new JLabel("Bateaux touchés : 0");
-            robotBoatsSunkLabel = new JLabel("Bateaux coulés : 0");
-            robotMissedShotsLabel = new JLabel("Tirs dans l'eau : 0");
-            robotHitRatioLabel = new JLabel("Cases de bateaux touchées : 0/" + this.gameController.getNumberBoatSquares());
-            robotWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
-
-            if(this.gameController.hasIsland()){
-                robotIslandLabel = new JLabel("Île restante : 16");
-            }
-            else{
-                robotIslandLabel = new JLabel("Île restante : -");
-            }
-
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(robotBoatsIntactLabel));
-            panel.add(createStatsLabel(robotBoatsTouchedLabel));
-            panel.add(createStatsLabel(robotBoatsSunkLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(robotMissedShotsLabel));
-            panel.add(createStatsLabel(robotHitRatioLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(robotWeaponsLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(robotIslandLabel));
-        } else {
-            playerBoatsIntactLabel = new JLabel("Bateaux intacts : " + this.gameController.getNumberBoats());
-            playerBoatsTouchedLabel = new JLabel("Bateaux touchés : 0");
-            playerBoatsSunkLabel = new JLabel("Bateaux coulés : 0");
-            playerMissedShotsLabel = new JLabel("Tirs dans l'eau : 0");
-            playerHitRatioLabel = new JLabel("Cases de bateaux touchées : 0/" + this.gameController.getNumberBoatSquares());
-            playerWeaponsLabel = new JLabel("<html>Armes:<br/>- Missile: ∞<br/>- Bombe: 1<br/>- Sonar: 1</html>");
-
-            if(this.gameController.hasIsland()){
-                playerIslandLabel = new JLabel("Île restante : 16");
-            }
-            else{
-                playerIslandLabel = new JLabel("Île restante : -");
-            }
-
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerBoatsIntactLabel));
-            panel.add(createStatsLabel(playerBoatsTouchedLabel));
-            panel.add(createStatsLabel(playerBoatsSunkLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerMissedShotsLabel));
-            panel.add(createStatsLabel(playerHitRatioLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerWeaponsLabel));
-            panel.add(Box.createVerticalStrut(10));
-            panel.add(createStatsLabel(playerIslandLabel));
-        }
-
-        if (!title.contains("Robot")) {
-            panel.add(Box.createVerticalStrut(20));
-            inventoryPanel = createInventoryPanel();
-            panel.add(inventoryPanel);
-        }
-
-        panel.add(Box.createVerticalGlue());
-
-        return panel;
-    }
-
-
-    private JPanel createInventoryPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(100, 100, 100), 1),
-                "Inventaire",
-                TitledBorder.LEFT,
-                TitledBorder.TOP,
-                new Font("Arial", Font.BOLD, 12)
-        ));
-        panel.setMaximumSize(new Dimension(250, 150));
-
-        // Labels pour afficher le nombre de pièges
-        blackholeInventoryLabel = new JLabel("Trou Noir: 0");
-        blackholeInventoryLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        blackholeInventoryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        tornadoInventoryLabel = new JLabel("Tornade: 0");
-        tornadoInventoryLabel.setFont(new Font("Arial", Font.PLAIN, 11));
-        tornadoInventoryLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        // Boutons pour placer les pièges
-        placeBlackholeButton = new JButton("Placer");
-        placeBlackholeButton.setFont(new Font("Arial", Font.PLAIN, 10));
-        placeBlackholeButton.setEnabled(false);
-        placeBlackholeButton.setMaximumSize(new Dimension(80, 25));
-        placeBlackholeButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        placeBlackholeButton.addActionListener(e ->
-                this.gameController.startPlacingTrapFromInventory(TrapType.BLACKHOLE)
-        );
-
-        placeTornadoButton = new JButton("Placer");
-        placeTornadoButton.setFont(new Font("Arial", Font.PLAIN, 10));
-        placeTornadoButton.setEnabled(false);
-        placeTornadoButton.setMaximumSize(new Dimension(80, 25));
-        placeTornadoButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        placeTornadoButton.addActionListener(e ->
-                this.gameController.startPlacingTrapFromInventory(TrapType.TORNADO)
-        );
-
-        // Bouton annuler (caché par défaut)
-        cancelPlacementButton = new JButton("Annuler placement");
-        cancelPlacementButton.setFont(new Font("Arial", Font.PLAIN, 10));
-        cancelPlacementButton.setVisible(false);
-        cancelPlacementButton.setMaximumSize(new Dimension(150, 25));
-        cancelPlacementButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cancelPlacementButton.addActionListener(e ->
-                this.gameController.cancelTrapPlacement()
-        );
-
-        // Panneau pour Trou Noir
-        JPanel blackholePanel = new JPanel();
-        blackholePanel.setLayout(new BoxLayout(blackholePanel, BoxLayout.X_AXIS));
-        blackholePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        blackholePanel.add(blackholeInventoryLabel);
-        blackholePanel.add(Box.createHorizontalStrut(10));
-        blackholePanel.add(placeBlackholeButton);
-
-        // Panneau pour Tornade
-        JPanel tornadoPanel = new JPanel();
-        tornadoPanel.setLayout(new BoxLayout(tornadoPanel, BoxLayout.X_AXIS));
-        tornadoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        tornadoPanel.add(tornadoInventoryLabel);
-        tornadoPanel.add(Box.createHorizontalStrut(10));
-        tornadoPanel.add(placeTornadoButton);
-
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(blackholePanel);
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(tornadoPanel);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(cancelPlacementButton);
-        panel.add(Box.createVerticalStrut(5));
-
-        return panel;
-    }
-
-
+    /**
+     * Affiche un dialogue pour un piège trouvé.
+     *
+     * @param trapName Le nom du piège
+     * @return 0 pour placer maintenant, 1 pour mettre en inventaire
+     */
     public int showTrapFoundDialog(String trapName) {
-        Object[] options = {"Placer maintenant", "Mettre en inventaire"};
-
-        return JOptionPane.showOptionDialog(
-                this,
-                "Vous avez trouvé un " + trapName + " !\n\nVoulez-vous le placer tout de suite sur votre grille\nou le mettre dans l'inventaire ?",
-                "Piège trouvé !",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                options,
-                options[0]
-        );
+        return GameDialogs.showTrapFoundDialog(this, trapName);
     }
 
+    /**
+     * Affiche un effet de piège activé.
+     *
+     * @param title Le titre du message
+     * @param message Le contenu du message
+     * @param beneficial {@code true} si bénéfique pour le joueur
+     */
+    public void showTrapEffect(String title, String message, boolean beneficial) {
+        GameDialogs.showTrapEffect(this, title, message, beneficial);
+    }
 
+    /**
+     * Affiche le résultat d'un sonar.
+     *
+     * @param centerX Position X du centre
+     * @param centerY Position Y du centre
+     * @param occupiedCells Nombre de cases occupées
+     * @param isPlayerSonar {@code true} si c'est le sonar du joueur
+     */
+    public void showSonarResult(int centerX, int centerY, int occupiedCells, boolean isPlayerSonar) {
+        GameDialogs.showSonarResult(this, centerX, centerY, occupiedCells, isPlayerSonar, _gridSize);
+    }
 
+    /**
+     * Met à jour l'affichage de l'inventaire.
+     *
+     * @param inventory Map des pièges et leurs quantités
+     */
     public void updateInventoryDisplay(Map<TrapType, Integer> inventory) {
-        int blackholeCount = inventory.getOrDefault(TrapType.BLACKHOLE, 0);
-        int tornadoCount = inventory.getOrDefault(TrapType.TORNADO, 0);
-
-        blackholeInventoryLabel.setText("Trou Noir: " + blackholeCount);
-        tornadoInventoryLabel.setText("Tornade: " + tornadoCount);
-
-        placeBlackholeButton.setEnabled(blackholeCount > 0);
-        placeTornadoButton.setEnabled(tornadoCount > 0);
+        _pnlInventory.updateInventory(inventory);
     }
 
-
-
+    /**
+     * Active ou désactive le mode placement de piège.
+     *
+     * @param placing true pour activer le mode placement
+     */
     public void setPlacingTrapMode(boolean placing) {
-        cancelPlacementButton.setVisible(placing);
-
-        if (placing) {
-            // Désactiver les autres boutons pendant le placement
-            placeBlackholeButton.setEnabled(false);
-            placeTornadoButton.setEnabled(false);
-        } else {
-            // Réactiver selon l'inventaire
-            Player player = this.gameController.getPlayer();
-            updateInventoryDisplay(player.getTrapInventory());
-        }
+        _pnlInventory.setPlacingMode(placing);
     }
 
+    /**
+     * Change la couleur d'une cellule de la grille du joueur.
+     *
+     * @param x Position X
+     * @param y Position Y
+     * @param color La nouvelle couleur
+     */
     public void colorPlayerGridCell(int x, int y, Color color) {
-        if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-            playerGridButtons[y][x].setBackground(color);
-        }
+        _pnlPlayerGrid.setCellColor(x, y, color);
     }
 
-
+    /**
+     * Récupère la couleur des pièges.
+     *
+     * @return La couleur des pièges
+     */
     public Color getTrapColor() {
         return TRAP_COLOR;
     }
 
+    /**
+     * Récupère le joueur depuis le contrôleur.
+     *
+     * @return Le joueur humain
+     */
     public Player getPlayer() {
-        return this.gameController.getPlayer();
-    }
-
-
-
-    private JLabel createStatsLabel(JLabel label) {
-        label.setFont(new Font("Arial", Font.PLAIN, 12));
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return label;
-    }
-
-    private JPanel createGridPanel(boolean isPlayerGrid, GamePlacement placement) {
-
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder( BorderFactory.createLineBorder(Color.DARK_GRAY, 2), isPlayerGrid ? "Votre grille" : "Grille adverse", TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14) ));
-
-        // Grille de boutons
-        JPanel grid = new JPanel(new GridLayout(gridSize, gridSize, 1, 1));
-        grid.setBackground(Color.DARK_GRAY);
-
-        JButton[][] buttons = new JButton[gridSize][gridSize];
-
-        for (int y = 0; y < gridSize; y++) {
-            for (int x = 0; x < gridSize; x++) {
-                JButton btn = new JButton();
-
-                if(this.gameController.isInIsland(x, y)){
-                    btn.setBackground(ISLAND_COLOR);
-                }
-                else{
-                    btn.setBackground(WATER_COLOR);
-                }
-
-                btn.setPreferredSize(new Dimension(40, 40));
-                btn.setFocusPainted(false);
-                btn.setBorderPainted(true);
-
-                final int finalX = x;
-                final int finalY = y;
-
-                if (!isPlayerGrid) {
-                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY, false));
-                }
-                else {
-                    btn.addActionListener(e -> this.gameController.handleGridClick(finalX, finalY, true));
-                }
-
-                buttons[y][x] = btn;
-                grid.add(btn);
-            }
-        }
-
-        if (isPlayerGrid) {
-            playerGridButtons = buttons;
-            Grid playerGrid = placement.getPlayerGrid();
-
-            List<Position> placementsBoats = playerGrid.getPositionsBoats();
-
-            for(Position position : placementsBoats){
-                playerGridButtons[position.getY()][position.getX()].setBackground(BOAT_COLOR);
-            }
-
-            Map<TrapType, List<Position>> placementTraps = playerGrid.getPositionsTraps();
-
-            for(Map.Entry<TrapType, List<Position>> entry : placementTraps.entrySet()){
-                for(Position pos  : entry.getValue()){
-                    playerGridButtons[pos.getY()][pos.getX()].setBackground(TRAP_COLOR);
-
-                    String text;
-                    if(entry.getKey() == TrapType.BLACKHOLE){
-                        text = "N";
-                    }
-                    else{
-                        text = "O";
-                    }
-                    playerGridButtons[pos.getY()][pos.getX()].setText(text);
-                }
-            }
-
-            Map<WeaponType, List<Position>> placementWeapons = playerGrid.getPositionsWeapons();
-
-            for(Map.Entry<WeaponType, List<Position>> entry : placementWeapons.entrySet()){
-                for(Position pos  : entry.getValue()){
-                    playerGridButtons[pos.getY()][pos.getX()].setBackground(WEAPON_COLOR);
-
-                    String text;
-                    if(entry.getKey() == WeaponType.BOMB){
-                        text = "B";
-                    }
-                    else{
-                        text = "S";
-                    }
-                    playerGridButtons[pos.getY()][pos.getX()].setText(text);
-                }
-            }
-
-        } else {
-            robotGridButtons = buttons;
-        }
-
-        panel.add(grid, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel createWeaponPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createTitledBorder("Sélection d'arme"));
-
-        weaponGroup = new ButtonGroup();
-
-        // Panel pour les armes
-        JPanel weaponsGrid = new JPanel(new GridLayout(2, 4, 10, 10));
-        weaponsGrid.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        // Missile
-        JPanel missilePanel = createWeaponButton("Missile", "Bataille Navale/src/img/missile.jpg", true);
-        missileRadio = (JRadioButton) missilePanel.getComponent(1);
-        weaponsGrid.add(missilePanel);
-
-        // Bombe
-        JPanel bombPanel = createWeaponButton("Bombe", "Bataille Navale/src/img/bombe.jpg", true);
-        bombRadio = (JRadioButton) bombPanel.getComponent(1);
-        weaponsGrid.add(bombPanel);
-
-        // Sonar
-        JPanel sonarPanel = createWeaponButton("Sonar", "Bataille Navale/src/img/sonar.jpg", true);
-        sonarRadio = (JRadioButton) sonarPanel.getComponent(1);
-        weaponsGrid.add(sonarPanel);
-
-        // Pelle (île)
-        JPanel shovelPanel = createWeaponButton("Fouiller l'île", "Bataille Navale/src/img/pelle.jpg", true);
-        shovelRadio = (JRadioButton) shovelPanel.getComponent(1);
-        weaponsGrid.add(shovelPanel);
-
-        panel.add(weaponsGrid);
-
-        // Sélectionner missile par défaut
-        missileRadio.setSelected(true);
-
-        return panel;
-    }
-
-    private JPanel createWeaponButton(String name, String imagePath, boolean enabled) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        // Image
-        JLabel imageLabel = new JLabel();
-        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        try {
-            ImageIcon icon = new ImageIcon(imagePath);
-            Image img = icon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-            imageLabel.setIcon(new ImageIcon(img));
-        } catch (Exception e) {
-            imageLabel.setText("[" + name + "]");
-            imageLabel.setPreferredSize(new Dimension(60, 60));
-            imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        }
-
-        // Radio button
-        JRadioButton radio = new JRadioButton(name);
-        radio.setAlignmentX(Component.CENTER_ALIGNMENT);
-        radio.setEnabled(enabled);
-        weaponGroup.add(radio);
-
-        panel.add(imageLabel);
-        panel.add(radio);
-
-        return panel;
-    }
-
-    private void createMenuPopup() {
-        menuPopup = new JPopupMenu();
-
-        legendItem = new JMenuItem("Légendes");
-        quitItem = new JMenuItem("Quitter");
-        quitItem.addActionListener(e -> this.gameController.quit());
-
-        menuPopup.add(legendItem);
-        menuPopup.addSeparator();
-        menuPopup.add(quitItem);
-
-        legendItem.addActionListener(e -> showLegend());
-    }
-
-    private void showMenu(Component component) {
-        menuPopup.show(component, 0, component.getHeight());
-    }
-
-    private void showLegend() {
-        JPanel legendPanel = new JPanel();
-        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
-        legendPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-        //Colors
-        JLabel titleColors = new JLabel("Couleurs");
-        titleColors.setFont(new Font("Arial", Font.BOLD, 18));
-        titleColors.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        legendPanel.add(titleColors);
-        legendPanel.add(Box.createVerticalStrut(10));
-
-        JPanel colorsPanel = new JPanel(new GridLayout(0, 2, 10, 5));
-
-        addLegendItem(colorsPanel, "Eau", WATER_COLOR);
-        addLegendItem(colorsPanel, "Bateau", BOAT_COLOR);
-        addLegendItem(colorsPanel, "Touché", HIT_COLOR);
-        addLegendItem(colorsPanel, "Coulé", SUNK_COLOR);
-        addLegendItem(colorsPanel, "Manqué", MISS_COLOR);
-        addLegendItem(colorsPanel, "Île", ISLAND_COLOR);
-        addLegendItem(colorsPanel, "Île fouillée (vide)", ISLAND_SEARCHED_EMPTY);
-        addLegendItem(colorsPanel, "Île fouillée (trouvé)", ISLAND_SEARCHED_FOUND);
-        addLegendItem(colorsPanel, "Piège", TRAP_COLOR);
-
-        legendPanel.add(colorsPanel);
-
-        //Words
-        legendPanel.add(Box.createVerticalStrut(20));
-
-        JLabel titleWords = new JLabel("Abréviations");
-        titleWords.setFont(new Font("Arial", Font.BOLD, 18));
-        titleWords.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        legendPanel.add(titleWords);
-        legendPanel.add(Box.createVerticalStrut(10));
-
-        JPanel wordsPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        wordsPanel.add(new JLabel("O = Tornade"));
-        wordsPanel.add(new JLabel("N = Trou noir"));
-        wordsPanel.add(new JLabel("B = Bombe"));
-        wordsPanel.add(new JLabel("S = Sonar"));
-
-        legendPanel.add(wordsPanel);
-
-
-        JOptionPane.showMessageDialog(this, legendPanel, "Légende des couleurs/abréviations", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private void addLegendItem(JPanel panel, String text, Color color) {
-        JPanel colorBox = new JPanel();
-        colorBox.setBackground(color);
-        colorBox.setPreferredSize(new Dimension(30, 20));
-        colorBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
-        panel.add(colorBox);
-        panel.add(new JLabel(text));
-    }
-
-    // Methodes pour le controller
-
-    public void setTurnNumber(int turn) {
-        turnLabel.setText("Tour " + turn);
-    }
-
-    public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
-        playerBoatsIntactLabel.setText("Bateaux intacts : " + intact);
-        playerBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
-        playerBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
-        playerMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        playerHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + totalBoatCells);
-    }
-
-
-    public void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
-        robotBoatsIntactLabel.setText("Bateaux intacts : " + intact);
-        robotBoatsTouchedLabel.setText("Bateaux touchés : " + touched);
-        robotBoatsSunkLabel.setText("Bateaux coulés : " + sunk);
-        robotMissedShotsLabel.setText("Tirs dans l'eau : " + missed);
-        robotHitRatioLabel.setText("Cases de bateaux touchées : " + hitCells + "/" + totalBoatCells);
-    }
-
-
-    public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
-        String text = "<html>Armes:<br/>";
-        text += "-Missile: ∞<br/>";
-        text += "-Bombe: " + bombs + "<br/>";
-        text += "-Sonar: " + sonars + "<br/>";
-        playerWeaponsLabel.setText(text);
-    }
-
-    public void updateRobotWeapons(int missiles, int bombs, int sonars) {
-        String text = "<html>Armes:<br/>";
-        text += "-Missile: ∞<br/>";
-        text += "-Bombe: " + bombs + "<br/>";
-        text += "-Sonar: " + sonars + "<br/>";
-        robotWeaponsLabel.setText(text);
-    }
-
-    public void updatePlayerIsland(int remaining) {
-        playerIslandLabel.setText("Île restante : " + remaining);
-    }
-
-    public void updateRobotIsland(int remaining) {
-        robotIslandLabel.setText("Île restante : " + remaining);
-    }
-
-    public void setPlayerAction(String action) {
-        this.playerActionArea.setText(action);
-    }
-
-    public void setRobotAction(String action) {
-        this.robotActionArea.setText(action);
-    }
-
-    public void appendHistory(String history) {
-        this.historyArea.append(history);
-    }
-
-    public void clearHistory() {
-        this.historyArea.setText("");
-    }
-
-    public boolean isShovelSelected(){
-        return this.shovelRadio.isSelected();
-    }
-
-    public WeaponType getSelectedWeapon(){
-        if(this.bombRadio.isSelected()){
-            return WeaponType.BOMB;
-        }
-        
-        if(this.sonarRadio.isSelected()){
-            return WeaponType.SONAR;
-        }
-
-        return WeaponType.MISSILE;
-    }
-
-    public void setWeaponEnabled(WeaponType weapon, boolean enabled){
-        switch(weapon){
-            case BOMB:
-                this.bombRadio.setEnabled(enabled);
-                break;
-            case SONAR:
-                this.sonarRadio.setEnabled(enabled);
-                break;
-            default:
-                this.missileRadio.setEnabled(true);
-        }
-    }
-
-    public void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "❌ Erreur", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void showSuccess(String message) {
-        JOptionPane.showMessageDialog(this, message, "✅ Succès", JOptionPane.INFORMATION_MESSAGE);
+        return _controller.getPlayer();
     }
 
     /**
-     * Affiche un effet de piège avec une couleur appropriée
-     * @param title Le titre du message
-     * @param message Le contenu du message
-     * @param beneficial true si c'est bon pour le joueur (vert), false si mauvais (rouge)
+     * Crée le menu popup (hamburger).
      */
-    public void showTrapEffect(String title, String message, boolean beneficial) {
-        // Créer un panel personnalisé avec la couleur de fond
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
+    private void createMenuPopup() {
+        _menuPopup = new JPopupMenu();
 
-        // Couleur de fond selon l'effet
-        Color backgroundColor = beneficial ?
-                new Color(200, 255, 200) :  // Vert clair pour positif
-                new Color(255, 200, 200);    // Rouge clair pour négatif
-        panel.setBackground(backgroundColor);
+        _menuItemLegend = new JMenuItem("Légendes");
+        _menuItemLegend.addActionListener(e -> showLegend());
 
-        // Titre en gros et gras
-        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(beneficial ?
-                new Color(0, 120, 0) :      // Vert foncé
-                new Color(180, 0, 0));       // Rouge foncé
-        panel.add(titleLabel, BorderLayout.NORTH);
+        _menuItemQuit = new JMenuItem("Quitter");
+        _menuItemQuit.addActionListener(e -> _controller.quit());
 
-        // Message principal
-        JTextArea messageArea = new JTextArea(message);
-        messageArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        messageArea.setLineWrap(true);
-        messageArea.setWrapStyleWord(true);
-        messageArea.setEditable(false);
-        messageArea.setOpaque(false);
-        messageArea.setBorder(new EmptyBorder(10, 5, 10, 5));
-        panel.add(messageArea, BorderLayout.CENTER);
+        _menuPopup.add(_menuItemLegend);
+        _menuPopup.addSeparator();
+        _menuPopup.add(_menuItemQuit);
+    }
 
-        // Afficher le dialog
-        JOptionPane.showMessageDialog(
+    /**
+     * Affiche le menu popup.
+     *
+     * @param component Le composant déclencheur (bouton menu)
+     */
+    private void showMenu(Component component) {
+        _menuPopup.show(component, 0, component.getHeight());
+    }
+
+    /**
+     * Affiche la légende des couleurs et abréviations.
+     */
+    private void showLegend() {
+        GameDialogs.showLegend(
                 this,
-                panel,
-                beneficial ? "✅ Piège Activé (Vous)" : "⚠️ Piège Activé (Adversaire)",
-                JOptionPane.PLAIN_MESSAGE
+                WATER_COLOR,
+                BOAT_COLOR,
+                HIT_COLOR,
+                SUNK_COLOR,
+                MISS_COLOR,
+                ISLAND_COLOR,
+                ISLAND_SEARCHED_EMPTY,
+                ISLAND_SEARCHED_FOUND,
+                TRAP_COLOR
         );
     }
 
+    // ==================== Méthodes pour le contrôleur ====================
 
+    /**
+     * Définit le numéro du tour actuel.
+     *
+     * @param turn Le numéro du tour
+     */
+    public void setTurnNumber(int turn) {
+        _lblTurn.setText("Tour " + turn);
+    }
 
-    //Méthodes de l'observer
+    /**
+     * Met à jour les statistiques du joueur.
+     *
+     * @param intact Bateaux intacts
+     * @param touched Bateaux touchés
+     * @param sunk Bateaux coulés
+     * @param missed Tirs dans l'eau
+     * @param hitCells Cases touchées
+     * @param totalBoatCells Total de cases de bateaux
+     */
+    public void updatePlayerStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
+        _pnlPlayerStats.updateBoatStats(intact, touched, sunk);
+        _pnlPlayerStats.updateShotStats(missed, hitCells, totalBoatCells);
+    }
+
+    /**
+     * Met à jour les statistiques du robot.
+     *
+     * @param intact Bateaux intacts
+     * @param touched Bateaux touchés
+     * @param sunk Bateaux coulés
+     * @param missed Tirs dans l'eau
+     * @param hitCells Cases touchées
+     * @param totalBoatCells Total de cases de bateaux
+     */
+    public void updateRobotStats(int intact, int touched, int sunk, int missed, int hitCells, int totalBoatCells) {
+        _pnlRobotStats.updateBoatStats(intact, touched, sunk);
+        _pnlRobotStats.updateShotStats(missed, hitCells, totalBoatCells);
+    }
+
+    /**
+     * Met à jour les armes disponibles du joueur.
+     *
+     * @param missiles Nombre de missiles (infini, non utilisé)
+     * @param bombs Nombre de bombes
+     * @param sonars Nombre de sonars
+     */
+    public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
+        _pnlPlayerStats.updateWeapons(bombs, sonars);
+    }
+
+    /**
+     * Met à jour les armes disponibles du robot.
+     *
+     * @param missiles Nombre de missiles (infini, non utilisé)
+     * @param bombs Nombre de bombes
+     * @param sonars Nombre de sonars
+     */
+    public void updateRobotWeapons(int missiles, int bombs, int sonars) {
+        _pnlRobotStats.updateWeapons(bombs, sonars);
+    }
+
+    /**
+     * Met à jour les cases d'île restantes du joueur.
+     *
+     * @param remaining Nombre de cases restantes
+     */
+    public void updatePlayerIsland(int remaining) {
+        _pnlPlayerStats.updateIsland(remaining);
+    }
+
+    /**
+     * Met à jour les cases d'île restantes du robot.
+     *
+     * @param remaining Nombre de cases restantes
+     */
+    public void updateRobotIsland(int remaining) {
+        _pnlRobotStats.updateIsland(remaining);
+    }
+
+    /**
+     * Définit le texte de la dernière action du joueur.
+     *
+     * @param action Le texte de l'action
+     */
+    public void setPlayerAction(String action) {
+        _pnlActionHistory.setPlayerAction(action);
+    }
+
+    /**
+     * Définit le texte de la dernière action du robot.
+     *
+     * @param action Le texte de l'action
+     */
+    public void setRobotAction(String action) {
+        _pnlActionHistory.setRobotAction(action);
+    }
+
+    /**
+     * Ajoute une ligne à l'historique complet.
+     *
+     * @param history Le texte à ajouter
+     */
+    public void appendHistory(String history) {
+        _pnlActionHistory.appendHistory(history);
+    }
+
+    /**
+     * Efface tout l'historique.
+     */
+    public void clearHistory() {
+        _pnlActionHistory.clearHistory();
+    }
+
+    /**
+     * Vérifie si la pelle (fouiller l'île) est sélectionnée.
+     *
+     * @return true si la pelle est sélectionnée
+     */
+    public boolean isShovelSelected() {
+        return _pnlWeaponSelection.isShovelSelected();
+    }
+
+    /**
+     * Retourne l'arme actuellement sélectionnée.
+     *
+     * @return Le type d'arme sélectionné
+     */
+    public WeaponType getSelectedWeapon() {
+        return _pnlWeaponSelection.getSelectedWeapon();
+    }
+
+    /**
+     * Active ou désactive une arme spécifique.
+     *
+     * @param weapon Le type d'arme
+     * @param enabled true pour activer, false pour désactiver
+     */
+    public void setWeaponEnabled(WeaponType weapon, boolean enabled) {
+        _pnlWeaponSelection.setWeaponEnabled(weapon, enabled);
+    }
+
+    /**
+     * Affiche un message d'erreur.
+     *
+     * @param message Le message d'erreur
+     */
+    public void showError(String message) {
+        GameDialogs.showError(this, message);
+    }
+
+    /**
+     * Affiche un message de succès.
+     *
+     * @param message Le message de succès
+     */
+    public void showSuccess(String message) {
+        GameDialogs.showSuccess(this, message);
+    }
+
+    // ==================== Méthodes de l'observer ====================
 
     @Override
     public void boatAttacked(Position position, boolean robot) {
-        if(robot){
-            // Mise à jour visuelle
-            if(this.robotGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
-                this.robotGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
-            }
+        GameGridPanel grid = robot ? _pnlRobotGrid : _pnlPlayerGrid;
+        Color currentColor = grid.getCellColor(position.getX(), position.getY());
 
-            // Demander au Contrôleur de recalculer et afficher les stats
-            //gameController.updateRobotStatsDisplay();
-        }
-        else{
-            // Pareil pour le joueur
-            if(this.playerGridButtons[position.getY()][position.getX()].getBackground() != SUNK_COLOR) {
-                this.playerGridButtons[position.getY()][position.getX()].setBackground(HIT_COLOR);
-            }
-            //gameController.updatePlayerStatsDisplay();
+        // Ne pas écraser la couleur "coulé"
+        if (currentColor != SUNK_COLOR) {
+            grid.setCellColor(position.getX(), position.getY(), HIT_COLOR);
         }
     }
 
-
     @Override
     public void boatSunk(Position position, int size, boolean robot) {
-        if(robot){
-            // Colorier toutes les cases du bateau coulé
-            switch (position.getOrientation()){
-                case VERTICAL:
-                    for(int i=0; i<size; i++){
-                        this.robotGridButtons[position.getY()+i][position.getX()].setBackground(SUNK_COLOR);
-                    }
-                    break;
-                case HORIZONTAL:
-                    for(int i=0; i<size; i++){
-                        this.robotGridButtons[position.getY()][position.getX()+i].setBackground(SUNK_COLOR);
-                    }
-                    break;
-                default:
-                    this.robotGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
-            }
+        GameGridPanel grid = robot ? _pnlRobotGrid : _pnlPlayerGrid;
 
-            // Demander la mise à jour des stats
-            //gameController.updateRobotStatsDisplay();
-        }
-        else{
-            // Pareil pour le joueur
-            switch (position.getOrientation()){
-                case VERTICAL:
-                    for(int i=0; i<size; i++){
-                        this.playerGridButtons[position.getY()+i][position.getX()].setBackground(SUNK_COLOR);
-                    }
-                    break;
-                case HORIZONTAL:
-                    for(int i=0; i<size; i++){
-                        this.playerGridButtons[position.getY()][position.getX()+i].setBackground(SUNK_COLOR);
-                    }
-                    break;
-                default:
-                    this.playerGridButtons[position.getY()][position.getX()].setBackground(SUNK_COLOR);
-            }
-            //gameController.updatePlayerStatsDisplay();
+        // Colorier toutes les cases du bateau coulé
+        switch (position.getOrientation()) {
+            case VERTICAL:
+                for (int i = 0; i < size; i++) {
+                    grid.setCellColor(position.getX(), position.getY() + i, SUNK_COLOR);
+                }
+                break;
+            case HORIZONTAL:
+                for (int i = 0; i < size; i++) {
+                    grid.setCellColor(position.getX() + i, position.getY(), SUNK_COLOR);
+                }
+                break;
+            default:
+                grid.setCellColor(position.getX(), position.getY(), SUNK_COLOR);
         }
     }
 
     @Override
     public void boatTouched(boolean robot) {
-        if(robot){
-            //gameController.updateRobotStatsDisplay();
-        }
-        else{
-            //gameController.updatePlayerStatsDisplay();
-        }
+        // Méthode vide - les stats sont mises à jour par le contrôleur
     }
 
     @Override
     public void squareAttacked(Position position, boolean robot) {
-        if(robot){
-            // 1. Colorier en gris (raté)
-            if(!(this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) ||
-                    this.robotGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
-                this.robotGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
-            }
+        GameGridPanel grid = robot ? _pnlRobotGrid : _pnlPlayerGrid;
+        Color currentColor = grid.getCellColor(position.getX(), position.getY());
 
-            // 2. Mettre à jour les stats
-            //gameController.updateRobotStatsDisplay();
-        }
-        else{
-            // Pareil pour le joueur
-            if(!(this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(HIT_COLOR) ||
-                    this.playerGridButtons[position.getY()][position.getX()].getBackground().equals(SUNK_COLOR))){
-                this.playerGridButtons[position.getY()][position.getX()].setBackground(MISS_COLOR);
-            }
-            //gameController.updatePlayerStatsDisplay();
+        // Ne colorier en "manqué" que si ce n'est pas déjà touché ou coulé
+        if (currentColor != HIT_COLOR && currentColor != SUNK_COLOR) {
+            grid.setCellColor(position.getX(), position.getY(), MISS_COLOR);
         }
     }
 
     @Override
     public void squareIsland(Position position, State state, boolean robot) {
-        if(robot){
-            switch(state){
-                case EMPTY:
-                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_EMPTY);
-                    break;
-                case SEARCHED:
-                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_FOUND);
-                    break;
-                default:
-                    this.robotGridButtons[position.getY()][position.getX()].setBackground(ISLAND_COLOR);
-            }
+        GameGridPanel grid = robot ? _pnlRobotGrid : _pnlPlayerGrid;
+        PlayerStatsPanel stats = robot ? _pnlRobotStats : _pnlPlayerStats;
 
-            int remaining = Integer.parseInt(robotIslandLabel.getText().substring(15)) -1;
-            updateRobotIsland(remaining);
-        }
-        else{
-            switch(state){
-                case EMPTY:
-                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_EMPTY);
-                    break;
-                case SEARCHED:
-                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_SEARCHED_FOUND);
-                    break;
-                default:
-                    this.playerGridButtons[position.getY()][position.getX()].setBackground(ISLAND_COLOR);
-            }
-
-            int remaining = Integer.parseInt(playerIslandLabel.getText().substring(15)) -1;
-            updatePlayerIsland(remaining);
-        }
-    }
-
-    public JLabel getPlayerBoatsIntactLabel() {
-        return playerBoatsIntactLabel;
-    }
-
-    public JLabel getPlayerBoatsTouchedLabel() {
-        return playerBoatsTouchedLabel;
-    }
-
-    public JLabel getPlayerBoatsSunkLabel() {
-        return playerBoatsSunkLabel;
-    }
-
-    public JLabel getPlayerMissedShotsLabel() {
-        return playerMissedShotsLabel;
-    }
-
-    public JLabel getPlayerHitRatioLabel() {
-        return playerHitRatioLabel;
-    }
-
-    public JLabel getRobotBoatsIntactLabel() {
-        return robotBoatsIntactLabel;
-    }
-
-    public JLabel getRobotBoatsTouchedLabel() {
-        return robotBoatsTouchedLabel;
-    }
-
-    public JLabel getRobotBoatsSunkLabel() {
-        return robotBoatsSunkLabel;
-    }
-
-    public JLabel getRobotMissedShotsLabel() {
-        return robotMissedShotsLabel;
-    }
-
-    public JLabel getRobotHitRatioLabel() {
-        return robotHitRatioLabel;
-    }
-
-
-
-
-    /**
-     * Affiche le résultat du sonar avec une visualisation de la zone
-     * @param centerX Position X du centre
-     * @param centerY Position Y du centre
-     * @param occupiedCells Nombre de cases occupées
-     * @param isPlayerSonar true si c'est le joueur qui utilise le sonar
-     */
-    public void showSonarResult(int centerX, int centerY, int occupiedCells, boolean isPlayerSonar) {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(new EmptyBorder(15, 15, 15, 15));
-        panel.setBackground(new Color(230, 240, 255));
-
-        // Titre
-        JLabel titleLabel = new JLabel(
-                isPlayerSonar ? "📡 VOTRE SONAR" : "📡 SONAR DU ROBOT",
-                SwingConstants.CENTER
-        );
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(0, 100, 200));
-        panel.add(titleLabel, BorderLayout.NORTH);
-
-        // Panel central avec grille + résultat
-        JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.setOpaque(false);
-
-        // Visualisation de la zone 3x3 (SANS montrer quelles cases sont occupées)
-        JPanel gridPanel = new JPanel(new GridLayout(3, 3, 2, 2));
-        gridPanel.setBackground(Color.DARK_GRAY);
-        gridPanel.setBorder(BorderFactory.createTitledBorder("Zone scannée"));
-
-        Color scanColor = new Color(100, 150, 255);
-        Color centerColor = new Color(255, 200, 100);
-        Color questionColor = new Color(150, 180, 255);
-
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                JPanel cell = new JPanel(new BorderLayout());
-                cell.setPreferredSize(new Dimension(60, 60));
-
-                // Couleur différente pour le centre
-                if (dx == 0 && dy == 0) {
-                    cell.setBackground(centerColor);
-                    JLabel centerLabel = new JLabel("📡", SwingConstants.CENTER);
-                    centerLabel.setFont(new Font("Arial", Font.BOLD, 20));
-                    cell.add(centerLabel, BorderLayout.CENTER);
-                } else {
-                    cell.setBackground(questionColor);
-                }
-
-                // Afficher les coordonnées en petit
-                int posX = centerX + dx;
-                int posY = centerY + dy;
-
-                if (posX >= 0 && posX < gridSize && posY >= 0 && posY < gridSize) {
-                    JLabel coordLabel = new JLabel(posX + "," + posY, SwingConstants.CENTER);
-                    coordLabel.setFont(new Font("Arial", Font.PLAIN, 9));
-                    coordLabel.setForeground(dx == 0 && dy == 0 ? Color.WHITE : new Color(60, 100, 180));
-                    cell.add(coordLabel, BorderLayout.SOUTH);
-                }
-
-                cell.setBorder(BorderFactory.createLineBorder(Color.WHITE, 1));
-                gridPanel.add(cell);
-            }
+        // Changer la couleur selon l'état
+        switch (state) {
+            case EMPTY:
+                grid.setCellColor(position.getX(), position.getY(), ISLAND_SEARCHED_EMPTY);
+                break;
+            case SEARCHED:
+                grid.setCellColor(position.getX(), position.getY(), ISLAND_SEARCHED_FOUND);
+                break;
+            default:
+                grid.setCellColor(position.getX(), position.getY(), ISLAND_COLOR);
         }
 
-        centerPanel.add(gridPanel, BorderLayout.CENTER);
-
-        // Résultat en gros
-        JPanel resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
-        resultPanel.setOpaque(false);
-        resultPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
-
-        JLabel resultLabel = new JLabel("Résultat du scan :", SwingConstants.CENTER);
-        resultLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel countLabel = new JLabel(occupiedCells + " case(s) occupée(s)", SwingConstants.CENTER);
-        countLabel.setFont(new Font("Arial", Font.BOLD, 32));
-        countLabel.setForeground(occupiedCells > 0 ? new Color(200, 0, 0) : new Color(0, 150, 0));
-        countLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        resultPanel.add(resultLabel);
-        resultPanel.add(Box.createVerticalStrut(5));
-        resultPanel.add(countLabel);
-
-        centerPanel.add(resultPanel, BorderLayout.SOUTH);
-
-        panel.add(centerPanel, BorderLayout.CENTER);
-
-        // Info supplémentaire
-        JLabel infoLabel = new JLabel( "Le sonar détecte le nombre de cases occupées", SwingConstants.CENTER );
-        infoLabel.setFont(new Font("Arial", Font.ITALIC, 11));
-        infoLabel.setForeground(Color.DARK_GRAY);
-        panel.add(infoLabel, BorderLayout.SOUTH);
-
-        // Afficher
-        JOptionPane.showMessageDialog(
-                this,
-                panel,
-                "📡 Résultat du Sonar",
-                JOptionPane.PLAIN_MESSAGE
-        );
+        // Mettre à jour le compteur d'île restante
+        JLabel islandLabel = stats.getIslandLabel();
+        String text = islandLabel.getText(); // Format: "Île restante : 16"
+        int remaining = Integer.parseInt(text.substring(15)) - 1;
+        stats.updateIsland(remaining);
     }
-
-
-
 }

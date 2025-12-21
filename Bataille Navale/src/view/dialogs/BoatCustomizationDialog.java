@@ -10,9 +10,6 @@ import java.awt.*;
  * pour chaque type dans une partie.
  * Cette classe offre une interface graphique pour sélectionner entre 1 et 3
  * exemplaires de chaque type de bateau, avec une limite totale de 35 cases.
- *
- * @author Acelya
- * @version 1.0
  */
 public class BoatCustomizationDialog extends JDialog {
 
@@ -45,8 +42,6 @@ public class BoatCustomizationDialog extends JDialog {
         setSize(500, 400);
         setLocationRelativeTo(parent);
         initComponents();
-        initComponents();
-
     }
 
     /**
@@ -91,8 +86,8 @@ public class BoatCustomizationDialog extends JDialog {
         panel.add(Box.createVerticalStrut(20));
 
         // Configuration du label affichant le total
-        panel.setFont(new Font("Arial", Font.BOLD, 14));
-        panel.add(panel);
+        _lblTotal.setFont(new Font("Arial", Font.BOLD, 14));
+        panel.add(_lblTotal);
         updateTotal(sizes); // Calcul initial du total
 
         // Panel des boutons de validation/annulation

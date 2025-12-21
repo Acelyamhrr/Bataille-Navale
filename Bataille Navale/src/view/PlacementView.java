@@ -12,42 +12,56 @@ import model.placement.SelectionState;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
+import view.panels.PlacementGridPanel;
+import view.panels.PlacementControlPanel;
+import static view.utils.GameColors.*;
 
-public class PlacementView extends JFrame  implements PlacementObserver {
+/**
+ * Vue principale pour la phase de placement des éléments de jeu.
+ * Affiche la grille, les contrôles de placement et gère l'interaction avec le joueur.
+ * Implémente PlacementObserver pour être notifiée des changements dans le modèle.
+ */
+public class PlacementView extends JFrame implements PlacementObserver {
 
-    private int gridSize;
-    private JButton[][] gridButtons;
-    private JLabel phaseLabel;
-    private JLabel infoLabel;
-    private JComboBox<String> boatSelector, trapWeaponSelector;
-    private JButton orientationButton;
-    private JRadioButton fixedRadio, randomRadio, manualRadio;
-    private JButton backButton, validateButton;
-    private JPanel controlPanel;
+    /** Taille de la grille de jeu */
+    private int _gridSize;
 
-    private boolean isHorizontal = true;
-    private int hoverX = -1, hoverY = -1;
+    /** Label affichant la phase actuelle (bateaux, pièges ou armes) */
+    private JLabel _lblPhase;
 
-    private PlacementController controller;
-    private Placement model;
+    /** Bouton pour retourner à l'écran précédent */
+    private JButton _btnBack;
 
-    // Couleurs
-    private static final Color WATER_COLOR = new Color(100, 150, 200);
-    private static final Color BOAT_COLOR = new Color(80, 80, 80);
-    private static final Color ISLAND_COLOR = new Color(210, 180, 140);
-    private static final Color TRAP_COLOR = new Color(243, 88, 48);
-    private static final Color WEAPON_COLOR = new Color(218, 14, 232);
-    private static final Color PREVIEW_OK = new Color(100, 200, 100);
-    private static final Color PREVIEW_BAD = new Color(200, 100, 100);
+    /** Bouton pour valider le placement et commencer la partie */
+    private JButton _btnValidate;
 
+    /** Contrôleur gérant la logique de placement */
+    private PlacementController _controller;
+
+    /** Modèle contenant l'état du placement */
+    private Placement _model;
+
+    /** Panel affichant la grille de placement */
+    private PlacementGridPanel _pnlGrid;
+
+    /** Panel contenant les contrôles de placement */
+    private PlacementControlPanel _pnlControl;
+
+    /**
+     * Constructeur de la vue de placement.
+     * Initialise la fenêtre avec tous les composants nécessaires.
+     *
+     * @param gridSize Taille de la grille (6 à 10)
+     * @param username Nom du joueur affiché dans le titre
+     * @param controller Contrôleur gérant la logique de placement
+     * @param model Modèle contenant l'état du placement
+     */
     public PlacementView(int gridSize, String username, PlacementController controller, Placement model) {
-        this.gridSize = gridSize;
-        this.controller = controller;
-        this.model = model;
+        this._gridSize = gridSize;
+        this._controller = controller;
+        this._model = model;
 
         setTitle("Placement - " + username);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -58,187 +72,50 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         initComponents();
     }
 
+    /**
+     * Initialise tous les composants de la fenêtre.
+     * Crée et organise le titre, la grille, les contrôles et les boutons.
+     */
     private void initComponents() {
         JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
         mainPanel.setBackground(new Color(240, 245, 250));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Titre
-        phaseLabel = new JLabel("Phase: Placement des bateaux", SwingConstants.CENTER);
-        phaseLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        phaseLabel.setForeground(new Color(30, 50, 100));
+        // Label de phase
+        _lblPhase = new JLabel("Phase: Placement des bateaux", SwingConstants.CENTER);
+        _lblPhase.setFont(new Font("Arial", Font.BOLD, 24));
+        _lblPhase.setForeground(new Color(30, 50, 100));
 
-        // Grille
-        JPanel gridPanel = createGridPanel();
+        // Panel de grille
+        _pnlGrid = new PlacementGridPanel(_gridSize, _controller);
 
-        // Contrôles à droite
-        controlPanel = new JPanel();
-        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
-        controlPanel.setBackground(Color.WHITE);
-        controlPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(100, 120, 140), 2),
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        controlPanel.setPreferredSize(new Dimension(300, 0));
+        // Panel de contrôle
+        _pnlControl = new PlacementControlPanel(_controller);
 
-        createControls();
-
-        // Boutons du bas
+        // Panel des boutons de navigation
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         btnPanel.setBackground(new Color(240, 245, 250));
-        backButton = createBtn("Retour", new Color(150, 150, 150));
-        validateButton = createBtn("Valider et Commencer", new Color(70, 150, 70));
-        btnPanel.add(backButton);
-        btnPanel.add(validateButton);
+        _btnBack = createBtn("Retour", new Color(150, 150, 150));
+        _btnValidate = createBtn("Valider et Commencer", new Color(70, 150, 70));
+        btnPanel.add(_btnBack);
+        btnPanel.add(_btnValidate);
 
-        mainPanel.add(phaseLabel, BorderLayout.NORTH);
-        mainPanel.add(gridPanel, BorderLayout.CENTER);
-        mainPanel.add(controlPanel, BorderLayout.EAST);
+        // Assemblage
+        mainPanel.add(_lblPhase, BorderLayout.NORTH);
+        mainPanel.add(_pnlGrid, BorderLayout.CENTER);
+        mainPanel.add(_pnlControl, BorderLayout.EAST);
         mainPanel.add(btnPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
     }
 
-    private JPanel createGridPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createLineBorder(new Color(100, 120, 140), 2));
-
-        JPanel grid = new JPanel(new GridLayout(gridSize, gridSize, 2, 2));
-        grid.setBackground(new Color(200, 220, 240));
-        grid.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        gridButtons = new JButton[gridSize][gridSize];
-
-        for (int y = 0; y < gridSize; y++) {
-            for (int x = 0; x < gridSize; x++) {
-                JButton btn = new JButton();
-                btn.setPreferredSize(new Dimension(45, 45));
-
-                //Color for island or water
-                if(controller.squareInIsland(x, y)){
-                    btn.setBackground(ISLAND_COLOR);
-                }
-                else {
-                    btn.setBackground(WATER_COLOR);
-                }
-
-                btn.setFocusPainted(false);
-                btn.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-
-                final int fx = x, fy = y;
-
-                btn.addActionListener(e -> controller.onGridClick(fx, fy));
-
-                btn.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseEntered(MouseEvent e) {
-                        hoverX = fx; hoverY = fy;
-                        controller.updateGrid();
-                    }
-                    @Override
-                    public void mouseExited(MouseEvent e) {
-                        hoverX = -1; hoverY = -1;
-                        controller.updateGrid();
-                    }
-                });
-
-                gridButtons[y][x] = btn;
-                grid.add(btn);
-            }
-        }
-
-        panel.add(grid, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private void createControls() {
-        controlPanel.removeAll();
-
-        JLabel title = new JLabel("Placement des éléments");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(title);
-        controlPanel.add(Box.createVerticalStrut(20));
-
-        // Mode de placement
-        JLabel modeLabel = new JLabel("Mode:");
-        modeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(modeLabel);
-
-        ButtonGroup modeGroup = new ButtonGroup();
-        fixedRadio = new JRadioButton("Fixe");
-        fixedRadio.addActionListener(e -> controller.applyFixedPlacement());
-        randomRadio = new JRadioButton("Aléatoire");
-        randomRadio.addActionListener(e -> controller.applyRandomPlacement());
-        manualRadio = new JRadioButton("Manuel", true);
-        manualRadio.addActionListener(e -> controller.enableManualPlacement());
-        modeGroup.add(fixedRadio);
-        modeGroup.add(randomRadio);
-        modeGroup.add(manualRadio);
-
-        fixedRadio.setBackground(Color.WHITE);
-        randomRadio.setBackground(Color.WHITE);
-        manualRadio.setBackground(Color.WHITE);
-        fixedRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
-        randomRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
-        manualRadio.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        controlPanel.add(fixedRadio);
-        controlPanel.add(randomRadio);
-        controlPanel.add(manualRadio);
-        controlPanel.add(Box.createVerticalStrut(20));
-
-        // Sélecteur de bateau
-        JLabel boatLabel = new JLabel("Bateau à placer:");
-        boatLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(boatLabel);
-
-        boatSelector = new JComboBox<>();
-        boatSelector.setMaximumSize(new Dimension(250, 30));
-        boatSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(boatSelector);
-        controlPanel.add(Box.createVerticalStrut(15));
-
-        // Sélecteur de piège/arme
-        JLabel trapWeaponLabel = new JLabel("Piège/Arme à placer:");
-        trapWeaponLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(trapWeaponLabel);
-
-        trapWeaponSelector = new JComboBox<>();
-        trapWeaponSelector.setMaximumSize(new Dimension(250, 30));
-        trapWeaponSelector.setAlignmentX(Component.CENTER_ALIGNMENT);
-        trapWeaponSelector.setEnabled(false);
-        controlPanel.add(trapWeaponSelector);
-        controlPanel.add(Box.createVerticalStrut(15));
-
-        // Orientation
-        JLabel orientLabel = new JLabel("Orientation:");
-        orientLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(orientLabel);
-
-        orientationButton = new JButton("→ Horizontal");
-        orientationButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        orientationButton.addActionListener(e -> toggleOrientation());
-        controlPanel.add(orientationButton);
-        controlPanel.add(Box.createVerticalStrut(20));
-
-        // Info
-        infoLabel = new JLabel("Cliquez sur la grille");
-        infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        infoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        controlPanel.add(infoLabel);
-
-        controlPanel.add(Box.createVerticalGlue());
-        controlPanel.revalidate();
-        controlPanel.repaint();
-    }
-
-    private void toggleOrientation() {
-        isHorizontal = !isHorizontal;
-        orientationButton.setText(isHorizontal ? "→ Horizontal" : "↓ Vertical");
-    }
-
+    /**
+     * Crée un bouton stylisé avec texte et couleur personnalisés.
+     *
+     * @param text Texte du bouton
+     * @param bg Couleur de fond
+     * @return Bouton configuré
+     */
     private JButton createBtn(String text, Color bg) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Arial", Font.BOLD, 14));
@@ -250,118 +127,183 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         return btn;
     }
 
-    // pour le controlleur
+    // ==================== Méthodes pour le contrôleur ====================
 
-    public void addBackListener(ActionListener l) { backButton.addActionListener(l); }
-    public void addValidateListener(ActionListener l) { validateButton.addActionListener(l); }
-    public void addBoatSelectorListener(ActionListener l) { boatSelector.addActionListener(l); }
-    public void addTrapWeaponSelectorListener(ActionListener l) { trapWeaponSelector.addActionListener(l); }
+    /**
+     * Ajoute un listener au bouton Retour.
+     *
+     * @param l Listener à ajouter
+     */
+    public void addBackListener(ActionListener l) {
+        _btnBack.addActionListener(l);
+    }
 
+    /**
+     * Ajoute un listener au bouton Valider.
+     *
+     * @param l Listener à ajouter
+     */
+    public void addValidateListener(ActionListener l) {
+        _btnValidate.addActionListener(l);
+    }
 
-    public boolean isHorizontal() { return isHorizontal; }
-    public int getSelectedBoatIndex() { return boatSelector.getSelectedIndex(); }
-    public int getHoverX() { return hoverX; }
-    public int getHoverY() { return hoverY; }
+    /**
+     * Indique si l'orientation actuelle est horizontale.
+     *
+     * @return true si horizontal, false si vertical
+     */
+    public boolean isHorizontal() {
+        return _pnlControl.isHorizontal();
+    }
 
+    /**
+     * Récupère l'index du bateau sélectionné.
+     *
+     * @return Index du bateau sélectionné
+     */
+    public int getSelectedBoatIndex() {
+        return _pnlControl.getSelectedBoatIndex();
+    }
+
+    /**
+     * Récupère la coordonnée X de la case survolée.
+     *
+     * @return Position X du survol, -1 si aucune
+     */
+    public int getHoverX() {
+        return _pnlGrid.getHoverX();
+    }
+
+    /**
+     * Récupère la coordonnée Y de la case survolée.
+     *
+     * @return Position Y du survol, -1 si aucune
+     */
+    public int getHoverY() {
+        return _pnlGrid.getHoverY();
+    }
+
+    /**
+     * Récupère le mode de placement des bateaux sélectionné.
+     *
+     * @return "Fixed", "Random" ou "Manual"
+     */
     public String getModeBoat() {
-        if(fixedRadio.isSelected()){
-            return "Fixed";
-        }
-        else if(randomRadio.isSelected()){
-            return "Random";
-        }
-        else {
-            return "Manual";
-        }
+        return _pnlControl.getModeBoat();
     }
 
-    private void setBoatOptions(String[] options) {
-        boatSelector.removeAllItems();
-        for (String opt : options) boatSelector.addItem(opt);
-    }
-
-    private void setTrapWeaponOptions(String[] options) {
-        trapWeaponSelector.removeAllItems();
-        for (String opt : options) trapWeaponSelector.addItem(opt);
-    }
-
-    private void enableBoatSelector(boolean enable) {
-        boatSelector.setEnabled(enable);
-    }
-
-    private void enableTrapWeaponSelector(boolean enable) {
-        trapWeaponSelector.setEnabled(enable);
-    }
-
+    /**
+     * Change la couleur d'une cellule selon un code de couleur.
+     * Convertit le code string en couleur appropriée.
+     *
+     * @param x Position X de la cellule
+     * @param y Position Y de la cellule
+     * @param color Code de couleur ("island", "boat", "trap", "weapon", "previewOk", "previewBad", ou "water" par défaut)
+     */
     public void setCellColor(int x, int y, String color) {
         switch(color){
             case "island":
-                gridButtons[y][x].setBackground(ISLAND_COLOR);
+                _pnlGrid.setCellColor(x, y, ISLAND_COLOR);
                 break;
             case "boat":
-                gridButtons[y][x].setBackground(BOAT_COLOR);
+                _pnlGrid.setCellColor(x, y, BOAT_COLOR);
                 break;
             case "trap":
-                gridButtons[y][x].setBackground(TRAP_COLOR);
+                _pnlGrid.setCellColor(x, y, TRAP_COLOR);
                 break;
             case "weapon":
-                gridButtons[y][x].setBackground(WEAPON_COLOR);
+                _pnlGrid.setCellColor(x, y, WEAPON_COLOR);
                 break;
             case "previewOk":
-                gridButtons[y][x].setBackground(PREVIEW_OK);
+                _pnlGrid.setCellColor(x, y, PREVIEW_OK);
                 break;
             case "previewBad":
-                gridButtons[y][x].setBackground(PREVIEW_BAD);
+                _pnlGrid.setCellColor(x, y, PREVIEW_BAD);
                 break;
             default:
-                gridButtons[y][x].setBackground(WATER_COLOR);
+                _pnlGrid.setCellColor(x, y, WATER_COLOR);
         }
-
     }
 
+    /**
+     * Change le texte d'une cellule.
+     *
+     * @param x Position X de la cellule
+     * @param y Position Y de la cellule
+     * @param text Texte à afficher
+     */
     public void setCellText(int x, int y, String text) {
-        gridButtons[y][x].setText(text);
+        _pnlGrid.setCellText(x, y, text);
     }
 
-    private void setInfoText(String text) { infoLabel.setText(text); }
-    private void setPhaseText(String text) { phaseLabel.setText(text); }
+    /**
+     * Met à jour le label d'information dans le panel de contrôle.
+     *
+     * @param text Texte à afficher
+     */
+    private void setInfoText(String text) {
+        _pnlControl.setInfoText(text);
+    }
 
+    /**
+     * Met à jour le label de phase (bateaux, pièges ou armes).
+     *
+     * @param text Texte de la phase
+     */
+    private void setPhaseText(String text) {
+        _lblPhase.setText(text);
+    }
+
+    /**
+     * Affiche un message d'erreur dans une boîte de dialogue.
+     *
+     * @param msg Message d'erreur
+     */
     private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 
+    /**
+     * Affiche un message de succès dans une boîte de dialogue.
+     *
+     * @param msg Message de succès
+     */
     public void showSuccess(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Succès", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // METHODES OBSERVER
+    // ==================== Méthodes Observer ====================
 
+    /**
+     * Appelée lorsque la grille change.
+     * Redessine complètement la grille avec tous les éléments placés et l'aperçu.
+     *
+     * @param grid Grille mise à jour
+     */
     @Override
     public void onGridChanged(Grid grid) {
-        int size = grid.getSize();
+        // Reset complet de la grille
+        _pnlGrid.resetAllCells();
 
-        // Reset
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                setCellColor(x, y, "water");
-                setCellText(x, y, "");
-            }
-        }
-
-        // Île
+        // Dessin de l'île si présente
         if (grid.hasIsland()) {
-            drawIsland(size);
+            drawIsland(grid.getSize());
         }
 
-        // Éléments placés
+        // Dessin des éléments placés
         drawBoats(grid);
         drawTraps(grid);
         drawWeapons(grid);
 
-        // Preview
+        // Dessin de l'aperçu au survol
         drawPreview();
     }
 
+    /**
+     * Dessine l'île au centre de la grille (4x4 cases).
+     *
+     * @param gridSize Taille de la grille
+     */
     private void drawIsland(int gridSize) {
         int ix = gridSize / 2 - 2;
         int iy = gridSize / 2 - 2;
@@ -372,12 +314,22 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         }
     }
 
+    /**
+     * Dessine tous les bateaux placés sur la grille.
+     *
+     * @param grid Grille contenant les bateaux
+     */
     private void drawBoats(Grid grid) {
         for(Position position : grid.getPositionsBoats()){
             setCellColor(position.getX(), position.getY(), "boat");
         }
     }
 
+    /**
+     * Dessine tous les pièges placés sur la grille avec leur type.
+     *
+     * @param grid Grille contenant les pièges
+     */
     private void drawTraps(Grid grid) {
         for(Map.Entry<TrapType, java.util.List<Position>> entry : grid.getPositionsTraps().entrySet()) {
             String text = (entry.getKey() == TrapType.BLACKHOLE ? "Trou noir" : "Tornade");
@@ -388,6 +340,11 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         }
     }
 
+    /**
+     * Dessine toutes les armes placées sur la grille avec leur type.
+     *
+     * @param grid Grille contenant les armes
+     */
     private void drawWeapons(Grid grid) {
         for(Map.Entry<WeaponType, List<Position>> entry : grid.getPositionsWeapons().entrySet()) {
             String text = (entry.getKey() == WeaponType.BOMB ? "Bombe" : "Sonar");
@@ -398,13 +355,17 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         }
     }
 
+    /**
+     * Dessine l'aperçu du placement au survol de la souris.
+     * Affiche en vert si le placement est valide, en rouge sinon.
+     */
     private void drawPreview() {
-        int hx = getHoverX();
-        int hy = getHoverY();
+        int hx = _pnlGrid.getHoverX();
+        int hy = _pnlGrid.getHoverY();
         if (hx < 0 || hy < 0) return;
 
-        Orientation orient = isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
-        PreviewInfo preview = model.getPreviewInfo(hx, hy, orient);
+        Orientation orient = _pnlControl.isHorizontal() ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+        PreviewInfo preview = _model.getPreviewInfo(hx, hy, orient);
 
         if (preview != null) {
             String color = preview.isValid() ? "previewOk" : "previewBad";
@@ -414,6 +375,12 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         }
     }
 
+    /**
+     * Appelée lorsque la phase de placement change.
+     * Met à jour le label de phase (bateaux, pièges ou armes).
+     *
+     * @param phase Nouvelle phase de placement
+     */
     @Override
     public void onPhaseChanged(PlacementPhase phase) {
         String phaseText;
@@ -430,6 +397,13 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         setPhaseText(phaseText);
     }
 
+    /**
+     * Appelée lorsqu'un message doit être affiché à l'utilisateur.
+     * Affiche le message selon son type (info, succès ou erreur).
+     *
+     * @param message Contenu du message
+     * @param type Type de message (INFO, SUCCESS ou ERROR)
+     */
     @Override
     public void onMessage(String message, MessageType type) {
         switch (type) {
@@ -447,12 +421,17 @@ public class PlacementView extends JFrame  implements PlacementObserver {
         }
     }
 
+    /**
+     * Appelée lorsque l'état de sélection change.
+     * Met à jour les options disponibles dans les sélecteurs et leur état activé/désactivé.
+     *
+     * @param state Nouvel état de sélection
+     */
     @Override
     public void onSelectionChanged(SelectionState state) {
-        //TODO : Essayer de suppr SelectionState (faire un par combo ?)
-        setBoatOptions(state.getBoatOptions().toArray(new String[0]));
-        setTrapWeaponOptions(state.getTrapWeaponOptions().toArray(new String[0]));
-        enableBoatSelector(state.isBoatSelectorEnabled());
-        enableTrapWeaponSelector(state.isTrapWeaponSelectorEnabled());
+        _pnlControl.setBoatOptions(state.getBoatOptions().toArray(new String[0]));
+        _pnlControl.setTrapWeaponOptions(state.getTrapWeaponOptions().toArray(new String[0]));
+        _pnlControl.enableBoatSelector(state.isBoatSelectorEnabled());
+        _pnlControl.enableTrapWeaponSelector(state.isTrapWeaponSelectorEnabled());
     }
 }
