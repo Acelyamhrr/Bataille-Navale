@@ -569,3 +569,4 @@ public class GameView extends JFrame implements Observer {
         stats.updateIsland(remaining);
     }
 }
+
