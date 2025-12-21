@@ -1,7 +1,5 @@
 @startuml
 !pragma teoz true
-/'
-' skinparam maxMessageSize 1000
 skinparam style strictuml
 skinparam classAttributeIconSize 0
 skinparam classFontStyle Bold
@@ -9,49 +7,20 @@ hide enum methods
 
 ' Configuration de la mise en page
 skinparam packageStyle rectangle
-' skinparam linetype ortho
 
 ' Espacement et taille
 skinparam defaultFontSize 11
 skinparam classAttributeFontSize 10
 skinparam packageFontSize 12
 skinparam packageFontStyle bold
-'/
 
 ' Espacement entre les éléments
 skinparam nodesep 80
 skinparam ranksep 100
 
-' Couleurs et styles des packages
-skinparam packageBackgroundColor #F5F5F5
-skinparam packageBorderColor #888888
-skinparam packageFontColor #333333
-
-' Couleurs des classes par type
-skinparam abstract {
-    BackgroundColor #FFF8DC
-    BorderColor #DAA520
-}
-
-skinparam interface {
-    BackgroundColor #E6F3FF
-    BorderColor #4682B4
-}
-
-skinparam enum {
-    BackgroundColor #F0F0F0
-    BorderColor #666666
-}
-
-' Style des flèches
-skinparam class {
-    ArrowColor #666666
-    ArrowThickness 1.2
-    BorderThickness 1.5
-}
-
 ' Coins arrondis
 skinparam roundCorner 5
+
 
 package model {
 
