@@ -105,8 +105,8 @@ Ce projet est une **implémentation complète du jeu Bataille Navale** développ
 
 **1. Cloner le dépôt**
 ```bash
-git clone https://github.com/votre-username/bataille-navale.git
-cd bataille-navale
+git clone https://git.unistra.fr/fouilleul-muharremoglu/a31-bataille-navale.git
+cd a31-bataille-navale
 ```
 
 **2. Compiler le projet**
