@@ -256,17 +256,21 @@ public class Placement {
 
     public void applyFixedPlacement() {
         this._strategy = new FixedPlacementStrategy();
-        _playerGrid.clearBoats();
-        this._boatIndex = 0;
 
+        // Nettoyer complètement avant placement
         if(_config.getTrapMode() != TrapPlacement.FIXED){
             _playerGrid.clear();
             this._trapIndex = 0;
             this._weaponIndex = 0;
+        } else {
+            _playerGrid.clearBoats();
         }
+
+        this._boatIndex = 0;
 
         if (!_strategy.placeBoats(_playerGrid, _boatsToPlace)) {
             notifyMessage("Impossible de placer tous les bateaux !", MessageType.ERROR);
+            return;
         }
 
         this._boatIndex = _boatsToPlace.size();
@@ -290,6 +294,8 @@ public class Placement {
             _playerGrid.clear();
             this._trapIndex = 0;
             this._weaponIndex = 0;
+        } else {
+            _playerGrid.clearBoats();
         }
 
         if (!_strategy.placeBoats(_playerGrid, _boatsToPlace)) {
