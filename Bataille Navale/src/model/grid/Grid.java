@@ -19,6 +19,8 @@ public class Grid {
     private boolean _robot;
     private Map<BoatName, Integer> _boatsCount;
     private List<Boat> _allBoats = new ArrayList<>();
+    private Map<WeaponType, Position> _weapons = new HashMap<>();
+    private Map<TrapType, Position> _traps = new HashMap<>();
 
     public Grid(int size, ModeGame mode, boolean robot) {
         this._gridSize = size;
@@ -129,8 +131,6 @@ public class Grid {
     }
 
     public void reset(){
-        Map<WeaponType, List<Position>> weapons = getPositionsWeapons();
-        Map<TrapType, List<Position>> traps = getPositionsTraps();
         List<Boat> boats = new ArrayList<>(this.getBoats());
 
         this._squares.clear();
@@ -164,19 +164,16 @@ public class Grid {
         }
 
         //Recréer les traps
-        for(Map.Entry<TrapType, List<Position>> entry : traps.entrySet()){
-            for(Position pos : entry.getValue()){
-                Trap t = Placement.createTrap(entry.getKey());
-                placeTrap(t, pos.getX(), pos.getY());
-            }
+        for(Map.Entry<TrapType, Position> entry : _traps.entrySet()){
+            Trap t = Placement.createTrap(entry.getKey());
+            placeTrap(t, entry.getValue().getX(), entry.getValue().getY());
         }
 
         //Recréer les weapons
-        for(Map.Entry<WeaponType, List<Position>> entry : weapons.entrySet()){
-            for(Position pos : entry.getValue()){
-                Weapon w = Placement.createWeapon(entry.getKey());
-                placeWeapon(w, pos.getX(), pos.getY());
-            }
+        for(Map.Entry<WeaponType, Position> entry : _weapons.entrySet()){
+            Weapon w = Placement.createWeapon(entry.getKey());
+            placeWeapon(w, entry.getValue().getX(), entry.getValue().getY());
+
         }
     }
 
@@ -309,6 +306,14 @@ public class Grid {
      */
     public List<Boat> getBoats(){
         return this._allBoats;
+    }
+
+    public void addWeapon(WeaponType type, Position pos){
+        _weapons.put(type, pos);
+    }
+
+    public void addTrap(TrapType type, Position pos){
+        _traps.put(type, pos);
     }
 
 }

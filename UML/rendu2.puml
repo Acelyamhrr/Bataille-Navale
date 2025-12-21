@@ -775,6 +775,8 @@ model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
 model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
 model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
 model.grid.Grid o-> "1\n- _allBoats" model.contents.fleet.Boat : > contains
+model.grid.Grid *-> "1\n- _weapons" model.grid.Position : > contains
+model.grid.Grid *-> "1\n- _traps" model.grid.Position : > contains
 model.grid.Grid ..> model.contents.weapons.Weapon : <<uses>>
 model.grid.Grid ..> model.contents.traps.Trap : <<uses>>
 model.grid.Grid ..> model.placement.Placement : <<call>>

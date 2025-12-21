@@ -129,10 +129,12 @@ public class FixedPlacementStrategy implements PlacementStrategy{
                 Trap trap = Placement.createTrap(trapType);
                 grid.placeTrap(trap, x + 1, y + 1);
                 x++; y++;
+                grid.addTrap(trapType, new Position(x, y));
             } else if (grid.canPlaceTrapWeapon(x + 2, y + 2)) {
                 Trap trap = Placement.createTrap(trapType);
                 grid.placeTrap(trap, x + 2, y + 2);
                 x += 2; y += 2;
+                grid.addTrap(trapType, new Position(x, y));
             } else {
                 return false;
             }
@@ -155,6 +157,7 @@ public class FixedPlacementStrategy implements PlacementStrategy{
                 if (grid.hasIsland() && grid.canPlaceTrapWeapon(x, y)) {
                     Weapon weapon = Placement.createWeapon(weaponType);
                     grid.placeWeapon(weapon, x, y);
+                    grid.addWeapon(weaponType, new Position(x, y));
                     placed = true;
                 }
             }
