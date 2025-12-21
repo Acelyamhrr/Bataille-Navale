@@ -10,9 +10,6 @@ import java.awt.*;
  * pour chaque type dans une partie.
  * Cette classe offre une interface graphique pour sélectionner entre 1 et 3
  * exemplaires de chaque type de bateau, avec une limite totale de 35 cases.
- *
- * @author Acelya
- * @version 1.0
  */
 public class BoatCustomizationDialog extends JDialog {
 

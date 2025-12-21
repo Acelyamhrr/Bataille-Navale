@@ -4,13 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Panel permettant de selectionner le mode de placement des pièges dans une partie.<p>
- *  Ce panel s'adapte selon le mode de jeu sélectionné :
- *  <ul>
- *    <li><b>Mode standard</b> : 3 options (Fixe, Aléatoire, Manuel)</li>
- *    <li><b>Mode île</b> : 2 options (Aléatoire, Manuel) pour les pièges et armes</li>
- *  </ul>
- *  </p>
+ * Panel permettant de sélectionner le mode de placement des pièges dans une partie.
+ * Ce panel s'adapte selon le mode de jeu sélectionné :
+ * - Mode standard : 3 options (Fixe, Aléatoire, Manuel)
+ * - Mode île : 2 options (Aléatoire, Manuel) pour les pièges et armes
  */
 public class TrapPlacementPanel extends JPanel {
 
@@ -18,7 +15,7 @@ public class TrapPlacementPanel extends JPanel {
     private JRadioButton _rdbTrapFixed;
 
     /** Bouton radio pour le placement aléatoire des pièges (mode standard) */
-    private JRadioButton _rdbtrapRandom;
+    private JRadioButton _rdbTrapRandom;
 
     /** Bouton radio pour le placement manuel des pièges (mode standard) */
     private JRadioButton _rdbTrapManual;
@@ -46,27 +43,25 @@ public class TrapPlacementPanel extends JPanel {
      * au mode choisi. Cette méthode doit être appelée chaque fois que le mode
      * de jeu change.
      *
-     * <p><b>Mode standard (isIslandMode = false)</b> :</p>
-     * <ul>
-     *   <li>Fixe : Pièges placés à des positions prédéfinies</li>
-     *   <li>Aléatoire : Pièges placés aléatoirement sur la grille</li>
-     *   <li>Manuel : L'utilisateur place les pièges manuellement</li>
-     * </ul>
+     * Mode standard (isIslandMode = false) :
+     * - Fixe : Pièges placés à des positions prédéfinies
+     * - Aléatoire : Pièges placés aléatoirement sur la grille
+     * - Manuel : L'utilisateur place les pièges manuellement
      *
-     * <p><b>Mode île (isIslandMode = true)</b> :</p>
-     * <ul>
-     *   <li>Aléatoire : Pièges et armes placés aléatoirement sur l'île</li>
-     *   <li>Manuel : L'utilisateur place les pièges et armes manuellement</li>
-     * </ul>
+     * Mode île (isIslandMode = true) :
+     * - Aléatoire : Pièges et armes placés aléatoirement sur l'île
+     * - Manuel : L'utilisateur place les pièges et armes manuellement
      *
-     * @param isIslandMode {@code true} pour le mode île, {@code false} pour le mode standard
+     * @param isIslandMode true pour le mode île, false pour le mode standard
      */
     public void updateForMode(boolean isIslandMode) {
         this._isIslandMode = isIslandMode;
         removeAll(); // Supprime tous les composants existants
 
         // Création du titre adapté au mode
-        JLabel titleLabel = createSectionLabel( isIslandMode ? "Placement des pièges et armes sur l'île" : "Placement des pièges");
+        JLabel titleLabel = createSectionLabel(
+                isIslandMode ? "Placement des pièges et armes sur l'île" : "Placement des pièges"
+        );
         add(titleLabel);
         add(Box.createVerticalStrut(10)); // Espacement
 
@@ -74,16 +69,16 @@ public class TrapPlacementPanel extends JPanel {
             // Configuration pour le mode standard avec 3 options
             ButtonGroup trapGroup = new ButtonGroup();
             _rdbTrapFixed = new JRadioButton("Fixe", true); // Sélectionné par défaut
-            _rdbtrapRandom = new JRadioButton("Aléatoire");
+            _rdbTrapRandom = new JRadioButton("Aléatoire");
             _rdbTrapManual = new JRadioButton("Manuel");
 
             // Regroupement des boutons (un seul sélectionnable à la fois)
             trapGroup.add(_rdbTrapFixed);
-            trapGroup.add(_rdbtrapRandom);
+            trapGroup.add(_rdbTrapRandom);
             trapGroup.add(_rdbTrapManual);
 
             add(_rdbTrapFixed);
-            add(_rdbtrapRandom);
+            add(_rdbTrapRandom);
             add(_rdbTrapManual);
         } else {
             // Configuration pour le mode île avec 2 options
@@ -109,22 +104,15 @@ public class TrapPlacementPanel extends JPanel {
 
     /**
      * Retourne le mode de placement actuellement sélectionné par l'utilisateur.
-     * <p>
-     * Les valeurs retournées dépendent du mode de jeu actif :
-     * </p>
      *
-     * <p><b>En mode standard</b> :</p>
-     * <ul>
-     *   <li>"FIXED" : Placement fixe des pièges</li>
-     *   <li>"RANDOM" : Placement aléatoire des pièges</li>
-     *   <li>"MANUAL" : Placement manuel des pièges</li>
-     * </ul>
+     * En mode standard :
+     * - "FIXED" : Placement fixe des pièges
+     * - "RANDOM" : Placement aléatoire des pièges
+     * - "MANUAL" : Placement manuel des pièges
      *
-     * <p><b>En mode île</b> :</p>
-     * <ul>
-     *   <li>"RANDOM" : Placement aléatoire sur l'île</li>
-     *   <li>"MANUAL" : Placement manuel sur l'île</li>
-     * </ul>
+     * En mode île :
+     * - "RANDOM" : Placement aléatoire sur l'île
+     * - "MANUAL" : Placement manuel sur l'île
      *
      * @return Une chaîne représentant le mode sélectionné : "FIXED", "RANDOM" ou "MANUAL"
      */
@@ -132,7 +120,7 @@ public class TrapPlacementPanel extends JPanel {
         if (!_isIslandMode) {
             // Vérification des sélections en mode standard
             if (_rdbTrapFixed != null && _rdbTrapFixed.isSelected()) return "FIXED";
-            if (_rdbtrapRandom != null && _rdbtrapRandom.isSelected()) return "RANDOM";
+            if (_rdbTrapRandom != null && _rdbTrapRandom.isSelected()) return "RANDOM";
             return "MANUAL"; // Par défaut si aucun n'est sélectionné
         } else {
             // Vérification des sélections en mode île
@@ -142,18 +130,11 @@ public class TrapPlacementPanel extends JPanel {
     }
 
     /**
-     * Crée un label pour les titres de section.
-     * <p>
-     * Style appliqué :
-     * <ul>
-     *   <li>Police : Arial, gras, taille 16</li>
-     *   <li>Couleur : Bleu foncé (RGB: 30, 50, 100)</li>
-     *   <li>Alignement : Gauche</li>
-     * </ul>
-     * </p>
+     * Crée un label stylisé pour les titres de section.
+     * Style : Arial gras 16, bleu foncé, aligné à gauche
      *
      * @param text Le texte à afficher dans le label
-     * @return Un {@code JLabel} stylisé prêt à être ajouté au panel
+     * @return Un JLabel stylisé prêt à être ajouté au panel
      */
     private JLabel createSectionLabel(String text) {
         JLabel label = new JLabel(text);
@@ -162,6 +143,4 @@ public class TrapPlacementPanel extends JPanel {
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         return label;
     }
-
-
 }

@@ -6,9 +6,6 @@ import java.awt.Color;
  * Classe utilitaire contenant toutes les couleurs utilisées dans le jeu.
  * Centralise les couleurs pour éviter la duplication et faciliter les modifications.
  * Toutes les constantes sont publiques, statiques et finales pour un accès global.
- *
- * @author Acelya
- * @version 1.0
  */
 public class GameColors {
 
