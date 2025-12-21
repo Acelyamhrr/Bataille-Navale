@@ -37,27 +37,33 @@ public class TurnResult {
         return result;
     }
 
-    public static TurnResult emptyIslandSquare() {
+    public static TurnResult emptyIslandSquare(boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._isRobotAction = false;
         return result;
     }
 
-    public static TurnResult weaponFound(WeaponType weapon) {
+    public static TurnResult weaponFound(WeaponType weapon, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
         result._weaponFound = weapon;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._isRobotAction = false;
         return result;
     }
 
-    public static TurnResult trapFound(TrapType trap) {
+    public static TurnResult trapFound(TrapType trap, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._trapFound = trap;
         result._isRobotAction = false;
         return result;
@@ -94,29 +100,35 @@ public class TurnResult {
         return result;
     }
 
-    public static TurnResult robotEmptyIsland() {
+    public static TurnResult robotEmptyIsland(boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._isRobotAction = true;
         return result;
     }
 
-    public static TurnResult robotWeaponFound(WeaponType weapon) {
+    public static TurnResult robotWeaponFound(WeaponType weapon, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
         result._weaponFound = weapon;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._isRobotAction = true;
         return result;
     }
 
-    public static TurnResult robotTrapFound(TrapType trap, Position placement) {
+    public static TurnResult robotTrapFound(TrapType trap, Position placement, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ISLAND_SEARCH;
         result._trapFound = trap;
         result._trapPlacementPosition = placement;
+        result._tornadoActivated = tornadoActivated;
+        result._redirectedTo = finalTarget;
         result._isRobotAction = true;
         return result;
     }

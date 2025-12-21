@@ -213,7 +213,7 @@ public class Player {
             if (trap.getName() == TrapType.TORNADO) {
                 Tornado tornado = (Tornado) trap;
                 if (!tornado.isActive()) {
-                    tornado.activate(gridSize);
+                    tornado.activate(gridSize, _grid.hasIsland(), _grid.getPositionIsland());
                     setTornado(tornado);
                     return new TrapActivation(TrapType.TORNADO, position, false);
                 }

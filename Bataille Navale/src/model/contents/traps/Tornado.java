@@ -20,22 +20,52 @@ public class Tornado extends Trap {
         return this._numberUse > 0;
     }
 
-    public void activate(int gridSize){
+    public void activate(int gridSize, boolean island, Position posIsland){
         Random rand = new Random();
         _numberUse = 3;
         _newPositions = new HashMap<>();
 
-        for(int i = 0; i < gridSize; i++){
-            for(int j = 0; j < gridSize; j++){
-                Position newPosition;
-                do {
-                    int x = rand.nextInt(gridSize);
-                    int y = rand.nextInt(gridSize);
+        if(!island) {
+            for (int i = 0; i < gridSize; i++) {
+                for (int j = 0; j < gridSize; j++) {
+                    Position newPosition;
+                    do {
+                        int x = rand.nextInt(gridSize);
+                        int y = rand.nextInt(gridSize);
 
-                    newPosition = new Position(x, y);
-                }while(!exists(newPosition));
+                        newPosition = new Position(x, y);
+                    } while (!exists(newPosition));
 
-                _newPositions.put(new Position(i, j), newPosition);
+                    _newPositions.put(new Position(i, j), newPosition);
+                }
+            }
+        }
+        else{
+            for (int i = 0; i < gridSize; i++) {
+                for (int j = 0; j < gridSize; j++) {
+                    Position newPosition;
+
+                    //Si c'est une case de l'île elle doit rester sur l'île
+                    if(i >= posIsland.getX() && i< posIsland.getX()+4 && j >= posIsland.getY() && j< posIsland.getY()+4){
+                        do{
+                            int x = rand.nextInt(posIsland.getX(),  posIsland.getX()+4);
+                            int y = rand.nextInt(posIsland.getY(),  posIsland.getY()+4);
+
+                            newPosition = new Position(x, y);
+                        }while(!exists(newPosition));
+                    }
+                    else {
+                        int x, y;
+                        do {
+                            x = rand.nextInt(gridSize);
+                            y = rand.nextInt(gridSize);
+
+                            newPosition = new Position(x, y);
+                        } while (!exists(newPosition) || (x >= posIsland.getX() && x < posIsland.getX()+4 && y >= posIsland.getY() && y < posIsland.getY()+4));
+                    }
+
+                    _newPositions.put(new Position(i, j), newPosition);
+                }
             }
         }
 
