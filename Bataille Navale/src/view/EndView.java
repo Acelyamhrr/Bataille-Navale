@@ -6,19 +6,18 @@ import model.game.GameStats;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionListener;
 
 /**
  * Vue de fin de partie.
  * prend des objets GameStats au lieu de 15 paramètres.
  */
 public class EndView extends JFrame {
-    private JButton restartButton;
-    private JButton quitButton;
-    private EndController controller;
+    private JButton _restartButton;
+    private JButton _quitButton;
+    private EndController _controller;
 
     public EndView(String winner, int turnNumber, GameStats playerStats, GameStats robotStats, String playerName, EndController controller) {
-        this.controller = controller;
+        this._controller = controller;
 
         setTitle("Fin de partie - Bataille Navale");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -105,26 +104,26 @@ public class EndView extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         buttonPanel.setBackground(new Color(240, 240, 240));
 
-        restartButton = new JButton("🔄 Recommencer");
-        restartButton.setFont(new Font("Arial", Font.BOLD, 16));
-        restartButton.setPreferredSize(new Dimension(200, 50));
-        restartButton.setBackground(new Color(100, 150, 255));
-        restartButton.setForeground(Color.WHITE);
-        restartButton.setFocusPainted(false);
-        restartButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
-        restartButton.addActionListener(e->controller.handleRestart());
+        _restartButton = new JButton("🔄 Recommencer");
+        _restartButton.setFont(new Font("Arial", Font.BOLD, 16));
+        _restartButton.setPreferredSize(new Dimension(200, 50));
+        _restartButton.setBackground(new Color(100, 150, 255));
+        _restartButton.setForeground(Color.WHITE);
+        _restartButton.setFocusPainted(false);
+        _restartButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        _restartButton.addActionListener(e-> _controller.handleRestart());
 
-        quitButton = new JButton("❌ Quitter");
-        quitButton.setFont(new Font("Arial", Font.BOLD, 16));
-        quitButton.setPreferredSize(new Dimension(200, 50));
-        quitButton.setBackground(new Color(255, 100, 100));
-        quitButton.setForeground(Color.WHITE);
-        quitButton.setFocusPainted(false);
-        quitButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
-        quitButton.addActionListener(e->controller.handleQuit());
+        _quitButton = new JButton("❌ Quitter");
+        _quitButton.setFont(new Font("Arial", Font.BOLD, 16));
+        _quitButton.setPreferredSize(new Dimension(200, 50));
+        _quitButton.setBackground(new Color(255, 100, 100));
+        _quitButton.setForeground(Color.WHITE);
+        _quitButton.setFocusPainted(false);
+        _quitButton.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+        _quitButton.addActionListener(e-> _controller.handleQuit());
 
-        buttonPanel.add(restartButton);
-        buttonPanel.add(quitButton);
+        buttonPanel.add(_restartButton);
+        buttonPanel.add(_quitButton);
 
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 

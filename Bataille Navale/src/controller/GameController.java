@@ -371,14 +371,12 @@ public class GameController {
 
         // Armes du joueur
         _view.updatePlayerWeapons(
-                player.getWeaponCount(WeaponType.MISSILE),
                 player.getWeaponCount(WeaponType.BOMB),
                 player.getWeaponCount(WeaponType.SONAR)
         );
 
         // Armes du robot
         _view.updateRobotWeapons(
-                robot.getWeaponCount(WeaponType.MISSILE),
                 robot.getWeaponCount(WeaponType.BOMB),
                 robot.getWeaponCount(WeaponType.SONAR)
         );

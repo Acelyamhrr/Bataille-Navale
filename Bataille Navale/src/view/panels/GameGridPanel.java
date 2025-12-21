@@ -151,19 +151,6 @@ public class GameGridPanel extends JPanel {
     }
 
     /**
-     * Change le texte d'une cellule.
-     *
-     * @param x Position X
-     * @param y Position Y
-     * @param text Le nouveau texte
-     */
-    public void setCellText(int x, int y, String text) {
-        if (x >= 0 && x < _gridSize && y >= 0 && y < _gridSize) {
-            _gridButtons[y][x].setText(text);
-        }
-    }
-
-    /**
      * Récupère la couleur actuelle d'une cellule.
      *
      * @param x Position X
@@ -175,15 +162,6 @@ public class GameGridPanel extends JPanel {
             return _gridButtons[y][x].getBackground();
         }
         return null;
-    }
-
-    /**
-     * Récupère le tableau de boutons de la grille.
-     *
-     * @return Le tableau 2D de boutons
-     */
-    public JButton[][] getGridButtons() {
-        return _gridButtons;
     }
 
     public int getGridSize() {

@@ -1,6 +1,7 @@
 @startuml
 !pragma teoz true
-skinparam maxMessageSize 1000
+/'
+' skinparam maxMessageSize 1000
 skinparam style strictuml
 skinparam classAttributeIconSize 0
 skinparam classFontStyle Bold
@@ -15,6 +16,42 @@ skinparam defaultFontSize 11
 skinparam classAttributeFontSize 10
 skinparam packageFontSize 12
 skinparam packageFontStyle bold
+'/
+
+' Espacement entre les éléments
+skinparam nodesep 80
+skinparam ranksep 100
+
+' Couleurs et styles des packages
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #888888
+skinparam packageFontColor #333333
+
+' Couleurs des classes par type
+skinparam abstract {
+    BackgroundColor #FFF8DC
+    BorderColor #DAA520
+}
+
+skinparam interface {
+    BackgroundColor #E6F3FF
+    BorderColor #4682B4
+}
+
+skinparam enum {
+    BackgroundColor #F0F0F0
+    BorderColor #666666
+}
+
+' Style des flèches
+skinparam class {
+    ArrowColor #666666
+    ArrowThickness 1.2
+    BorderThickness 1.5
+}
+
+' Coins arrondis
+skinparam roundCorner 5
 
 package model {
 
@@ -994,16 +1031,323 @@ package view {
 
     package dialogs {
 
+        class BoatCustomizationDialog {
+            - _boatNumbers : Integer[*]
+            - _validated : Boolean
+
+            + <<create>> BoatCustomizationDialog(currentBoats : Integer[*], controller : ConfigurationController)
+
+            - initComponents()
+            - updateSpinner(i : Integer, sizes : Integer[*])
+            - updateTotal(sizes : Integer[*])
+            - calculateTotal(sizes : Integer[*])
+            + showAndGetResult() : Integer[*]
+        }
+
+        class GameDialogs {
+            - GameDialogs()
+
+            + {static} showError(message : String)
+            + {static} showSuccess(message : String)
+            + {static} showTrapFoundDialog(trapName : String) : Integer
+            + {static} showTrapEffect(title : String, message : String, beneficial : Boolean)
+            + {static} showSonarResult(centerX : Integer, centerY : Integer, occupiedCells : Integer, isPlayerSonar : Boolean, gridSize : Integer)
+            + {static} showLegend(waterColor : Color, boatColor : Color, hitColor : Color, sunkColor : Color, missColor : Color, islandColor : Color, islandSearchedEmpty : Color, islandSearchedFound : Color, trapColor : Color)
+            + {static} addLegendItem(text : String, color : Color)
+        }
     }
 
     package panels {
 
+        class ActionHistoryPanel {
+            + <<create>> ActionHistoryPanel(playerName : String)
+
+            + getActionsPanel()
+            + getHistoryPanel()
+
+            + setPlayerAction(action : String)
+            + setRobotAction(action : String)
+            + appendHistory(text : String)
+            + clearHistory()
+        }
+
+        class GameGridPanel {
+            - _gridSize : Integer
+            - _isPlayerGrid : Boolean
+
+            + <<create>> GameGridPanel(gridSize : Integer, isPlayerGrid : Boolean, controller : GameController, placement : GamePlacement)
+
+            - initGrid(placement : GamePlacement)
+            - displayInitialPlacement(placement : GamePlacement)
+            - setCellColor(x : Integer, y : Integer, color : Color)
+
+            + getCellColor(x : Integer, y : Integer) : Color
+            + getGridSize() : Integer
+        }
+
+        class InventoryPanel {
+            + <<create>> InventoryPanel(controller : GameController)
+
+            - initComponents()
+            - attachActions()
+            + updateInventory(inventory : Integer[*])
+            + setPlacingMode(placing : Boolean)
+        }
+
+        class PlacementControlPanel {
+            - _isHorizontal : Boolean
+
+            + <<create>> PlacementControlPanel(controller : PlacementController)
+
+            - initComponents()
+            - attachControllerActions()
+            - toggleOrientation()
+            + isHorizontal() : Boolean
+            + getSelectedBoatIndex() : Integer
+            + getModeBoat() : String
+            + setInfoText(text : String)
+            + setBoatOptions(options : String[*])
+            + setTrapWeaponOptions(options : String[*])
+            + enableBoatSelector(enable : Boolean)
+            + enableTrapWeaponSelector(enable : Boolean)
+        }
+
+        class PlacementGridPanel {
+            - _gridSize : Integer
+            - _hoverX : Integer
+            - _hoverY : Integer
+
+            + <<create>> PlacementGridPanel(gridSize : Integer, controller : PlacementController)
+
+            - initGrid()
+            + setCellColor(x : Integer, y : Integer, color : Color)
+            + setCellText(x : Integer, y : Integer, text : String)
+            + resetAllCells()
+            + getHoverX() : Integer
+            + getHoverY() : Integer
+            + getGridSize() : Integer
+        }
+
+        class PlayerStatsPanel {
+            - _isRobot : Boolean
+
+            + <<create>> PlayerStatsPanel(playerName : String, isRobot : Boolean, initialBoats : Integer, initialBoatSquares : Integer, hasIsland : Boolean, inventoryPanel : InventoryPanel)
+
+            - initComponents(initialBoats : Integer, initialBoatSquares : Integer, hasIsland : Boolean)
+            - createStatsLabel(text : String)
+
+            + updateBoatStats(intact : Integer, touched : Integer, sunk : Integer)
+            + updateShotStats(missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+            + updateWeapons(bombs : Integer, sonars : Integer)
+            + updateIsland(remaining : Integer)
+            + getIslandLabel()
+        }
+
+        class TrapPlacementPanel {
+            - _isIslandMode : Boolean
+
+            + <<create>> TrapPlacementPanel()
+            + updateForMode(isIslandMode : Boolean)
+            + getSelectedMode() : String
+
+            - createSectionLabel(text : String)
+        }
+
+        class WeaponSelectionPanel {
+            + <<create>> WeaponSelectionPanel()
+
+            - initComponents()
+            - createWeaponButton(name : String, imagePath : String, enabled : Boolean)
+
+            + isShovelSelected() : Boolean
+            + getSelectedWeapon() : WeaponType
+            + setWeaponEnabled(weapon : WeaponType, enabled : Boolean)
+        }
     }
 
     package utils {
 
+        class GameColors {}
+    }
+
+    class ConfigurationView {
+        - _customBoatNumbers : Integer[*]
+
+        + <<create>> ConfigurationView(controller : ConfigurationController)
+
+        - initComponents()
+        - createSection(title : String)
+        - createButton(text : String, bg : Color)
+
+        - updateBoatInfo()
+        + addBackListener(listener : ActionListener)
+        + addNextListener(listener : ActionListener)
+
+        + getUsername() : String
+        + getGridSize() : Integer
+        + isStandardMode() : Boolean
+        + isRandomRobot() : Boolean
+        + isDefaultBoats() : Boolean
+        + getCustomBoatNumbers() : Integer[*]
+        + getTrapPlacementMode() : String
+        + showError(message : String)
+        + showSuccess(message : String)
+    }
+
+    class EndView {
+        + <<create>> EndView(winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String, controller : EndController)
+
+        - initComponents(winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String)
+        - addHeader(text : String)
+        - addStatRow(statName : String, playerValue : String, robotValue : String)
+        - calculatePrecision(hitCells : Integer, totalCells : Integer) : String
+
+        + showRestartChoiceDialog() : Integer
+    }
+
+    class GameView implements Observer {
+        - _gridSize : Integer
+        - _username : String
+
+        + <<create>> GameView(gridSize : Integer, username : String, gameController : GameController, placement : GamePlacement)
+
+        - initComponents(placement : GamePlacement)
+        + showTrapFoundDialog(trapName : String) : Integer
+        + showTrapEffect(title : String, message : String, beneficial : Boolean)
+        + showSonarResult(centerX : Integer, centerY : Integer, occupiedCells : Integer, isPlayerSonar : Boolean)
+        + updateInventoryDisplay(inventory : Integer[*])
+        + setPlacingTrapMode(placing : Boolean)
+        + colorPlayerGridCell(x : Integer, y : Integer, color : Color)
+        + getTrapColor() : Color
+        + getPlayer() : Player
+
+        - createMenuPopup()
+        - showMenu()
+        - showLegend()
+
+        + setTurnNumber(turn : Integer)
+        + updatePlayerStats(intact : Integer, touched : Integer, sunk : Integer, missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+        + updateRobotStats(intact : Integer, touched : Integer, sunk : Integer, missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+        + updatePlayerWeapons(bombs : Integer, sonars : Integer)
+        + updateRobotWeapons(bombs : Integer, sonars : Integer)
+        + setPlayerAction(action : String)
+        + setRobotAction(action : String)
+        + appendHistory(history : String)
+        + isShovelSelected() : Boolean
+        + getSelectedWeapon() : WeaponType
+        + setWeaponEnabled(weaponType : WeaponType, enabled : Boolean)
+
+        + showError(message : String)
+        + showSuccess(message : String)
+
+        + boatAttacked(position : Position, robot : Boolean)
+        + boatTouched(robot : Boolean)
+        + boatSunk(position : Position, size : Integer, robot : Boolean)
+        + squareAttacked(position : Position, robot : Boolean)
+        + squareIsland(position : Position, state : State, robot : Boolean)
+    }
+
+    class MenuView {
+        + <<create>> MenuView()
+        - initComponents()
+        + createMenuButton(text : String)
+        + addNewGameListener(listener : ActionListener)
+        + addQuitListener(listener : ActionListener)
+    }
+
+    class PlacementView implements model.placement.PlacementObserver {
+        - _gridSize : Integer
+
+        + <<create>> PlacementView(gridSize : Integer, username : String, controller : PlacementController, model : Placement)
+        - initComponents()
+        - createBtn(text : String, bg : Color)
+
+        + addBackListener(l : ActionListener)
+        + addValidateListener(l : ActionListener)
+
+        + isHorizontal() : Boolean
+        + getHoverX() : Integer
+        + getHoverY() : Integer
+        + getModeBoat() : String
+        + setCellColor(x : Integer, y : Integer, color : String)
+        + setCellText(x : Integer, y : Integer, text : String)
+        - setInfoText(text : String)
+        - setPhaseText(text : String)
+
+        - showError(msg : String)
+        - showSuccess(msg : String)
+
+        + onGridChanged(grid : Grid)
+        + onPhaseChanged(phase : PlacementPhase)
+        + onMessage(message : String, type : MessageType)
+        + onSelectionChanged(state : SelectionState)
+
+        - drawIsland(gridSize : Integer)
+        - drawBoats(grid : Grid)
+        - drawTraps(grid : Grid)
+        - drawWeapons(grid : Grid)
+        - drawPreview()
     }
 }
+
+' Package dialogs
+view.dialogs.BoatCustomizationDialog *-> "1\n- _controller" controller.ConfigurationController : > call
+
+' Package panels
+view.panels.GameGridPanel *-> "1\n- _controller" controller.GameController : > call
+view.panels.GameGridPanel ..> model.enums.TrapType : <<uses>>
+view.panels.GameGridPanel ..> model.enums.WeaponType : <<uses>>
+view.panels.GameGridPanel ..> model.grid.Grid : <<uses>>
+view.panels.GameGridPanel ..> model.grid.Position : <<uses>>
+view.panels.GameGridPanel ..> view.utils.GameColors : <<uses>>
+
+view.panels.InventoryPanel *-> "1\n- _controller" controller.GameController : > call
+view.panels.InventoryPanel ..> model.enums.TrapType : <<uses>>
+
+view.panels.PlacementControlPanel *-> "1\n- _controller" controller.PlacementController : > call
+
+view.panels.PlacementGridPanel *-> "1\n- _controller" controller.PlacementController : > call
+view.panels.PlacementGridPanel ..> view.utils.GameColors : <<uses>>
+
+view.panels.PlayerStatsPanel *-> "1\n- _pnlInventory" view.panels.InventoryPanel : > contains
+
+view.panels.WeaponSelectionPanel ..> model.enums.WeaponType : <<uses>>
+
+' Package view
+view.ConfigurationView o-> "1\n- _pnlTrapPlacement" view.panels.TrapPlacementPanel : > contains
+view.ConfigurationView *-> "1\n- _controller" controller.ConfigurationController : > call
+view.ConfigurationView ..> view.dialogs.BoatCustomizationDialog : <<instanciate>>
+
+view.EndView *-> "1\n- _controller" controller.EndController : > call
+
+view.GameView *-> "1\n- _controller" controller.GameController : > call
+view.GameView o-> "1\n- _pnlPlayerStats" view.panels.PlayerStatsPanel : > contains
+view.GameView o-> "1\n- _pnlRobotStats" view.panels.PlayerStatsPanel : > contains
+view.GameView o-> "1\n- _pnlPlayerGrid" view.panels.GameGridPanel : > contains
+view.GameView o-> "1\n- _pnlRobotGrid" view.panels.GameGridPanel : > contains
+view.GameView o-> "1\n- _pnlWeaponSelection" view.panels.WeaponSelectionPanel : > contains
+view.GameView o-> "1\n- _pnlActionHistory" view.panels.ActionHistoryPanel : > contains
+view.GameView o-> "1\n- _pnlInventory" view.panels.InventoryPanel : > contains
+view.GameView ..> model.enums.WeaponType : > <<uses>>
+view.GameView ..> model.enums.TrapType : > <<uses>>
+view.GameView ..> model.players.Player: > <<uses>>
+view.GameView ..> model.game.GamePlacement : > <<uses>>
+view.GameView ..> model.grid.Position : > <<uses>>
+view.GameView ..> view.dialogs.GameDialogs : > <<uses>>
+view.GameView ..> view.utils.GameColors : > <<uses>>
+
+view.PlacementView *-> "1\n- _controller" controller.PlacementController : > call
+view.PlacementView *-> "1\n- _model" model.placement.Placement : > look at
+view.PlacementView *-> "1\n- _pnlGrid" view.panels.PlacementGridPanel : > contains
+view.PlacementView *-> "1\n- _pnlControl" view.panels.PlacementControlPanel : > contains
+view.PlacementView ..> model.grid.Grid : <<uses>>
+view.PlacementView ..> model.grid.Position : <<uses>>
+view.PlacementView ..> model.placement.PreviewInfo : <<uses>>
+view.PlacementView ..> model.placement.SelectionState : <<uses>>
+view.PlacementView ..> model.enums.Orientation : <<uses>>
+view.PlacementView ..> model.enums.PlacementPhase : <<uses>>
+view.PlacementView ..> model.enums.MessageType : <<uses>>
+view.PlacementView ..> view.utils.GameColors : <<uses>>
 
 
 @enduml
