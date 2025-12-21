@@ -1,0 +1,1322 @@
+@startuml
+!pragma teoz true
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam classFontStyle Bold
+hide enum methods
+
+' Configuration de la mise en page
+skinparam packageStyle rectangle
+
+' Espacement et taille
+skinparam defaultFontSize 11
+skinparam classAttributeFontSize 10
+skinparam packageFontSize 12
+skinparam packageFontStyle bold
+
+' Espacement entre les éléments
+skinparam nodesep 80
+skinparam ranksep 100
+
+' Coins arrondis
+skinparam roundCorner 5
+
+
+package model {
+
+    package contents {
+
+        package fleet {
+
+            class Boat extends model.contents.Content {
+                - _numberSquares : Integer
+                - _attacked : Boolean[*]
+                - _robot : Boolean
+                - _alreadySunk : Boolean
+                - _alreadyTouched : Boolean
+
+                + <<create>> Boat(name : BoatName, numberSquares : Integer)
+                + {static} getBoatSize(boat : BoatName) : Integer
+                + belongsTo(robot : Boolean)
+
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+                + getPosition() : Position
+                + getContentType() : ContentType
+
+                + hasSunk() : Boolean
+                + attack(position : Position)
+
+                + addObserver(observer : Observer)
+                - notifyObserversAttacked(position : Position)
+                - notifyObserversSunk()
+                - notifyObserversTouched()
+
+                + isTouched() : Boolean
+                + getName() : BoatName
+            }
+
+            class BoatFactory {
+                + <<create>> BoatFactory()
+
+                + createAircraftCarrier() : Boat
+                + createCruiser() : Boat
+                + createDestroyer() : Boat
+                + createSubmarine() : Boat
+                + createTorpedoBoat() : Boat
+            }
+
+        }
+
+        package traps {
+
+            abstract class Trap <<abstract>> extends model.contents.Content {
+                + <<create>> Trap(name : TrapType)
+
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+                + getPosition() : Position
+                + getContentType() : ContentType
+
+                + getName() : TrapType
+            }
+
+            class BlackHole extends Trap {
+                + <<create>> BlackHole()
+            }
+
+            class Tornado extends Trap {
+                - _numberUse : Integer
+
+                + <<create>> Tornado()
+
+                + isActive() : Boolean
+                + activate(gridSize : Integer, island : Boolean, posIsland : Position)
+                - exists(p : Position) : Boolean
+                + getNewPosition(position : Position) : Position
+            }
+
+            class TrapFactory {
+                + <<create>> TrapFactory()
+
+                + createBlackHole() : Trap
+                + createTornado() : Trap
+            }
+
+        }
+
+        package weapons {
+
+            abstract class Weapon <<abstract>> extends model.contents.Content {
+                + <<create>> Weapon( name : WeaponType)
+
+                + setPosition(x : Integer, y : Integer, orientation : Orientation)
+                + getPosition() : Position
+                + getContentType() : ContentType
+
+                + {abstract} use(position : Position) : Position[*]
+                + getName() : WeaponType
+            }
+
+            class Missile extends Weapon {
+                + <<create>> Misile()
+
+                + use(position : Position) : Position[*]
+            }
+
+            class Bomb extends Weapon {
+                + <<create>> Bomb()
+
+                + use(position : Position) : Position[*]
+            }
+
+            class Sonar extends Weapon {
+                + <<create>> Sonar()
+
+                + use(position : Position) : Position[*]
+            }
+
+            class WeaponFactory {
+                + <<create>> WeaponFactory()
+
+                + createMissile() : Weapon
+                + createBomb() : Weapon
+                + createSonar() : Weapon
+            }
+        }
+
+        abstract class Content <<abstract>> {
+            + {abstract} setPosition(x : Integer, y : Integer, orientation : Orientation)
+            + {abstract} getPosition() : Position
+            + {abstract} getContentType() : ContentType
+        }
+    }
+
+    package enums {
+        enum BoatName <<enumeration>> {
+            AIRCRAFT_CARRIER
+            CRUISER
+            DESTROYER
+            SUBMARINE
+            TORPEDO_BOAT
+        }
+
+        enum ContentType <<enumeration>> {
+            BOAT
+            WEAPON
+            TRAP
+            EMPTY
+        }
+
+        enum MessageType <<enumeration>> {
+            INFO
+            SUCCESS
+            ERROR
+        }
+
+        enum ModeGame <<enumeration>>{
+            STANDARD
+            ISLAND
+        }
+
+        enum Orientation <<enumeration>> {
+            VERTICAL
+            HORIZONTAL
+            NONE
+        }
+
+        enum PlacementPhase <<enumeration>> {
+            BOATS
+            TRAPS
+            WEAPONS
+        }
+
+        enum RestartAction <<enumeration>> {
+            SAME_PLACEMENTS
+            SAME_CONFIG
+            NEW_CONFIG
+        }
+
+        enum ResultRound <<enumeration>> {
+            FAILURE
+            SINK
+            ATTACK
+            SEARCH
+        }
+
+        enum RobotMode <<enumeration>> {
+            RANDOM
+            SMART
+        }
+
+        enum State <<enumeration>> {
+            INTACT
+            EMPTY
+            SEARCHED
+        }
+
+        enum TrapPlacement <<enumeration>> {
+            FIXED
+            RANDOM
+            MANUAL
+        }
+
+        enum TurnType <<enumeration>> {
+            ATTACK
+            ISLAND_SEARCH
+            TRAP_PLACEMENT
+        }
+
+        enum TrapType <<enumeration>> {
+            BLACKHOLE
+            TORNADO
+        }
+
+        enum WeaponType <<enumeration>> {
+            MISSILE
+            BOMB
+            SONAR
+        }
+
+    }
+
+    package game {
+
+        package results {
+
+            class AttackResult {
+                - _hints : Integer
+                - _sunkBoat : Boolean
+                - _isSonar : Boolean
+                - _occupiedCells : Integer
+
+                + <<create>> AttackResult(hints : Integer, sunkBoat : Boolean, trapActivation : TrapActivation[*])
+                - <<create>> AttackResult(occupiedCells : Integer)
+
+                + {static} sonarResult(occupiedCells : Integer) : AttackResult
+
+                + getHits() : Integer
+                + hadSunk() : Boolean
+                + hadHit() : Boolean
+                + getTrapActivations() : TrapActivation[*]
+                + isSonar() : Boolean
+                + getOccupiedCells() : Integer
+                + hadTrapActivations() : Boolean
+            }
+
+
+            class TurnResult {
+                - _success : Boolean
+                - _errorMessage : String
+                - _tornadoActivated : Boolean
+                - _isRobotAction : Boolean
+
+                - <<create>> TurnResult()
+                + {static} success(attackResult : AttackResult, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} emptyIslandSquare(tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} weaponFound(weapon : WeaponType, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} trapFound(trap : TrapType, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} trapPlaced(position : Position) : TurnResult
+                + {static} error(message : String) : TurnResult
+
+                + {static} robotAttack(attackResult : AttackResult, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} robotEmptyIsland(tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} robotWeaponFound(weapon : WeaponType, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} robotTrapFound(trap : TrapType, tornadoActivated : Boolean, finalTarget : Position) : TurnResult
+                + {static} robotTrapFoundButNoSpace(trap : TrapType) : TurnResult
+
+                + isSuccess() : Boolean
+                + getErrorMessage() : String
+                + getType() : TurnType
+                + getAttackResult() : AttackResult
+                + wasTornadoActivated() : Boolean
+                + getRedirectedTo() : Position
+                + getWeaponFound() : WeaponType
+                + getTrapFound() : TrapType
+                + getActionDescription() : String
+            }
+
+        }
+
+        package robotStrategy {
+
+            abstract class RobotStrategy <<abstract>> {
+                + <<create>> RobotStrategy()
+
+                + chooseWeapon(robot : Player) : WeaponType
+                + chooseIslandSquareToSearch(player : Player, gridSize : Integer) : Position
+                # getRandomValidTarget(opponent : Player, gridSize : Integer) : Position
+
+                + {abstract} chooseTarget(robot : Player, opponent : Player, gridSize : Integer) : Position
+                + {abstract} notifyResult(position : Position, hit : Boolean, sunk : Boolean)
+                + {abstract} shouldSearchIsland(robot : Player, player : Player, gridSize : Integer) : Boolean
+            }
+
+            class RandomRobotStrategy extends RobotStrategy {
+                + chooseTarget(robot : Player, opponent : Player, gridSize : Integer) : Position
+                + notifyResult(position : Position, hit : Boolean, sunk : Boolean)
+                + shouldSearchIsland(robot : Player, player : Player, gridSize : Integer) : Boolean
+            }
+
+            class SmartRobotStrategy extends RobotStrategy {
+                + <<create>> SmartRobotStrategy()
+
+                + chooseTarget(robot : Player, opponent : Player, gridSize : Integer) : Position
+                + notifyResult(position : Position, hit : Boolean, sunk : Boolean)
+                + shouldSearchIsland(robot : Player, player : Player, gridSize : Integer) : Boolean
+
+                - addAdjacentPositions(pos : Position)
+                # isValidTarget(pos : Position, opponent : Player, gridSize : Integer) : Boolean
+            }
+
+        }
+
+        class Game {
+            - turnNumber : Integer
+
+            + <<create>> Game(config : GameConfig, placement : GamePlacement)
+            + initialize()
+
+            - setBoatPlayer(player : Player)
+            - initializeWeapons()
+
+            + playerAttack(weaponType : WeaponType, target : Position) : TurnResult
+            + playerSearchIsland(target : Position) : TurnResult
+            + playerPlaceTrap(trap : TrapType, target : Position) : TurnResult
+
+            + playRobotTurn() : TurnResult
+            - robotSearchIsland(target : Position) : TurnResult
+            - robotAttack() : TurnResult
+
+            - executeAttack(positions : Position[*], target : Player, isRobotAttacker : Boolean, weaponType : WeaponType) : AttackResult
+            - executeSonar(positions : Position[*], target : Player) : AttackResult
+
+            - checkIslandRestrictions(weapon : WeaponType, target : Position) : String
+            - bombHitsIsland(center : Position) : Boolean
+            - isPositionValid(pos : Position) : Boolean
+
+            + checkGameOver() : Boolean
+            + getWinner() : String
+            + incrementTurn()
+
+
+            + getPlayer() : Player
+            + getRobot() : Player
+            + getTurnNumber() : Integer
+            + getConfig() : GameConfig
+            + hasIsland() : Boolean
+        }
+
+        class GameConfig {
+            - _gridSize : Integer
+            - _username : String
+            - _numberBoat : Integer[*]
+
+            + <<create>> GameConfig(mode : ModeGame, gridSize : Integer, robotMode : RobotMode, numberBoat : Integer[*], username : String, trapMode : TrapPlacement)
+
+            + getGridSize() : Integer
+            + getUsername() : String
+            + getNumberBoat() : Integer[*]
+            + getModeGame() : ModeGame
+            + getRobotMode() : RobotMode
+            + getTrapMode() : TrapPlacement
+
+            + {static} totalBoatSquares(boats : Integer[*]) : Integer
+
+            + getTotalBoatSquares() : Integer
+            + getNumberBoatsTotal() : Integer
+
+            + isValid() : Boolean
+            + toString() : String
+
+            + {static} numberSquaresValid(gridSize : Integer, boats : Integer[*], island : Boolean) Boolean
+        }
+
+        class GamePlacement {
+            + <<create>> GamePlacement(playerGrid : Grid, robotGrid : Grid)
+
+            + getPlayerGrid() : Grid
+            + getRobotGrid() : Grid
+        }
+
+        class GameStats {
+            - _boatsIntact : Integer
+            - _boatsTouched : Integer
+            - _boatsSunk : Integer
+            - _missedShots : Integer
+            - _hitCells : Integer
+            - _totalCells : Integer
+            - _totalBoatCells : Integer
+
+            - <<create>> GameStats()
+
+            + {static} calculate(player : Player, opponent : Player, gridSize : Integer) : GameStats
+            - calculateBoatStats(player : Player)
+            - calculateShotStats(opponent : Player, gridSize : Integer)
+
+            + getBoatsIntact() : Integer
+            + getBoatsTouched() : Integer
+            + getBoatsSunk() : Integer
+            + getMissedShots() : Integer
+            + getHitCells() : Integer
+            + getTotalCells() : Integer
+            + getTotalBoatCells() : Integer
+
+            + getHitRatio() : String
+            + toString() : String
+        }
+
+        class TrapActivation {
+            - _bounced : Boolean
+
+            + <<create>> TrapActivation(type : TrapType, position : Position, bounced : Boolean)
+
+            + getType() : TrapType
+            + getPosition() : Position
+            + isBounced() : Boolean
+
+            + toString() : String
+        }
+
+    }
+
+    package grid {
+
+        class Grid {
+            - _gridSize : Integer
+            - _robot : Boolean
+            - _boatsCount : Integer[*]
+
+            + <<create>> Grid(size : Integer, mode : ModeGame, robot : Boolean)
+
+            + canPlaceBoat(size : Integer, x : Integer, y : Integer, orientation : Orientation) : Boolean
+            + canPlaceTrapWeapon(x : Integer, y : Integer) : Boolean
+
+            + placeBoat(b : Boat, x : Integer, y : Integer, orientation : Orientation)
+            + placeTrap(trap : Trap, x : Integer, y : Integer)
+            + placeWeapon(weapon : Weapon, x : Integer, y : Integer)
+
+            + attack(position : Position)
+
+            + reset()
+            + getSize() : Integer
+            + squareIsInIsland(pos : Position) : Boolean
+            + getSquare(pos : Position) : Square
+            + hasIsland() : Boolean
+            + getPositionIsland() : Position
+            + getSizeIsland() : Integer
+
+            + clearBoats()
+            + clearTraps()
+            + clearWeapons()
+            + clear()
+
+            + isCellOccupied(x : Integer, y : Integer) : Boolean
+            + getBoatCount(boat : BoatName) : Integer
+
+            + getPositionsBoats() : Position[*]
+            + getPositionsTraps() : Position[*]
+            + getPositionsWeapons() : Position[*]
+            + getBoats() : Boat[*]
+        }
+
+        class Island {
+            - {static} _SIZE : Integer
+
+            + <<create>> Island(position : Position)
+
+            + contains((position : Position) : Boolean
+            ~ getPosition() : Position
+            ~ getSize() : Integer
+        }
+
+        class Position {
+            - x : Integer
+            - y : Integer
+
+            + <<create>> Position(x : Integer, y : Integer)
+            + <<create>> Position(x : Integer, y : Integer, orientation : Orientation)
+            + getX() : Integer
+            + getY() : Integer
+            + getOrientation : Orientation
+
+            + equals(o : Object) : Boolean
+            + hashCode() : Integer
+        }
+
+        class Square {
+            - _attacked : Boolean
+            - _inIsland : Boolean
+            - _robot : Boolean
+
+            + <<create>> Square(position : Position, robot : Boolean)
+
+            + setIsland()
+            + wasAttacked() : Boolean
+            + isEmpty() : Boolean
+            + isInIsland() : Boolean
+            + getContent() : Content
+            + setContent(content : Content)
+            + getPosition() : Position
+            + addObserver(observer : Observer)
+
+            + attack()
+            + search() : Content
+            + isNotSearched() : Boolean
+
+            - notifyObserversAttacked()
+            - notifyObserversIsland()
+
+            + getContentType() : ContentType
+        }
+    }
+
+    package placement {
+
+        class Placement {
+            - _boatIndex : Integer
+            - _trapIndex : Integer
+            - _weaponIndex : Integer
+
+            + <<create>> Placement(config : GameConfig)
+
+            + addObserver(observer : PlacementObserver)
+            - notifyGridChanged()
+            - notifyPhaseChanged()
+            - notifyMessage(message : String, type : MessageType)
+            - notifySelectionChanged()
+
+            + initialize()
+            - initElementToPlace()
+
+            + {static} createBoat(boatName : BoatName) : Boat
+            + {static} createTrap(trapType : TrapType) : Trap
+            + {static} createWeapon(weaponType : WeaponType) : Weapon
+
+            + tryPlaceBoat(x : Integer, y : Integer, orient : Orientation) : Boolean
+            + tryPlaceTrap(x : Integer, y : Integer) : Boolean
+            + tryPlaceWeapon(x : Integer, y : Integer) : Boolean
+
+            - onBoatsComplete()
+            - onTrapsComplete()
+
+            + applyFixedPlacement()
+            + applyRandomPlacement()
+            + enableManualPlacement()
+
+            - reset()
+            - placeTrapsFixed()
+            - placeTrapsRandom()
+            - placeWeaponsRandom()
+
+            + validateAndCreatePlacement(robotPlacementMode : String) : GamePlacement
+            - placeRobot(mode : String)
+
+            + getPreviewInfo(x : Integer, y : Integer, orientation : Orientation) : PreviewInfo
+            - getBoatPreview(x : Integer, y : Integer, orient : Orientation) : PreviewInfo
+            - getTrapPreview(x : Integer, y : Integer) : PreviewInfo
+            - getWeaponPreview(x : Integer, y : Integer) : PreviewInfo
+
+            + getGridState() : Grid
+            + getSelectionState() : SelectionState
+            - getBoatOptions() : String[*]
+            - getTrapWeaponOptions() : String[*]
+            + getCurrentPhase() : PlacementPhase
+            + squareInIsland(x : Integer, y : Integer) : Boolean
+        }
+
+        interface PlacementObserver <<interface>> {
+            + onGridChanged(grid : Grid)
+            + onPhaseChanged(phase : PlacementPhase)
+            + onMessage(message : String, type : MessageType)
+            + onSelectionChanged(state : SelectionState)
+        }
+
+        interface PlacementStrategy <<interface>> {
+            + placeBoats(grid : Grid, boats : BoatName[*]) : Boolean
+            + placeTraps(grid : Grid, traps : TrapType[*]) : Boolean
+            + placeWeapons(grid : Grid, weapons : WeaponType[*]) : Boolean
+        }
+
+        class FixedPlacementStrategy implements PlacementStrategy {
+            + <<create>> FixedPlacementStrategy()
+
+            + placeBoats(grid : Grid, boats : BoatName[*]) : Boolean
+            + placeTraps(grid : Grid, traps : TrapType[*]) : Boolean
+            + placeWeapons(grid : Grid, weapons : WeaponType[*]) : Boolean
+
+            - placeBoatsAroundIsland(grid : Grid, boats : BoatName[*]) : Boolean
+            - placeBoatsBalanced(grid : Grid, boats : BoatName[*]) : Boolean
+            - tryPlaceInZone(grid : Grid, boats : BoatName[*], yStart : Integer, yEnd : Integer, xStart : Integer, xEnd : Integer, orient : Orientation) : Boolean
+            - tryPlaceFromStart(grid : Grid, boat : BoatName, start : Position) : Boolean
+            - tryPlaceInDirection(grid : Grid, boat : BoatName, start : Position, orient : Orientation) : Boolean
+            - getBalancedStartPositions(gridSize : Integer) : Position[*]
+        }
+
+        class RandomPlacementStrategy implements PlacementStrategy {
+            + <<create>> RandomPlacementStrategy()
+
+            + placeBoats(grid : Grid, boats : BoatName[*]) : Boolean
+            + placeTraps(grid : Grid, traps : TrapType[*]) : Boolean
+            + placeWeapons(grid : Grid, weapons : WeaponType[*]) : Boolean
+
+            - tryPlaceBoatRandomly(grid : Grid, boatName : BoatName) : Boolean
+            - tryPlaceTrapRandomly(grid : Grid, trapType : TrapType) : Boolean
+            - tryPlaceWeaponRandomly(grid : Grid, weaponType : WeaponType) : Boolean
+        }
+
+        class PreviewInfo {
+            - _canPlace : Boolean
+
+            + <<create>> PreviewInfo(cells : Position[*], canPlace : Boolean)
+
+            + getCells() : Position[*]
+            + isValid() : Boolean
+        }
+
+        class SelectionState {
+            - _boatOptions : String[*]
+            - _trapWeaponOptions : String[*]
+            - _onPhaseBoat : Boolean
+
+            + <<create>> SelectionState(boatOptions : String[*], trapWeaponOptions : String[*], onPhaseBoat : Boolean)
+
+            + getBoatOptions() : String[*]
+            + getTrapWeaponOptions() : String[*]
+            + isBoatSelectorEnabled() : Boolean
+            + isTrapWeaponSelectorEnabled() : Boolean
+        }
+    }
+
+    package players {
+
+        class Player {
+            - _username : String
+            - _isRobot : Boolean
+            - _weapons : Integer[*]
+            - _trapInventory : Integer[*]
+
+            + <<create>> Player(username : String, robot : Boolean)
+
+            + setGrid(grid : Grid)
+            + placeTrap(trap : Trap, position : Position)
+
+            + hasWeapon(type : WeaponType) : Boolean
+            + useWeapon(type : WeaponType)
+            + addWeapon(type : WeaponType)
+            + getWeaponCount(type : WeaponType) : Integer
+            + setWeaponCount(type : WeaponType, count : Integer)
+            + getWeapons() : Integer[*]
+            + canUseSonar() : Boolean
+            - hasSubmarine() : Boolean
+
+            + addTrapToInventory(type : TrapType)
+            + getTrapInventoryCount(type : TrapType) : Integer
+            + removeTrapFromInventory(type : TrapType)
+            + getTrapInventory() : Integer[*]
+            + canPlaceTrapAt(position : Position) : Boolean
+            + placeTrapFromInventory(type : TrapType, position : Position, trap : Trap) : Boolean
+            + hasTornadoActive() : Boolean
+            + applyTornado(target : Position) : Position
+            + setTornado(tornado : Tornado)
+
+            + receiveAttack(position : Position)
+            + receiveAttackAndCheckHit(position : Position) : Boolean
+            + wasBoatSunkAt(position : Position) : Boolean
+            + checkAndActivateTrap(position : Position, gridSize : Integer) : TrapActivation
+
+            + allBoatSunk() : Boolean
+
+            + isSquareOnIsland(position : Position) : Boolean
+            + wasSquareSearched(position : Position) : Boolean
+            + searchIsland(position : Position) : Content
+            + wasSquareAttacked(position : Position) : Boolean
+            + isSquareOccupied(position : Position) : Boolean
+
+            + setStrategy(strategy : RobotStrategy)
+            + shouldSearchIsland(opponent : Player, gridSize : Integer) : Boolean
+            + chooseIslandSquare(opponent : Player, gridSize : Integer) : Position
+            + chooseAttackTarget(opponent : Player, gridSize : Integer) : Position
+            + chooseWeapon() : WeaponType
+            + notifyStrategyResult(target : Position, hit : Boolean, sunk : Boolean)
+            + findEmptySquareForTrap() : Position
+
+            + getUsername() : String
+            + isRobot() : Boolean
+            + getGrid() : Grid
+            + getBoats() : Boat[*]
+            + addBoat(boat : Boat)
+        }
+    }
+
+    interface Observer <<interface>> {
+        + boatAttacked(position : Position, robot : Boolean)
+        + boatTouched(robot : Boolean)
+        + boatSunk(position : Position, size : Integer, robot : Boolean)
+        + squareAttacked(position : Position, robot : Boolean)
+        + squareIsland(position : Position, state : State, robot : Boolean)
+    }
+}
+
+' Package model.contents
+model.contents.fleet.Boat o-> "1\n- _name" model.enums.BoatName : > is call
+model.contents.fleet.Boat *-> "1..*\n _observers" model.Observer : > is observed by
+
+model.contents.fleet.BoatFactory ..> model.enums.BoatName : <<uses>>
+
+model.contents.traps.Trap o-> "1\n- _name" model.enums.TrapType : > is call
+model.contents.traps.Tornado *-> "1..*\n- _newPositions" model.grid.Position : > move
+
+model.contents.weapons.Weapon o-> "1\n- _name" model.enums.WeaponType: > is call
+
+model.contents.Content *-> "1\n# _position" model.grid.Position : > is located
+model.contents.Content o-> "1\n# _contentType" model.enums.ContentType : > is
+model.contents.Content ..> model.enums.Orientation : <<uses>>
+
+
+' Package game
+model.game.results.AttackResult o-> "1..*\n- _trapActivations" model.game.TrapActivation : > has activated
+
+model.game.results.TurnResult o-> "1\n- _type" model.enums.TurnType : > described
+model.game.results.TurnResult o-> "1\n- _attackResult" model.game.results.AttackResult : > has for result
+model.game.results.TurnResult o-> "1\n- _weaponUsed" model.enums.WeaponType : > was used
+model.game.results.TurnResult *-> "1\n- _redirectedTo" model.grid.Position : > has been redirected
+model.game.results.TurnResult o-> "1\n- _trapFound" model.enums.TrapType : > was found
+model.game.results.TurnResult *-> "1\n- _trapPlacementPosition" model.grid.Position : > was placed in
+
+model.game.robotStrategy.SmartRobotStrategy *-> "1..*\n- _targetQueue" model.grid.Position : > has to explore
+model.game.robotStrategy.RobotStrategy ..> model.enums.WeaponType : <<uses>>
+model.game.robotStrategy.RobotStrategy ..> model.grid.Square : <<uses>>
+model.game.robotStrategy.RobotStrategy ..> model.players.Player : <<uses>>
+
+
+model.game.Game *-> "1\n- _config" model.game.GameConfig : > is configured
+model.game.Game *-> "1\n- _placement" model.game.GamePlacement : > has for placement
+model.game.Game o-> "1\n- _player" model.players.Player : > is played by
+model.game.Game o-> "1\n- _robot" model.players.Player : > is played against
+model.game.Game ..> model.contents.Content : <<uses>>
+model.placement.Placement ..> model.contents.fleet.Boat : <<uses>>
+model.placement.Placement ..> model.contents.fleet.BoatFactory : <<uses>>
+model.game.Game ..> model.contents.traps.Trap : <<uses>>
+model.game.Game ..> model.contents.weapons.Weapon : <<uses>>
+model.game.Game ..> model.game.results.AttackResult : <<uses>>
+model.game.Game ..> model.game.results.TurnResult : <<uses>>
+model.game.Game ..> model.grid.Grid : <<uses>>
+model.game.Game ..> model.grid.Position : <<uses>>
+model.game.Game ..> model.placement.Placement : <<call>>
+
+model.game.GameConfig o-> "1\n- _modeGame" model.enums.ModeGame : > plays with mode
+model.game.GameConfig o-> "1\n- _robotMode" model.enums.RobotMode : > robot is
+model.game.GameConfig o-> "1\n- _trapPlacement" model.enums.TrapPlacement : > are placed
+
+model.game.GamePlacement *-> "1\n- _playerGrid" model.grid.Grid : > has
+model.game.GamePlacement *-> "1\n- _robotGrid" model.grid.Grid : > has
+
+model.game.GameStats ..> model.contents.fleet.Boat : <<uses>>
+model.game.GameStats ..> model.grid.Position : <<uses>>
+model.game.GameStats ..> model.grid.Square : <<uses>>
+model.game.GameStats ..> model.players.Player : <<uses>>
+
+model.game.TrapActivation o-> "1\n- _type" model.enums.TrapType : > was activated
+model.game.TrapActivation *-> "1\n- _position" model.grid.Position : > is located
+
+
+' Package grid
+model.grid.Grid o-> "1..*\n- squares" model.grid.Square : > contains
+model.grid.Grid o-> "1\n- mode" model.enums.ModeGame : > plays
+model.grid.Grid o-> "1\n- island" model.grid.Island : > contains
+model.grid.Grid o-> "1\n- _allBoats" model.contents.fleet.Boat : > contains
+model.grid.Grid *-> "1\n- _weapons" model.grid.Position : > contains
+model.grid.Grid *-> "1\n- _traps" model.grid.Position : > contains
+model.grid.Grid ..> model.contents.weapons.Weapon : <<uses>>
+model.grid.Grid ..> model.contents.traps.Trap : <<uses>>
+model.grid.Grid ..> model.placement.Placement : <<call>>
+
+model.grid.Island *-> "1\n- _position" model.grid.Position : > is located
+
+model.grid.Position o-> "1\n- _orientation" model.enums.Orientation : > is oriented
+
+model.grid.Square *-> "1\n- _content" model.contents.Content : > contains
+model.grid.Square *-> "1\n- _position" model.grid.Position : > is located
+model.grid.Square o-> "1\n- _islandState" model.enums.State : > is
+model.grid.Square *-> "1..*\n _observers" model.Observer : > is observed by
+model.grid.Square ..> model.contents.fleet.Boat : <<uses>>
+model.grid.Square ..> model.enums.ContentType : <<uses>>
+
+
+' Package placement
+model.placement.Placement *-> "1\n- _config" model.game.GameConfig : > is configured
+model.placement.Placement *-> "1\n- _playerGrid" model.grid.Grid : > has
+model.placement.Placement *-> "1\n- _robotGrid" model.grid.Grid : > has
+model.placement.Placement o-> "1\n- _strategy" model.placement.PlacementStrategy : > has for strategy
+model.placement.Placement o-> "1..*\n- _boatsToPlace" model.enums.BoatName : > has to place
+model.placement.Placement o-> "1..*\n- _trapsToPlace" model.enums.TrapType : > has to place
+model.placement.Placement o-> "1..*\n- _weaponsToPlace" model.enums.WeaponType : > has to place
+model.placement.Placement o-> "1\n- _phase" model.enums.PlacementPhase : > place currently
+model.placement.Placement *-> "1..*\n- _observers" model.placement.PlacementObserver : > is observed by
+model.placement.Placement ..> model.contents.fleet.Boat : <<uses>>
+model.placement.Placement ..> model.contents.fleet.BoatFactory : <<uses>>
+model.placement.Placement ..> model.contents.traps.Trap : <<uses>>
+model.placement.Placement ..> model.contents.traps.TrapFactory : <<uses>>
+model.placement.Placement ..> model.contents.weapons.Weapon : <<uses>>
+model.placement.Placement ..> model.contents.weapons.WeaponFactory : <<uses>>
+
+model.placement.PreviewInfo *-> "1..*\n- _cells" model.grid.Position : > are highlighted
+
+model.placement.PlacementStrategy ..> model.enums.BoatName : <<uses>>
+model.placement.PlacementStrategy ..> model.enums.TrapType : <<uses>>
+model.placement.PlacementStrategy ..> model.enums.WeaponType : <<uses>>
+model.placement.PlacementStrategy ..> model.grid.Grid : <<uses>>
+
+model.placement.FixedPlacementStrategy ..> model.contents.fleet.Boat : <<uses>>
+model.placement.FixedPlacementStrategy ..> model.contents.traps.Trap : <<uses>>
+model.placement.FixedPlacementStrategy ..> model.contents.weapons.Weapon : <<uses>>
+model.placement.FixedPlacementStrategy ..> model.enums.Orientation : <<uses>>
+model.placement.FixedPlacementStrategy ..> model.grid.Position : <<uses>>
+
+model.placement.RandomPlacementStrategy ..> model.contents.fleet.Boat : <<uses>>
+model.placement.RandomPlacementStrategy ..> model.contents.traps.Trap : <<uses>>
+model.placement.RandomPlacementStrategy ..> model.contents.weapons.Weapon : <<uses>>
+model.placement.RandomPlacementStrategy ..> model.enums.Orientation : <<uses>>
+model.placement.RandomPlacementStrategy ..> model.grid.Position : <<uses>>
+
+' Package Player
+model.players.Player *-> "1\n- _grid" model.grid.Grid : > has
+model.players.Player *-> "1\n- _tornado" model.contents.traps.Tornado : > is activated
+model.players.Player *-> "1..*\n- _boats" model.contents.fleet.Boat : > own
+model.players.Player o-> "1\n- _strategy" model.game.robotStrategy.RobotStrategy : > has for strategy
+model.players.Player ..> model.contents.Content : <<uses>>
+model.players.Player ..> model.contents.traps.Trap : <<uses>>
+model.players.Player ..> model.grid.Square : <<uses>>
+
+
+package controller {
+
+    class CentralController {
+        + <<create>> CentralController()
+
+        + start()
+        - connectMenuView()
+        - openConfiguration()
+        - connectConfigView()
+        - backToMenu()
+        - validateConfiguration()
+
+        - openPlacement()
+        - connectPlacementView()
+        - backToConfig()
+        - validatePlacement()
+
+        - openGame()
+
+        - quit()
+        + restartWithSamePlacement()
+        + restartWithSameConfig()
+        + restartFromBeginning()
+    }
+
+    class ConfigurationController {
+        + <<create>> ConfigurationController()
+
+        + setView(view : ConfigurationView)
+        + numberSquaresValid(boats : Integer[*]) : Boolean
+        + validateAndCreateConfig() : GameConfig
+    }
+
+    class EndController {
+        - _winner : String
+        - _turnNumber : Integer
+        - _playerName : String
+
+        + <<create>> EndController(centralController : CentralController, winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String)
+
+        - initializeView()
+        + handleQuit()
+        + handleRestart()
+        + getView() : EndView
+    }
+
+    class GameController {
+        - _playerTurn : Boolean
+        - _placingTrapMode : Boolean
+
+        + <<create>> GameController(config : GameConfig, placement : GamePlacement, centralController : CentralController)
+
+        - setupRobotStrategy()
+        + setView(view : GameView)
+
+        - registerObservers()
+
+        + handleGridClick(x : Integer, y : Integer, isPlayerGrid : Boolean)
+        - handleWeaponAttack(target : Position)
+        - handleIslandSearch(target : Position)
+        - handleTrapPlacement(target : Position, isPlayerGrid : Boolean)
+
+        + startPlacingTrapFromInventory(trapType : TrapType)
+        + cancelTrapPlacement()
+        - exitTrapPlacementMode()
+
+        - endPlayerTurn()
+        - displayPlayerTurnResult(result : TurnResult)
+        - displayIslandSearchResult(result : TurnResult)
+        - displayRobotTurnResult(result : TurnResult)
+        - updateAllDisplays()
+        - updateWeaponsDisplay()
+        + updatePlayerStatsDisplay()
+        + updateRobotStatsDisplay()
+        - endGame()
+
+        + isInIsland(x : Integer, y : Integer) : Boolean
+        + hasIsland() : Boolean
+        + getNumberBoats() : Integer
+        + getNumberBoatSquares() : Integer
+        + getPlayer() : Player
+        + getRobot() : Player
+        + quit()
+    }
+
+    class PlacementController {
+        + <<create>> PlacementController(config : GameConfig)
+        + setView(view : PlacementView)
+        + getModel() : Placement
+
+        + initializePlacement()
+        + onGriClick(x : Integer, y : Integer)
+        + applyFixedPlacement()
+        + applyRandomPlacement()
+        + enableManualPlacement()
+        + validateAndCreatePlacement() : GamePlacement
+
+        + updateGrid()
+        - updateGrid(grid : Grid)
+        - drawIsland(gridSize : Integer)
+        - drawBoats(grid : Grid)
+        - drawTraps(grid : Grid)
+        - drawWeapons(grid : Grid)
+        - drawPreview()
+
+        + squareInIsland(x : Integer, y : Integer) : Boolean
+    }
+}
+
+' Package controller
+controller.CentralController o-> "1\n- _menuView" view.MenuView : > display
+controller.CentralController *-> "1\n- _configView" view.ConfigurationView : > display
+controller.CentralController *-> "1\n- _placementView" view.PlacementView : > display
+controller.CentralController *-> "1\n- _gameView" view.GameView : > display
+controller.CentralController o-> "1\n- _configController" controller.ConfigurationController : > manage
+controller.CentralController o-> "1\n- _placementController" controller.PlacementController : > manage
+controller.CentralController o-> "1\n- _gameController" controller.GameController : > manage
+controller.CentralController *-> "1\n- _currentConfig" model.game.GameConfig : > is configured
+controller.CentralController *-> "1\n- currentPlacement" model.game.GamePlacement : > has for placement
+controller.CentralController ..> model.grid.Grid : <<uses>>
+
+controller.ConfigurationController *-> "1\n- _view" view.ConfigurationView : > display
+controller.ConfigurationController ..> model.game.GameConfig : <<uses>>
+
+controller.EndController o-> "1\n- _view" view.EndView : > display
+controller.EndController o-> "1\n- _centralController" controller.CentralController : > has
+controller.EndController *-> "1\n- _playerStats" model.game.GameStats : > own
+controller.EndController *-> "1\n- _robotStats" model.game.GameStats : > own
+
+controller.GameController o-> "1\n- _game" model.game.Game : > manage
+controller.GameController *-> "1\n- _view" view.GameView : > display
+controller.GameController *-> "1\n- _config" model.game.GameConfig : > is configured
+controller.GameController o-> "1\n- _trapToPlace" model.enums.TrapType : > has
+controller.GameController *-> "1\n- _centralController" controller.CentralController : > has
+controller.GameController ..> model.contents.fleet.Boat : <<uses>>
+controller.GameController ..> model.game.results.TurnResult : <<uses>>
+controller.GameController ..> model.grid.Position : <<uses>>
+controller.GameController ..> model.players.Player : <<uses>>
+
+controller.PlacementController *-> "1\n- _view" view.PlacementView : > display
+controller.PlacementController o-> "1\n- _model" model.placement.Placement : > manage
+controller.PlacementController ..> model.placement.PreviewInfo : <<uses>>
+controller.PlacementController ..> model.game.GameConfig : <<uses>>
+controller.PlacementController ..> model.game.GamePlacement : <<uses>>
+controller.PlacementController ..> model.grid.Grid : <<uses>>
+
+
+
+package view {
+
+    package dialogs {
+
+        class BoatCustomizationDialog {
+            - _boatNumbers : Integer[*]
+            - _validated : Boolean
+
+            + <<create>> BoatCustomizationDialog(currentBoats : Integer[*], controller : ConfigurationController)
+
+            - initComponents()
+            - updateSpinner(i : Integer, sizes : Integer[*])
+            - updateTotal(sizes : Integer[*])
+            - calculateTotal(sizes : Integer[*])
+            + showAndGetResult() : Integer[*]
+        }
+
+        class GameDialogs {
+            - GameDialogs()
+
+            + {static} showError(message : String)
+            + {static} showSuccess(message : String)
+            + {static} showTrapFoundDialog(trapName : String) : Integer
+            + {static} showTrapEffect(title : String, message : String, beneficial : Boolean)
+            + {static} showSonarResult(centerX : Integer, centerY : Integer, occupiedCells : Integer, isPlayerSonar : Boolean, gridSize : Integer)
+            + {static} showLegend(waterColor : Color, boatColor : Color, hitColor : Color, sunkColor : Color, missColor : Color, islandColor : Color, islandSearchedEmpty : Color, islandSearchedFound : Color, trapColor : Color)
+            + {static} addLegendItem(text : String, color : Color)
+        }
+    }
+
+    package panels {
+
+        class ActionHistoryPanel {
+            + <<create>> ActionHistoryPanel(playerName : String)
+
+            + getActionsPanel()
+            + getHistoryPanel()
+
+            + setPlayerAction(action : String)
+            + setRobotAction(action : String)
+            + appendHistory(text : String)
+            + clearHistory()
+        }
+
+        class GameGridPanel {
+            - _gridSize : Integer
+            - _isPlayerGrid : Boolean
+
+            + <<create>> GameGridPanel(gridSize : Integer, isPlayerGrid : Boolean, controller : GameController, placement : GamePlacement)
+
+            - initGrid(placement : GamePlacement)
+            - displayInitialPlacement(placement : GamePlacement)
+            - setCellColor(x : Integer, y : Integer, color : Color)
+
+            + getCellColor(x : Integer, y : Integer) : Color
+            + getGridSize() : Integer
+        }
+
+        class InventoryPanel {
+            + <<create>> InventoryPanel(controller : GameController)
+
+            - initComponents()
+            - attachActions()
+            + updateInventory(inventory : Integer[*])
+            + setPlacingMode(placing : Boolean)
+        }
+
+        class PlacementControlPanel {
+            - _isHorizontal : Boolean
+
+            + <<create>> PlacementControlPanel(controller : PlacementController)
+
+            - initComponents()
+            - attachControllerActions()
+            - toggleOrientation()
+            + isHorizontal() : Boolean
+            + getSelectedBoatIndex() : Integer
+            + getModeBoat() : String
+            + setInfoText(text : String)
+            + setBoatOptions(options : String[*])
+            + setTrapWeaponOptions(options : String[*])
+            + enableBoatSelector(enable : Boolean)
+            + enableTrapWeaponSelector(enable : Boolean)
+        }
+
+        class PlacementGridPanel {
+            - _gridSize : Integer
+            - _hoverX : Integer
+            - _hoverY : Integer
+
+            + <<create>> PlacementGridPanel(gridSize : Integer, controller : PlacementController)
+
+            - initGrid()
+            + setCellColor(x : Integer, y : Integer, color : Color)
+            + setCellText(x : Integer, y : Integer, text : String)
+            + resetAllCells()
+            + getHoverX() : Integer
+            + getHoverY() : Integer
+            + getGridSize() : Integer
+        }
+
+        class PlayerStatsPanel {
+            - _isRobot : Boolean
+
+            + <<create>> PlayerStatsPanel(playerName : String, isRobot : Boolean, initialBoats : Integer, initialBoatSquares : Integer, hasIsland : Boolean, inventoryPanel : InventoryPanel)
+
+            - initComponents(initialBoats : Integer, initialBoatSquares : Integer, hasIsland : Boolean)
+            - createStatsLabel(text : String)
+
+            + updateBoatStats(intact : Integer, touched : Integer, sunk : Integer)
+            + updateShotStats(missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+            + updateWeapons(bombs : Integer, sonars : Integer)
+            + updateIsland(remaining : Integer)
+            + getIslandLabel()
+        }
+
+        class TrapPlacementPanel {
+            - _isIslandMode : Boolean
+
+            + <<create>> TrapPlacementPanel()
+            + updateForMode(isIslandMode : Boolean)
+            + getSelectedMode() : String
+
+            - createSectionLabel(text : String)
+        }
+
+        class WeaponSelectionPanel {
+            + <<create>> WeaponSelectionPanel()
+
+            - initComponents()
+            - createWeaponButton(name : String, imagePath : String, enabled : Boolean)
+
+            + isShovelSelected() : Boolean
+            + getSelectedWeapon() : WeaponType
+            + setWeaponEnabled(weapon : WeaponType, enabled : Boolean)
+        }
+    }
+
+    package utils {
+
+        class GameColors {}
+    }
+
+    class ConfigurationView {
+        - _customBoatNumbers : Integer[*]
+
+        + <<create>> ConfigurationView(controller : ConfigurationController)
+
+        - initComponents()
+        - createSection(title : String)
+        - createButton(text : String, bg : Color)
+
+        - updateBoatInfo()
+        + addBackListener(listener : ActionListener)
+        + addNextListener(listener : ActionListener)
+
+        + getUsername() : String
+        + getGridSize() : Integer
+        + isStandardMode() : Boolean
+        + isRandomRobot() : Boolean
+        + isDefaultBoats() : Boolean
+        + getCustomBoatNumbers() : Integer[*]
+        + getTrapPlacementMode() : String
+        + showError(message : String)
+        + showSuccess(message : String)
+    }
+
+    class EndView {
+        + <<create>> EndView(winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String, controller : EndController)
+
+        - initComponents(winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String)
+        - addHeader(text : String)
+        - addStatRow(statName : String, playerValue : String, robotValue : String)
+        - calculatePrecision(hitCells : Integer, totalCells : Integer) : String
+
+        + showRestartChoiceDialog() : Integer
+    }
+
+    class GameView implements Observer {
+        - _gridSize : Integer
+        - _username : String
+
+        + <<create>> GameView(gridSize : Integer, username : String, gameController : GameController, placement : GamePlacement)
+
+        - initComponents(placement : GamePlacement)
+        + showTrapFoundDialog(trapName : String) : Integer
+        + showTrapEffect(title : String, message : String, beneficial : Boolean)
+        + showSonarResult(centerX : Integer, centerY : Integer, occupiedCells : Integer, isPlayerSonar : Boolean)
+        + updateInventoryDisplay(inventory : Integer[*])
+        + setPlacingTrapMode(placing : Boolean)
+        + colorPlayerGridCell(x : Integer, y : Integer, color : Color)
+        + getTrapColor() : Color
+        + getPlayer() : Player
+
+        - createMenuPopup()
+        - showMenu()
+        - showLegend()
+
+        + setTurnNumber(turn : Integer)
+        + updatePlayerStats(intact : Integer, touched : Integer, sunk : Integer, missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+        + updateRobotStats(intact : Integer, touched : Integer, sunk : Integer, missed : Integer, hitCells : Integer, totalBoatCells : Integer)
+        + updatePlayerWeapons(bombs : Integer, sonars : Integer)
+        + updateRobotWeapons(bombs : Integer, sonars : Integer)
+        + setPlayerAction(action : String)
+        + setRobotAction(action : String)
+        + appendHistory(history : String)
+        + isShovelSelected() : Boolean
+        + getSelectedWeapon() : WeaponType
+        + setWeaponEnabled(weaponType : WeaponType, enabled : Boolean)
+
+        + showError(message : String)
+        + showSuccess(message : String)
+
+        + boatAttacked(position : Position, robot : Boolean)
+        + boatTouched(robot : Boolean)
+        + boatSunk(position : Position, size : Integer, robot : Boolean)
+        + squareAttacked(position : Position, robot : Boolean)
+        + squareIsland(position : Position, state : State, robot : Boolean)
+    }
+
+    class MenuView {
+        + <<create>> MenuView()
+        - initComponents()
+        + createMenuButton(text : String)
+        + addNewGameListener(listener : ActionListener)
+        + addQuitListener(listener : ActionListener)
+    }
+
+    class PlacementView implements model.placement.PlacementObserver {
+        - _gridSize : Integer
+
+        + <<create>> PlacementView(gridSize : Integer, username : String, controller : PlacementController, model : Placement)
+        - initComponents()
+        - createBtn(text : String, bg : Color)
+
+        + addBackListener(l : ActionListener)
+        + addValidateListener(l : ActionListener)
+
+        + isHorizontal() : Boolean
+        + getHoverX() : Integer
+        + getHoverY() : Integer
+        + getModeBoat() : String
+        + setCellColor(x : Integer, y : Integer, color : String)
+        + setCellText(x : Integer, y : Integer, text : String)
+        - setInfoText(text : String)
+        - setPhaseText(text : String)
+
+        - showError(msg : String)
+        - showSuccess(msg : String)
+
+        + onGridChanged(grid : Grid)
+        + onPhaseChanged(phase : PlacementPhase)
+        + onMessage(message : String, type : MessageType)
+        + onSelectionChanged(state : SelectionState)
+
+        - drawIsland(gridSize : Integer)
+        - drawBoats(grid : Grid)
+        - drawTraps(grid : Grid)
+        - drawWeapons(grid : Grid)
+        - drawPreview()
+    }
+}
+
+' Package dialogs
+view.dialogs.BoatCustomizationDialog *-> "1\n- _controller" controller.ConfigurationController : > call
+
+' Package panels
+view.panels.GameGridPanel *-> "1\n- _controller" controller.GameController : > call
+view.panels.GameGridPanel ..> model.enums.TrapType : <<uses>>
+view.panels.GameGridPanel ..> model.enums.WeaponType : <<uses>>
+view.panels.GameGridPanel ..> model.grid.Grid : <<uses>>
+view.panels.GameGridPanel ..> model.grid.Position : <<uses>>
+view.panels.GameGridPanel ..> view.utils.GameColors : <<uses>>
+
+view.panels.InventoryPanel *-> "1\n- _controller" controller.GameController : > call
+view.panels.InventoryPanel ..> model.enums.TrapType : <<uses>>
+
+view.panels.PlacementControlPanel *-> "1\n- _controller" controller.PlacementController : > call
+
+view.panels.PlacementGridPanel *-> "1\n- _controller" controller.PlacementController : > call
+view.panels.PlacementGridPanel ..> view.utils.GameColors : <<uses>>
+
+view.panels.PlayerStatsPanel *-> "1\n- _pnlInventory" view.panels.InventoryPanel : > contains
+
+view.panels.WeaponSelectionPanel ..> model.enums.WeaponType : <<uses>>
+
+' Package view
+view.ConfigurationView o-> "1\n- _pnlTrapPlacement" view.panels.TrapPlacementPanel : > contains
+view.ConfigurationView *-> "1\n- _controller" controller.ConfigurationController : > call
+view.ConfigurationView ..> view.dialogs.BoatCustomizationDialog : <<instanciate>>
+
+view.EndView *-> "1\n- _controller" controller.EndController : > call
+
+view.GameView *-> "1\n- _controller" controller.GameController : > call
+view.GameView o-> "1\n- _pnlPlayerStats" view.panels.PlayerStatsPanel : > contains
+view.GameView o-> "1\n- _pnlRobotStats" view.panels.PlayerStatsPanel : > contains
+view.GameView o-> "1\n- _pnlPlayerGrid" view.panels.GameGridPanel : > contains
+view.GameView o-> "1\n- _pnlRobotGrid" view.panels.GameGridPanel : > contains
+view.GameView o-> "1\n- _pnlWeaponSelection" view.panels.WeaponSelectionPanel : > contains
+view.GameView o-> "1\n- _pnlActionHistory" view.panels.ActionHistoryPanel : > contains
+view.GameView o-> "1\n- _pnlInventory" view.panels.InventoryPanel : > contains
+view.GameView ..> model.enums.WeaponType : > <<uses>>
+view.GameView ..> model.enums.TrapType : > <<uses>>
+view.GameView ..> model.players.Player: > <<uses>>
+view.GameView ..> model.game.GamePlacement : > <<uses>>
+view.GameView ..> model.grid.Position : > <<uses>>
+view.GameView ..> view.dialogs.GameDialogs : > <<uses>>
+view.GameView ..> view.utils.GameColors : > <<uses>>
+
+view.PlacementView *-> "1\n- _controller" controller.PlacementController : > call
+view.PlacementView *-> "1\n- _model" model.placement.Placement : > look at
+view.PlacementView *-> "1\n- _pnlGrid" view.panels.PlacementGridPanel : > contains
+view.PlacementView *-> "1\n- _pnlControl" view.panels.PlacementControlPanel : > contains
+view.PlacementView ..> model.grid.Grid : <<uses>>
+view.PlacementView ..> model.grid.Position : <<uses>>
+view.PlacementView ..> model.placement.PreviewInfo : <<uses>>
+view.PlacementView ..> model.placement.SelectionState : <<uses>>
+view.PlacementView ..> model.enums.Orientation : <<uses>>
+view.PlacementView ..> model.enums.PlacementPhase : <<uses>>
+view.PlacementView ..> model.enums.MessageType : <<uses>>
+view.PlacementView ..> view.utils.GameColors : <<uses>>
+
+
+@enduml

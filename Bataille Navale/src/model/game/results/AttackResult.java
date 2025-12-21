@@ -1,4 +1,4 @@
-package model.game.Results;
+package model.game.results;
 
 import model.game.TrapActivation;
 
@@ -10,7 +10,6 @@ import java.util.List;
  */
 public class AttackResult {
     private int _hits;
-    private int _misses;
     private boolean _sunkBoat;
     private List<TrapActivation> _trapActivations;
 
@@ -18,9 +17,8 @@ public class AttackResult {
     private boolean _isSonar;
     private int _occupiedCells;
 
-    public AttackResult(int hits, int misses, boolean sunkBoat, List<TrapActivation> trapActivations) {
+    public AttackResult(int hits, boolean sunkBoat, List<TrapActivation> trapActivations) {
         this._hits = hits;
-        this._misses = misses;
         this._sunkBoat = sunkBoat;
         this._trapActivations = new ArrayList<>(trapActivations);
         this._isSonar = false;
@@ -40,10 +38,6 @@ public class AttackResult {
 
     public int getHits() {
         return _hits;
-    }
-
-    public int getMisses() {
-        return _misses;
     }
 
     public boolean hadSunk() {

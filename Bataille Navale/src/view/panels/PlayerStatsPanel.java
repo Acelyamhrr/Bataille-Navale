@@ -10,9 +10,6 @@ import java.awt.*;
  */
 public class PlayerStatsPanel extends JPanel {
 
-    /** Nom du joueur affiché dans le titre du panel */
-    private String _playerName;
-
     /** Indique si ce panel est pour le robot */
     private boolean _isRobot;
 
@@ -52,7 +49,6 @@ public class PlayerStatsPanel extends JPanel {
      * @param inventoryPanel Le panel d'inventaire (null pour le robot)
      */
     public PlayerStatsPanel(String playerName, boolean isRobot, int initialBoats, int initialBoatSquares, boolean hasIsland, InventoryPanel inventoryPanel) {
-        this._playerName = playerName;
         this._isRobot = isRobot;
         this._pnlInventory = inventoryPanel;
 
@@ -175,12 +171,6 @@ public class PlayerStatsPanel extends JPanel {
         _lblIsland.setText("Île restante : " + remaining);
     }
 
-    // Getters pour accès direct (si nécessaire)
-
-    public JLabel getBoatsIntactLabel() { return _lblBoatsIntact; }
-    public JLabel getBoatsTouchedLabel() { return _lblBoatsTouched; }
-    public JLabel getBoatsSunkLabel() { return _lblBoatsSunk; }
-    public JLabel getMissedShotsLabel() { return _lblMissedShots; }
-    public JLabel getHitRatioLabel() { return _lblHitRatio; }
+    // Getter pour accès direct (si nécessaire)
     public JLabel getIslandLabel() { return _lblIsland; }
 }

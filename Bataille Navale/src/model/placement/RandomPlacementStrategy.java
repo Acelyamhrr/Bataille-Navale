@@ -8,6 +8,7 @@ import model.enums.Orientation;
 import model.enums.TrapType;
 import model.enums.WeaponType;
 import model.grid.Grid;
+import model.grid.Position;
 
 import java.util.List;
 import java.util.Random;
@@ -71,6 +72,7 @@ public class RandomPlacementStrategy implements PlacementStrategy{
                 if(grid.canPlaceTrapWeapon(x, y)){
                     Trap trap = Placement.createTrap(trapType);
                     grid.placeTrap(trap, x, y);
+                    grid.addTrap(trapType, new Position(x, y));
                     return true;
                 }
             }
@@ -78,6 +80,7 @@ public class RandomPlacementStrategy implements PlacementStrategy{
                 if (grid.canPlaceTrapWeapon(x, y)) {
                     Trap trap = Placement.createTrap(trapType);
                     grid.placeTrap(trap, x, y);
+                    grid.addTrap(trapType, new Position(x, y));
                     return true;
                 }
             }
@@ -93,6 +96,7 @@ public class RandomPlacementStrategy implements PlacementStrategy{
             if (grid.hasIsland() && grid.canPlaceTrapWeapon(x, y)) {
                 Weapon weapon = Placement.createWeapon(weaponType);
                 grid.placeWeapon(weapon, x, y);
+                grid.addWeapon(weaponType, new Position(x, y));
                 return true;
             }
         }

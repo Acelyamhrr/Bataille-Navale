@@ -277,14 +277,6 @@ public class ConfigurationView extends JFrame {
         _btnNext.addActionListener(listener);
     }
 
-    /**
-     * Ajoute un listener au bouton de personnalisation des bateaux.
-     * @param listener L'écouteur d'événements à ajouter
-     */
-    public void addCustomizeBoatListener(ActionListener listener) {
-        _btnCustomizeBoat.addActionListener(listener);
-    }
-
     // Getters pour récupérer les valeurs
 
     /**

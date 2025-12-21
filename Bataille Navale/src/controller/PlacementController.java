@@ -5,7 +5,8 @@ import model.game.GameConfig;
 import model.game.GamePlacement;
 import model.grid.Grid;
 import model.grid.Position;
-import model.placement.*;
+import model.placement.Placement;
+import model.placement.PreviewInfo;
 import view.PlacementView;
 
 import java.util.List;

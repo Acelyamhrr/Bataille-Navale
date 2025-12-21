@@ -378,41 +378,21 @@ public class GameView extends JFrame implements Observer {
     /**
      * Met à jour les armes disponibles du joueur.
      *
-     * @param missiles Nombre de missiles (infini, non utilisé)
      * @param bombs Nombre de bombes
      * @param sonars Nombre de sonars
      */
-    public void updatePlayerWeapons(int missiles, int bombs, int sonars) {
+    public void updatePlayerWeapons(int bombs, int sonars) {
         _pnlPlayerStats.updateWeapons(bombs, sonars);
     }
 
     /**
      * Met à jour les armes disponibles du robot.
      *
-     * @param missiles Nombre de missiles (infini, non utilisé)
      * @param bombs Nombre de bombes
      * @param sonars Nombre de sonars
      */
-    public void updateRobotWeapons(int missiles, int bombs, int sonars) {
+    public void updateRobotWeapons(int bombs, int sonars) {
         _pnlRobotStats.updateWeapons(bombs, sonars);
-    }
-
-    /**
-     * Met à jour les cases d'île restantes du joueur.
-     *
-     * @param remaining Nombre de cases restantes
-     */
-    public void updatePlayerIsland(int remaining) {
-        _pnlPlayerStats.updateIsland(remaining);
-    }
-
-    /**
-     * Met à jour les cases d'île restantes du robot.
-     *
-     * @param remaining Nombre de cases restantes
-     */
-    public void updateRobotIsland(int remaining) {
-        _pnlRobotStats.updateIsland(remaining);
     }
 
     /**
@@ -440,13 +420,6 @@ public class GameView extends JFrame implements Observer {
      */
     public void appendHistory(String history) {
         _pnlActionHistory.appendHistory(history);
-    }
-
-    /**
-     * Efface tout l'historique.
-     */
-    public void clearHistory() {
-        _pnlActionHistory.clearHistory();
     }
 
     /**

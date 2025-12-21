@@ -157,15 +157,6 @@ public class PlacementView extends JFrame implements PlacementObserver {
     }
 
     /**
-     * Récupère l'index du bateau sélectionné.
-     *
-     * @return Index du bateau sélectionné
-     */
-    public int getSelectedBoatIndex() {
-        return _pnlControl.getSelectedBoatIndex();
-    }
-
-    /**
      * Récupère la coordonnée X de la case survolée.
      *
      * @return Position X du survol, -1 si aucune

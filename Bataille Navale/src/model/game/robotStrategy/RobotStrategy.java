@@ -1,4 +1,4 @@
-package model.game.RobotStrategy;
+package model.game.robotStrategy;
 
 import model.enums.WeaponType;
 import model.grid.Position;
@@ -19,7 +19,7 @@ public abstract class RobotStrategy {
 
     }
 
-    public WeaponType chooseWeapon(Player robot, Position target) {
+    public WeaponType chooseWeapon(Player robot) {
         Map<WeaponType, Integer> weapons = robot.getWeapons();
 
         List<WeaponType> available = new ArrayList<>();
@@ -78,7 +78,7 @@ public abstract class RobotStrategy {
 
 
 
-    // détermine la prochaine position a attaquer
+    // détermine la prochaine position à attaquer
     public abstract Position chooseTarget(Player robot, Player opponent, int gridSize);
 
     public abstract void notifyResult(Position position, boolean hit, boolean sunk);

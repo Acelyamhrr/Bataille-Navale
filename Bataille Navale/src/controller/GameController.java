@@ -3,7 +3,7 @@ package controller;
 import model.contents.fleet.Boat;
 import model.enums.*;
 import model.game.*;
-import model.game.Results.TurnResult;
+import model.game.results.TurnResult;
 import model.grid.Position;
 import model.players.Player;
 import view.GameView;
@@ -14,7 +14,7 @@ import view.GameView;
  * intermédiaire entre la vue et le modèle.
  * Ne contient AUCUNE logique métier.
  * demande au modèle de faire les calculs
- * et transmet les res à la vue
+ * et transmet les résultats à la vue
  */
 public class GameController {
     private Game _game;
@@ -40,9 +40,9 @@ public class GameController {
     private void setupRobotStrategy() {
         Player robot = _game.getRobot();
         if (_config.getRobotMode() == RobotMode.SMART) {
-            robot.setStrategy(new model.game.RobotStrategy.SmartRobotStrategy());
+            robot.setStrategy(new model.game.robotStrategy.SmartRobotStrategy());
         } else {
-            robot.setStrategy(new model.game.RobotStrategy.RandomRobotStrategy());
+            robot.setStrategy(new model.game.robotStrategy.RandomRobotStrategy());
         }
     }
 
@@ -371,14 +371,12 @@ public class GameController {
 
         // Armes du joueur
         _view.updatePlayerWeapons(
-                player.getWeaponCount(WeaponType.MISSILE),
                 player.getWeaponCount(WeaponType.BOMB),
                 player.getWeaponCount(WeaponType.SONAR)
         );
 
         // Armes du robot
         _view.updateRobotWeapons(
-                robot.getWeaponCount(WeaponType.MISSILE),
                 robot.getWeaponCount(WeaponType.BOMB),
                 robot.getWeaponCount(WeaponType.SONAR)
         );
@@ -463,6 +461,5 @@ public class GameController {
     public void quit() {
         System.exit(0);
     }
-
 
 }

@@ -94,8 +94,11 @@ public class GameConfig {
             }
         }
         else{
-            return gridSize != 6 || totalSquares <= 34;
+            if(gridSize == 6 && totalSquares >34) {
+                return false;
+            }
         }
+
 
         return true;
     }
