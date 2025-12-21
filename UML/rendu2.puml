@@ -1,4 +1,6 @@
 @startuml
+!pragma teoz true
+skinparam maxMessageSize 1000
 skinparam style strictuml
 skinparam classAttributeIconSize 0
 skinparam classFontStyle Bold
@@ -6,7 +8,7 @@ hide enum methods
 
 ' Configuration de la mise en page
 skinparam packageStyle rectangle
-skinparam linetype ortho
+' skinparam linetype ortho
 
 ' Espacement et taille
 skinparam defaultFontSize 11
@@ -16,11 +18,11 @@ skinparam packageFontStyle bold
 
 package model {
 
-    package content {
+    package contents {
 
         package fleet {
 
-            class Boat extends model.content.Content {
+            class Boat extends model.contents.Content {
                 - _numberSquares : Integer
                 - _attacked : Boolean[*]
                 - _robot : Boolean
@@ -61,7 +63,7 @@ package model {
 
         package traps {
 
-            abstract class Trap <<abstract>> extends model.content.Content {
+            abstract class Trap <<abstract>> extends model.contents.Content {
                 + <<create>> Trap(name : TrapType)
 
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
@@ -97,7 +99,7 @@ package model {
 
         package weapons {
 
-            abstract class Weapon <<abstract>> extends model.content.Content {
+            abstract class Weapon <<abstract>> extends model.contents.Content {
                 + <<create>> Weapon( name : WeaponType)
 
                 + setPosition(x : Integer, y : Integer, orientation : Orientation)
@@ -126,7 +128,7 @@ package model {
                 + use(position : Position) : Position[*]
             }
 
-            class WeaponFactory() {
+            class WeaponFactory {
                 + <<create>> WeaponFactory()
 
                 + createMissile() : Weapon
@@ -446,7 +448,7 @@ package model {
             + placeTrap(trap : Trap, x : Integer, y : Integer)
             + placeWeapon(weapon : Weapon, x : Integer, y : Integer)
 
-            + attack((position : Position)
+            + attack(position : Position)
 
             + reset()
             + getSize() : Integer
@@ -651,7 +653,7 @@ package model {
             + setGrid(grid : Grid)
             + placeTrap(trap : Trap, position : Position)
 
-            + hasWeapon(type ; WeaponType) : Boolean
+            + hasWeapon(type : WeaponType) : Boolean
             + useWeapon(type : WeaponType)
             + addWeapon(type : WeaponType)
             + getWeaponCount(type : WeaponType) : Integer
@@ -664,7 +666,7 @@ package model {
             + getTrapInventoryCount(type : TrapType) : Integer
             + removeTrapFromInventory(type : TrapType)
             + getTrapInventory() : Integer[*]
-            + canPlaceTrapAt((position : Position) : Boolean
+            + canPlaceTrapAt(position : Position) : Boolean
             + placeTrapFromInventory(type : TrapType, position : Position, trap : Trap) : Boolean
             + hasTornadoActive() : Boolean
             + applyTornado(target : Position) : Position
@@ -708,8 +710,8 @@ package model {
     }
 }
 
-' Package model.content
-model.content.fleet.Boat o-> "1\n- _name" model.enums.BoatName : > is call
+' Package model.contents
+model.contents.fleet.Boat o-> "1\n- _name" model.enums.BoatName : > is call
 model.contents.fleet.Boat *-> "1..*\n _observers" model.Observer : > is observed by
 
 model.contents.fleet.BoatFactory ..> model.enums.BoatName : <<uses>>
@@ -719,9 +721,9 @@ model.contents.traps.Tornado *-> "1..*\n- _newPositions" model.grid.Position : >
 
 model.contents.weapons.Weapon o-> "1\n- _name" model.enums.WeaponType: > is call
 
-model.content.Content *-> "1\n# _position" model.grid.Position : > is located
-model.content.Content o-> "1\n# _contentType" model.enums.ContentType : > is
-model.content.Content ..> model.enums.Orientation : <<uses>>
+model.contents.Content *-> "1\n# _position" model.grid.Position : > is located
+model.contents.Content o-> "1\n# _contentType" model.enums.ContentType : > is
+model.contents.Content ..> model.enums.Orientation : <<uses>>
 
 
 ' Package game
@@ -744,12 +746,13 @@ model.game.Game *-> "1\n- _config" model.game.GameConfig : > is configured
 model.game.Game *-> "1\n- _placement" model.game.GamePlacement : > has for placement
 model.game.Game o-> "1\n- _player" model.players.Player : > is played by
 model.game.Game o-> "1\n- _robot" model.players.Player : > is played against
-model.game.Game ..> model.content.Content : <<uses>>
-model.game.Game ..> model.content.fleet : <<uses>>
+model.game.Game ..> model.contents.Content : <<uses>>
+model.placement.Placement ..> model.contents.fleet.Boat : <<uses>>
+model.placement.Placement ..> model.contents.fleet.BoatFactory : <<uses>>
 model.game.Game ..> model.contents.traps.Trap : <<uses>>
 model.game.Game ..> model.contents.weapons.Weapon : <<uses>>
-model.game.Game ..> model.content.enums : <<uses>>
-model.game.Game ..> model.game.results : <<uses>>
+model.game.Game ..> model.game.results.AttackResult : <<uses>>
+model.game.Game ..> model.game.results.TurnResult : <<uses>>
 model.game.Game ..> model.grid.Grid : <<uses>>
 model.game.Game ..> model.grid.Position : <<uses>>
 model.game.Game ..> model.placement.Placement : <<call>>
@@ -767,7 +770,7 @@ model.game.GameStats ..> model.grid.Square : <<uses>>
 model.game.GameStats ..> model.players.Player : <<uses>>
 
 model.game.TrapActivation o-> "1\n- _type" model.enums.TrapType : > was activated
-model.game.TrapActivation *->"1\n- _position" model.grid.Position : > is located
+model.game.TrapActivation *-> "1\n- _position" model.grid.Position : > is located
 
 
 ' Package grid
@@ -785,7 +788,7 @@ model.grid.Island *-> "1\n- _position" model.grid.Position : > is located
 
 model.grid.Position o-> "1\n- _orientation" model.enums.Orientation : > is oriented
 
-model.grid.Square *-> "1\n- _content" model.content.Content : > contains
+model.grid.Square *-> "1\n- _content" model.contents.Content : > contains
 model.grid.Square *-> "1\n- _position" model.grid.Position : > is located
 model.grid.Square o-> "1\n- _islandState" model.enums.State : > is
 model.grid.Square *-> "1..*\n _observers" model.Observer : > is observed by
@@ -803,7 +806,8 @@ model.placement.Placement o-> "1..*\n- _trapsToPlace" model.enums.TrapType : > h
 model.placement.Placement o-> "1..*\n- _weaponsToPlace" model.enums.WeaponType : > has to place
 model.placement.Placement o-> "1\n- _phase" model.enums.PlacementPhase : > place currently
 model.placement.Placement *-> "1..*\n- _observers" model.placement.PlacementObserver : > is observed by
-model.placement.Placement ..> model.contents.fleet : <<uses>>
+model.placement.Placement ..> model.contents.fleet.Boat : <<uses>>
+model.placement.Placement ..> model.contents.fleet.BoatFactory : <<uses>>
 model.placement.Placement ..> model.contents.traps.Trap : <<uses>>
 model.placement.Placement ..> model.contents.traps.TrapFactory : <<uses>>
 model.placement.Placement ..> model.contents.weapons.Weapon : <<uses>>
@@ -830,17 +834,159 @@ model.placement.RandomPlacementStrategy ..> model.grid.Position : <<uses>>
 
 ' Package Player
 model.players.Player *-> "1\n- _grid" model.grid.Grid : > has
-model.players.Player *-> "1\n- _tornado" model.contents.weapons.Tornado : > is activated
+model.players.Player *-> "1\n- _tornado" model.contents.traps.Tornado : > is activated
 model.players.Player *-> "1..*\n- _boats" model.contents.fleet.Boat : > own
 model.players.Player o-> "1\n- _strategy" model.game.robotStrategy.RobotStrategy : > has for strategy
-model.players.Player ..> model.content.Content : <<uses>>
+model.players.Player ..> model.contents.Content : <<uses>>
 model.players.Player ..> model.contents.traps.Trap : <<uses>>
 model.players.Player ..> model.grid.Square : <<uses>>
 
 
 package controller {
 
+    class CentralController {
+        + <<create>> CentralController()
+
+        + start()
+        - connectMenuView()
+        - openConfiguration()
+        - connectConfigView()
+        - backToMenu()
+        - validateConfiguration()
+
+        - openPlacement()
+        - connectPlacementView()
+        - backToConfig()
+        - validatePlacement()
+
+        - openGame()
+
+        - quit()
+        + restartWithSamePlacement()
+        + restartWithSameConfig()
+        + restartFromBeginning()
+    }
+
+    class ConfigurationController {
+        + <<create>> ConfigurationController()
+
+        + setView(view : ConfigurationView)
+        + numberSquaresValid(boats : Integer[*]) : Boolean
+        + validateAndCreateConfig() : GameConfig
+    }
+
+    class EndController {
+        - _winner : String
+        - _turnNumber : Integer
+        - _playerName : String
+
+        + <<create>> EndController(centralController : CentralController, winner : String, turnNumber : Integer, playerStats : GameStats, robotStats : GameStats, playerName : String)
+
+        - initializeView()
+        + handleQuit()
+        + handleRestart()
+        + getView() : EndView
+    }
+
+    class GameController {
+        - _playerTurn : Boolean
+        - _placingTrapMode : Boolean
+
+        + <<create>> GameController(config : GameConfig, placement : GamePlacement, centralController : CentralController)
+
+        - setupRobotStrategy()
+        + setView(view : GameView)
+
+        - registerObservers()
+
+        + handleGridClick(x : Integer, y : Integer, isPlayerGrid : Boolean)
+        - handleWeaponAttack(target : Position)
+        - handleIslandSearch(target : Position)
+        - handleTrapPlacement(target : Position, isPlayerGrid : Boolean)
+
+        + startPlacingTrapFromInventory(trapType : TrapType)
+        + cancelTrapPlacement()
+        - exitTrapPlacementMode()
+
+        - endPlayerTurn()
+        - displayPlayerTurnResult(result : TurnResult)
+        - displayIslandSearchResult(result : TurnResult)
+        - displayRobotTurnResult(result : TurnResult)
+        - updateAllDisplays()
+        - updateWeaponsDisplay()
+        + updatePlayerStatsDisplay()
+        + updateRobotStatsDisplay()
+        - endGame()
+
+        + isInIsland(x : Integer, y : Integer) : Boolean
+        + hasIsland() : Boolean
+        + getNumberBoats() : Integer
+        + getNumberBoatSquares() : Integer
+        + getPlayer() : Player
+        + getRobot() : Player
+        + quit()
+    }
+
+    class PlacementController {
+        + <<create>> PlacementController(config : GameConfig)
+        + setView(view : PlacementView)
+        + getModel() : Placement
+
+        + initializePlacement()
+        + onGriClick(x : Integer, y : Integer)
+        + applyFixedPlacement()
+        + applyRandomPlacement()
+        + enableManualPlacement()
+        + validateAndCreatePlacement() : GamePlacement
+
+        + updateGrid()
+        - updateGrid(grid : Grid)
+        - drawIsland(gridSize : Integer)
+        - drawBoats(grid : Grid)
+        - drawTraps(grid : Grid)
+        - drawWeapons(grid : Grid)
+        - drawPreview()
+
+        + squareInIsland(x : Integer, y : Integer) : Boolean
+    }
 }
+
+' Package controller
+controller.CentralController o-> "1\n- _menuView" view.MenuView : > display
+controller.CentralController *-> "1\n- _configView" view.ConfigurationView : > display
+controller.CentralController *-> "1\n- _placementView" view.PlacementView : > display
+controller.CentralController *-> "1\n- _gameView" view.GameView : > display
+controller.CentralController o-> "1\n- _configController" controller.ConfigurationController : > manage
+controller.CentralController o-> "1\n- _placementController" controller.PlacementController : > manage
+controller.CentralController o-> "1\n- _gameController" controller.GameController : > manage
+controller.CentralController *-> "1\n- _currentConfig" model.game.GameConfig : > is configured
+controller.CentralController *-> "1\n- currentPlacement" model.game.GamePlacement : > has for placement
+controller.CentralController ..> model.grid.Grid : <<uses>>
+
+controller.ConfigurationController *-> "1\n- _view" view.ConfigurationView : > display
+controller.ConfigurationController ..> model.game.GameConfig : <<uses>>
+
+controller.EndController o-> "1\n- _view" view.EndView : > display
+controller.EndController o-> "1\n- _centralController" controller.CentralController : > has
+controller.EndController *-> "1\n- _playerStats" model.game.GameStats : > own
+controller.EndController *-> "1\n- _robotStats" model.game.GameStats : > own
+
+controller.GameController o-> "1\n- _game" model.game.Game : > manage
+controller.GameController *-> "1\n- _view" view.GameView : > display
+controller.GameController *-> "1\n- _config" model.game.GameConfig : > is configured
+controller.GameController o-> "1\n- _trapToPlace" model.enums.TrapType : > has
+controller.GameController *-> "1\n- _centralController" controller.CentralController : > has
+controller.GameController ..> model.contents.fleet.Boat : <<uses>>
+controller.GameController ..> model.game.results.TurnResult : <<uses>>
+controller.GameController ..> model.grid.Position : <<uses>>
+controller.GameController ..> model.players.Player : <<uses>>
+
+controller.PlacementController *-> "1\n- _view" view.PlacementView : > display
+controller.PlacementController o-> "1\n- _model" model.placement.Placement : > manage
+controller.PlacementController ..> model.placement.PreviewInfo : <<uses>>
+controller.PlacementController ..> model.game.GameConfig : <<uses>>
+controller.PlacementController ..> model.game.GamePlacement : <<uses>>
+controller.PlacementController ..> model.grid.Grid : <<uses>>
 
 
 

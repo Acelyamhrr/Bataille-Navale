@@ -14,7 +14,7 @@ import view.GameView;
  * intermédiaire entre la vue et le modèle.
  * Ne contient AUCUNE logique métier.
  * demande au modèle de faire les calculs
- * et transmet les res à la vue
+ * et transmet les résultats à la vue
  */
 public class GameController {
     private Game _game;
@@ -463,6 +463,5 @@ public class GameController {
     public void quit() {
         System.exit(0);
     }
-
 
 }
