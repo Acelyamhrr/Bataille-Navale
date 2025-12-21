@@ -144,11 +144,15 @@ public class Game {
             return TurnResult.error("Cette case a déjà été fouillée.");
         }
 
+        // verifier la tornade
+        Position finalTarget = _robot.applyTornado(target);
+        boolean tornadoActivated = !finalTarget.equals(target);
+
         // fouiller
-        Content found = _robot.searchIsland(target);
+        Content found = _robot.searchIsland(finalTarget);
 
         if (found == null) {
-            return TurnResult.emptyIslandSquare();
+            return TurnResult.emptyIslandSquare(tornadoActivated, finalTarget);
         }
 
         ContentType type = found.getContentType();
@@ -156,13 +160,13 @@ public class Game {
         if (type == ContentType.WEAPON) {
             Weapon weapon = (Weapon) found;
             _player.addWeapon(weapon.getName());
-            return TurnResult.weaponFound(weapon.getName());
+            return TurnResult.weaponFound(weapon.getName(), tornadoActivated, finalTarget);
         }
 
         if (type == ContentType.TRAP) {
             Trap trap = (Trap) found;
             _player.addTrapToInventory(trap.getName());
-            return TurnResult.trapFound(trap.getName());
+            return TurnResult.trapFound(trap.getName(), tornadoActivated, finalTarget);
         }
 
         return TurnResult.error("Contenu inconnu trouvé sur l'île.");
@@ -208,10 +212,14 @@ public class Game {
     }
 
     private TurnResult robotSearchIsland(Position target) {
-        Content found = _player.searchIsland(target);
+        // verifier la tornade
+        Position finalTarget = _player.applyTornado(target);
+        boolean tornadoActivated = !finalTarget.equals(target);
+
+        Content found = _player.searchIsland(finalTarget);
 
         if (found == null) {
-            return TurnResult.robotEmptyIsland();
+            return TurnResult.robotEmptyIsland(tornadoActivated, finalTarget);
         }
 
         ContentType type = found.getContentType();
@@ -219,7 +227,7 @@ public class Game {
         if (type == ContentType.WEAPON) {
             Weapon weapon = (Weapon) found;
             _robot.addWeapon(weapon.getName());
-            return TurnResult.robotWeaponFound(weapon.getName());
+            return TurnResult.robotWeaponFound(weapon.getName(), tornadoActivated, finalTarget);
         }
 
         if (type == ContentType.TRAP) {
@@ -230,7 +238,7 @@ public class Game {
             if (placement != null) {
                 Trap newTrap = createTrap(trap.getName());
                 _robot.placeTrap(newTrap, placement);
-                return TurnResult.robotTrapFound(trap.getName(), placement);
+                return TurnResult.robotTrapFound(trap.getName(), placement, tornadoActivated, finalTarget);
             }
             return TurnResult.robotTrapFoundButNoSpace(trap.getName());
         }
