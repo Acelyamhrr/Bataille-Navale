@@ -1,4 +1,4 @@
-package model.game.RobotStrategy;
+package model.game.robotStrategy;
 
 import model.enums.WeaponType;
 import model.grid.Position;
@@ -11,13 +11,10 @@ public class SmartRobotStrategy extends RobotStrategy {
     // positions à explorer quand on a touché un bateau
     private Queue<Position> _targetQueue;
 
-    // Dernière position qui a touché (pour ajouter les adj)
-    private Position lastHit;
 
     public SmartRobotStrategy() {
         super();
         this._targetQueue = new LinkedList<>();
-        this.lastHit = null;
     }
 
     @Override
@@ -41,11 +38,9 @@ public class SmartRobotStrategy extends RobotStrategy {
         if (sunk) {
             // Bateau coulé on vide la queue et on recommence en mode aléatoire
             _targetQueue.clear();
-            lastHit = null;
 
         } else if (hit) {
             // Bateau touché on ajoute les 4 cases adjacentes à explorer
-            lastHit = position;
             addAdjacentPositions(position);
         }
     }

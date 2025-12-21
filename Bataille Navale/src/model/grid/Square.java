@@ -17,18 +17,6 @@ public class Square {
     private ArrayList<Observer> _observers;
     private boolean _robot;
 
-    public Square(Position position, boolean inIsland, boolean robot) {
-        this._position = position;
-        this._inIsland = inIsland;
-        this._robot = robot;
-
-        if(inIsland) {
-            this._islandState = State.INTACT;
-        }
-
-        this._observers = new ArrayList<>();
-    }
-
     public Square(Position position, boolean robot) {
         this._position = position;
         this._inIsland = false;

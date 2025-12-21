@@ -3,7 +3,7 @@ package controller;
 import model.contents.fleet.Boat;
 import model.enums.*;
 import model.game.*;
-import model.game.Results.TurnResult;
+import model.game.results.TurnResult;
 import model.grid.Position;
 import model.players.Player;
 import view.GameView;
@@ -40,9 +40,9 @@ public class GameController {
     private void setupRobotStrategy() {
         Player robot = _game.getRobot();
         if (_config.getRobotMode() == RobotMode.SMART) {
-            robot.setStrategy(new model.game.RobotStrategy.SmartRobotStrategy());
+            robot.setStrategy(new model.game.robotStrategy.SmartRobotStrategy());
         } else {
-            robot.setStrategy(new model.game.RobotStrategy.RandomRobotStrategy());
+            robot.setStrategy(new model.game.robotStrategy.RandomRobotStrategy());
         }
     }
 

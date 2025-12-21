@@ -4,9 +4,8 @@ import model.contents.Content;
 import model.contents.fleet.Boat;
 import model.contents.traps.Tornado;
 import model.contents.traps.Trap;
-import model.contents.weapons.Weapon;
 import model.enums.*;
-import model.game.RobotStrategy.RobotStrategy;
+import model.game.robotStrategy.RobotStrategy;
 import model.game.TrapActivation;
 import model.grid.Grid;
 import model.grid.Position;
@@ -24,7 +23,7 @@ public class Player {
     private RobotStrategy _strategy;
     private Map<TrapType, Integer> _trapInventory;
 
-    public Player(String username, Boolean robot) {
+    public Player(String username, boolean robot) {
         this._username = username;
         this._isRobot = robot;
         this._weapons = new HashMap<>();
@@ -38,21 +37,12 @@ public class Player {
 
     public void setGrid(Grid grid) { this._grid = grid; }
 
-    public void placeBoat(Boat boat, Position position) {
-        _grid.placeBoat(boat, position.getX(), position.getY(), position.getOrientation());
-        _boats.add(boat);
-    }
-
     public void placeTrap(Trap trap, Position position) {
         _grid.placeTrap(trap, position.getX(), position.getY());
 
         if (trap.getName() == TrapType.TORNADO) {
             this._tornado = (Tornado) trap;
         }
-    }
-
-    public void placeWeaponOnIsland(Weapon weapon, Position position) {
-        _grid.placeWeapon(weapon, position.getX(), position.getY());
     }
 
     // ARMES
@@ -175,11 +165,7 @@ public class Player {
         this._tornado = tornado;
     }
 
-    public Tornado getTornado() {
-        return _tornado;
-    }
-
-    // ATTAUQES ET DEFENSES
+    // ATTAQUES ET DEFENSES
 
     public void receiveAttack(Position position) {
         if (_grid != null) {
@@ -279,7 +265,7 @@ public class Player {
         return false;
     }
 
-    // ROBOIT
+    // ROBOT
 
     public void setStrategy(RobotStrategy strategy) {
         this._strategy = strategy;
@@ -303,11 +289,11 @@ public class Player {
         return _strategy.chooseTarget(this, opponent, gridSize);
     }
 
-    public WeaponType chooseWeapon(Position target) {
+    public WeaponType chooseWeapon() {
         if (_strategy == null) {
             return WeaponType.MISSILE;
         }
-        return _strategy.chooseWeapon(this, target);
+        return _strategy.chooseWeapon(this);
     }
 
     public void notifyStrategyResult(Position target, boolean hit, boolean sunk) {
@@ -356,27 +342,9 @@ public class Player {
         return new ArrayList<>(_boats);
     }
 
-    public void reset() {
-        _weapons.clear();
-        _boats.clear();
-        _trapInventory.clear();
-        _tornado = null;
-        if (_grid != null) {
-            _grid.reset();
-        }
-    }
-
     // SETTERS
     public void addBoat(Boat boat) {
         _boats.add(boat);
     }
-
-
-
-
-
-
-
-
 
 }

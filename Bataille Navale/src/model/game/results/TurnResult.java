@@ -1,4 +1,4 @@
-package model.game.Results;
+package model.game.results;
 
 import model.enums.*;
 import model.grid.Position;
@@ -8,15 +8,12 @@ public class TurnResult {
     private String _errorMessage;
     private TurnType _type;
     private AttackResult _attackResult;
-    private WeaponType _weaponUsed;
-    private Position _targetPosition;
     private boolean _tornadoActivated;
     private Position _redirectedTo;
 
     // pour les trucs trouvés sur l'île
     private WeaponType _weaponFound;
     private TrapType _trapFound;
-    private TrapType _trapPlaced;
     private Position _trapPlacementPosition;
 
     // pour le robot
@@ -69,11 +66,10 @@ public class TurnResult {
         return result;
     }
 
-    public static TurnResult trapPlaced(TrapType trap, Position position) {
+    public static TurnResult trapPlaced(Position position) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.TRAP_PLACEMENT;
-        result._trapPlaced = trap;
         result._trapPlacementPosition = position;
         result._isRobotAction = false;
         return result;
@@ -88,11 +84,10 @@ public class TurnResult {
 
 
     // factory methods du robot
-    public static TurnResult robotAttack(WeaponType weapon, AttackResult attackResult, boolean tornadoActivated, Position finalTarget) {
+    public static TurnResult robotAttack(AttackResult attackResult, boolean tornadoActivated, Position finalTarget) {
         TurnResult result = new TurnResult();
         result._success = true;
         result._type = TurnType.ATTACK;
-        result._weaponUsed = weapon;
         result._attackResult = attackResult;
         result._tornadoActivated = tornadoActivated;
         result._redirectedTo = finalTarget;
@@ -161,10 +156,6 @@ public class TurnResult {
         return _attackResult;
     }
 
-    public WeaponType getWeaponUsed() {
-        return _weaponUsed;
-    }
-
     public boolean wasTornadoActivated() {
         return _tornadoActivated;
     }
@@ -179,18 +170,6 @@ public class TurnResult {
 
     public TrapType getTrapFound() {
         return _trapFound;
-    }
-
-    public TrapType getTrapPlaced() {
-        return _trapPlaced;
-    }
-
-    public Position getTrapPlacementPosition() {
-        return _trapPlacementPosition;
-    }
-
-    public boolean isRobotAction() {
-        return _isRobotAction;
     }
 
     public String getActionDescription() {

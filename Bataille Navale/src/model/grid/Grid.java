@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-public  class Grid {
+public class Grid {
     private int _gridSize;
     private Map<Position, Square> _squares;
     private ModeGame _mode;
@@ -184,10 +184,6 @@ public  class Grid {
         return this._gridSize;
     }
 
-    public ContentType getContentTypeSquare(Position pos){
-        return this._squares.get(pos).getContentType();
-    }
-
     public boolean squareIsInIsland(Position pos){
         return this._squares.get(pos).isInIsland();
     }
@@ -201,7 +197,8 @@ public  class Grid {
     }
 
     public Position getPositionIsland(){
-        return this._island.getPosition();
+        if(_mode == ModeGame.ISLAND) return this._island.getPosition();
+        else return new Position(0, 0);
     }
 
     public int getSizeIsland(){

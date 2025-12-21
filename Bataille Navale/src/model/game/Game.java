@@ -3,14 +3,13 @@ package model.game;
 import model.contents.Content;
 import model.contents.fleet.*;
 import model.contents.traps.Trap;
-import model.contents.traps.TrapFactory;
 import model.contents.weapons.Weapon;
-import model.contents.weapons.WeaponFactory;
 import model.enums.*;
-import model.game.Results.AttackResult;
-import model.game.Results.TurnResult;
+import model.game.results.AttackResult;
+import model.game.results.TurnResult;
 import model.grid.Grid;
 import model.grid.Position;
+import model.placement.Placement;
 import model.players.*;
 
 import java.util.ArrayList;
@@ -23,15 +22,10 @@ public class Game {
     private Player _robot;
     private int _turnNumber;
 
-    private WeaponFactory _weaponFactory;
-    private TrapFactory _trapFactory;
-
     public Game(GameConfig config, GamePlacement placement) {
         this._config = config;
         this._placement = placement;
         this._turnNumber = 1;
-        this._weaponFactory = new WeaponFactory();
-        this._trapFactory = new TrapFactory();
     }
 
     public void initialize() {
@@ -55,14 +49,6 @@ public class Game {
         }
     }
 
-    private Trap createTrap(TrapType type) {
-        switch (type) {
-            case TORNADO: return _trapFactory.createTornado();
-            case BLACKHOLE: return _trapFactory.createBlackHole();
-            default: throw new IllegalArgumentException("Type de piège inconnu: " + type);
-        }
-    }
-
     private void initializeWeapons(){
         _player.setWeaponCount(WeaponType.MISSILE, 1);
         _robot.setWeaponCount(WeaponType.MISSILE, 1);
@@ -73,16 +59,6 @@ public class Game {
             _robot.setWeaponCount(WeaponType.BOMB, 1);
             _robot.setWeaponCount(WeaponType.SONAR, 1);
         }
-    }
-
-    private Weapon createWeapon(WeaponType type) {
-        switch (type) {
-            case MISSILE: return _weaponFactory.createMissile();
-            case BOMB: return _weaponFactory.createBomb();
-            case SONAR: return _weaponFactory.createSonar();
-            default: throw new IllegalArgumentException("Type d'arme inconnu: " + type);
-        }
-
     }
 
     // ACTIONS DU JOUEUR
@@ -115,7 +91,7 @@ public class Game {
             }
         }
 
-        Weapon weapon = createWeapon(weaponType);
+        Weapon weapon = Placement.createWeapon(weaponType);
         ArrayList<Position> positions = weapon.use(finalTarget);
 
         // utilise l'arme
@@ -185,14 +161,14 @@ public class Game {
         }
 
         // créer et placer le piège
-        Trap trap = createTrap(trapType);
+        Trap trap = Placement.createTrap(trapType);
         boolean placed = _player.placeTrapFromInventory(trapType, target, trap);
 
         if (!placed) {
             return TurnResult.error("Échec du placement du piège.");
         }
 
-        return TurnResult.trapPlaced(trapType, target);
+        return TurnResult.trapPlaced(target);
     }
 
     // TOUR DU ROBOT
@@ -236,7 +212,7 @@ public class Game {
             // le robot place le piège
             Position placement = _robot.findEmptySquareForTrap();
             if (placement != null) {
-                Trap newTrap = createTrap(trap.getName());
+                Trap newTrap = Placement.createTrap(trap.getName());
                 _robot.placeTrap(newTrap, placement);
                 return TurnResult.robotTrapFound(trap.getName(), placement, tornadoActivated, finalTarget);
             }
@@ -254,10 +230,10 @@ public class Game {
         boolean tornadoActivated = !finalTarget.equals(target);
 
         // Choisir l'arme
-        WeaponType weaponChoice = _robot.chooseWeapon(finalTarget);
+        WeaponType weaponChoice = _robot.chooseWeapon();
 
         // Créer l'arme
-        Weapon weapon = createWeapon(weaponChoice);
+        Weapon weapon = Placement.createWeapon(weaponChoice);
         ArrayList<Position> positions = weapon.use(finalTarget);
 
         // Utiliser l'arme si ce n'est pas un missile
@@ -275,7 +251,7 @@ public class Game {
             _robot.notifyStrategyResult(finalTarget, attackResult.hadHit(), attackResult.hadSunk());
         }
 
-        return TurnResult.robotAttack(weaponChoice, attackResult, tornadoActivated, finalTarget);
+        return TurnResult.robotAttack(attackResult, tornadoActivated, finalTarget);
     }
 
     // EXECUTION DES ATTAQUES
@@ -302,7 +278,7 @@ public class Game {
                 if (trapResult.isBounced()) {
                     Player attacker = isRobotAttacker ? _robot : _player;
 
-                    Weapon bouncedWeapon = createWeapon(weaponType);
+                    Weapon bouncedWeapon = Placement.createWeapon(weaponType);
                     ArrayList<Position> bouncedPositions = bouncedWeapon.use(pos);
 
                     for (Position bouncedPos : bouncedPositions) {
@@ -337,7 +313,7 @@ public class Game {
             }
         }
 
-        return new AttackResult(hits, misses, sunkBoat, trapActivations);
+        return new AttackResult(hits, sunkBoat, trapActivations);
     }
 
     // execute une attaque sonar
@@ -445,7 +421,5 @@ public class Game {
     public boolean hasIsland() {
         return _config.getModeGame() == ModeGame.ISLAND;
     }
-
-
 
 }

@@ -1,14 +1,7 @@
-package model.game.RobotStrategy;
+package model.game.robotStrategy;
 
-import model.contents.weapons.Weapon;
 import model.grid.Position;
-import model.grid.Square;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import model.enums.WeaponType;
 import model.players.Player;
 
 public class RandomRobotStrategy extends RobotStrategy {

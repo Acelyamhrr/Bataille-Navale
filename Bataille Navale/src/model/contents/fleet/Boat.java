@@ -89,7 +89,7 @@ public class Boat extends Content {
         this._attacked[pos] = true;
 
         if (!_alreadyTouched) {
-            notifyObserversTouched(this._position, this._numberSquares);
+            notifyObserversTouched();
             _alreadyTouched = true;
         }
 
@@ -112,7 +112,7 @@ public class Boat extends Content {
         }
     }
 
-    private void notifyObserversTouched(Position position, int numberSquares){
+    private void notifyObserversTouched(){
         for(Observer observer : this._observers){
             observer.boatTouched(this._robot);
         }
