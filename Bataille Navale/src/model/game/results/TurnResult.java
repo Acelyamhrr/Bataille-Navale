@@ -198,9 +198,6 @@ public class TurnResult {
                 }
                 if (_trapFound != null) {
                     String msg = actor + " a trouvé un piège : " + _trapFound;
-                    if (_trapPlacementPosition != null && _isRobotAction) {
-                        msg += " (placé en " + _trapPlacementPosition.getX() + "," + _trapPlacementPosition.getY() + ")";
-                    }
                     return msg;
                 }
                 return actor + " a fouillé une case vide";
